@@ -5,11 +5,16 @@
 > not yet validated against running code), or **OPEN**. Nothing here is written as though
 > it has been proven until it has. Target length for submission: 1–3 pages.
 
+**Implementation checkpoint (A4):** A1–A4 are implemented: the fixture, browser surface,
+perception/redaction, locator ladder, action policy and environment-backed secret broker.
+The replay/discovery processes, artifact approvals, leases, reconciliation and human action
+log described below are design decisions for A5 and later, not running features yet.
+
 ---
 
 ## 1. Architecture
 
-**Status: DECIDED, one item PENDING.**
+**Status: DECIDED.**
 
 Single logical system, four ports: `Surface`, `PolicyEngine`, `EvidenceSink`, `LeaseStore`.
 Those boundaries — not the file layout — are what would survive being split into services.
@@ -33,12 +38,20 @@ While paused, the replay process polls the lease row and does not exit. This was
 a single-process design because the operator must be able to act while a run is blocked, and
 over a daemon design because a daemon is the scaling infrastructure the brief tells us not to build.
 
-**PENDING — perception mechanism.** Primary plan is the Chromium accessibility tree via CDP
-`Accessibility.getFullAXTree`, bridged to actionable Playwright locators by resolving
-`backendDOMNodeId` and stamping a `data-wp-ref` attribute. The fallback, if cross-frame node
-resolution proves unworkable, is a per-frame DOM walk computing role and accessible name. A
-90-minute time-boxed spike decides it, and the result is recorded here. The `Surface` port
-makes the choice invisible to everything above it — which is the argument for having the port.
+**Perception mechanism — decided by a time-boxed spike.** The Chromium accessibility
+tree via CDP `Accessibility.getFullAXTree`, bridged to Playwright by resolving
+`backendDOMNodeId` and stamping a `data-wp-ref` attribute. Measured against the hostile
+fixture: the tree must be fetched **per frame** (one call saw none of the eight `View`
+links inside the frameset); every node maps to a frame path, nested iframe included;
+stamping and clicking works inside child frames; a cross-frame snapshot takes ~10 ms and
+stamping 85 nodes ~75 ms; row anchors and column headers come from the tree alone. Two
+findings changed the design: Chromium exposed the header-less tab strip as data-table
+`cell`s, so data-ness is decided by header cells rather than role; and a frame's `load`
+event can resolve against the document being replaced, so the surface waits for request
+quiescence and reports unfinished work explicitly. Application checkpoints and goal
+postconditions remain A5 work. References expire at each observation, and browser errors
+are redacted before return. The DOM-walk fallback was not needed — and the `Surface` port would have
+hidden the choice either way, which is the argument for having it.
 
 ---
 
@@ -166,6 +179,14 @@ record nothing.
 than into its callers, so the model cannot route around it. Off-allowlist navigation is blocked
 unconditionally.
 
+The A4 implementation checks actual form actions (including submitter overrides), Enter
+inside child frames, mutating GET routes, unknown controls and document redirects. Its
+per-minute, per-run and repeated-action limits are deterministic. Attended approval is a
+trusted callback; unattended calls return `approval_required`. State recognition and durable
+escalation are not implemented by this callback. Browser tests verify blocked actions do
+not reach their destinations, stale refs do not select another row, and screenshot masks
+contain black pixels over classified data.
+
 **Risk classification is effect-based.** Matching button names alone misses an Enter key that
 submits a form, an unlabeled destructive control, and a GET that mutates — all three of which
 exist in the target fixture deliberately. So classification also considers the resolved target
@@ -182,7 +203,9 @@ sanitized observations go to the model, the logs and the evidence, while extract
 raw layer and returns values only to the caller. The caller is entitled to the balance; the log
 file isn't. Default classification is `internal`, and `internal` is redacted in prompts and on
 disk — an earlier draft defaulted to `internal` but redacted only `pii`, which would have leaked
-an unlabeled person's name. Extraction locators key on stable labels and relationships, never on
+an unlabeled person's name. The default applies to *data* — field values and cells of
+headered tables — not to UI chrome; applied to every label it would redact the very
+"View" and "No records found" text that discovery navigates by. Extraction locators key on stable labels and relationships, never on
 the value being extracted, which would neither generalize nor survive redaction.
 
 **The honest limit.** A closed action set means page content cannot become a *novel* operation —
@@ -203,14 +226,14 @@ bounded, not eliminated, and is one reason irreversible steps require a human.
 | Desktop surface | Port defined; stub raises `NotImplementedError` with per-method UIA/AXAPI mappings | The seam is the deliverable |
 | Operator web console | CLI instead; same tables a web UI would use | The brief permits a mocked operator UI; the control-transfer model is what's graded |
 | Assisted LLM fallback on replay failure | Designed, not built | Would be bounded to one step, policy-checked, recorded as a proposed patch requiring approval — never open-ended |
-| Human log → auto artifact patch | Designed, not built | Recording the human is core scope and is built; auto-compiling it into a patch is the extra |
+| Human log → auto artifact patch | Designed, not built | Recording the human is planned core scope; auto-compiling it into a patch is the extra |
 | Confidence / success-rate gating | Not built | Plain draft→approved is what the catalog needs; statistical gating would be a third stretch goal |
 | Tier-5 visual locators | Recorded as diagnostics, never resolved against | Present because desktop and canvas surfaces will need them |
-| Process-death browser reattachment | Persistence built, reconnection not | The intent record makes a crashed run safe; automatic reattachment is scope |
+| Process-death browser reattachment | Persistence planned; reconnection out of scope | The planned intent record forces reconciliation after a crash |
 | Credential vault | Env vars behind a `SecretBroker` | A vault drops into the same interface |
 | Queues, workers, multi-tenant plumbing | Not built | Explicitly not rewarded |
 
-**What I'd build next, in order:** the assisted single-step LLM fallback (it converts a class of
-escalations into proposed patches); compiling the human action log into artifact patches, so an
-intervention improves the capability instead of merely rescuing one run; and a real approval
-queue with reviewer identity, since approval is currently a CLI command and a name.
+**Next milestone:** A5 adds the artifact schema, state recognizers, checkpoints,
+deterministic replay and artifact approval. Discovery/compiler (A6) and live handoff (A7)
+follow. After core delivery, assisted single-step fallback and human-log-to-artifact patches
+could turn interventions into reviewed capability improvements.

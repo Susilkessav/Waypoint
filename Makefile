@@ -16,7 +16,7 @@ app:  ## Run the target app on :8080 (blocking)
 	uv run python -m target_app
 
 operator:  ## Operator CLI (see: waypoint intervene --help)
-	uv run python -m waypoint.operator.cli
+	uv run waypoint intervene
 
 test:  ## Run tests, excluding those that need a live LLM
 	uv run pytest -m "not llm" -q
