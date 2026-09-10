@@ -1,0 +1,22 @@
+<html>
+<head><title>Accounts</title></head>
+<body bgcolor="#FFFFFF" style="font-family: Verdana, Arial, sans-serif; font-size: 11px;">
+<table id="ctl00_MainContent_gvAccounts" cellpadding="4" cellspacing="0"
+       border="1" bordercolor="#C0C0B0" width="100%">
+  <tr bgcolor="#E8E8DC">
+    <th align="left">Account</th>
+    <th align="left">Type</th>
+    <th align="left">Balance</th>
+    <th align="left">Status</th>
+  </tr>
+  {% for a in member.accounts %}
+  <tr>
+    <td>{{ a.account_id }}</td>
+    <td>{{ a.kind }}</td>
+    <td>{{ a.balance }}</td>
+    <td>{{ a.status }}</td>
+  </tr>
+  {% endfor %}
+</table>
+</body>
+</html>

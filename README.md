@@ -21,7 +21,7 @@ it is deliberately not written in the future-perfect tense that makes a repo loo
 |---|---|---|
 | Design and execution rules | ✅ complete — [PLAN.md](PLAN.md) §6 | — |
 | Repo scaffold, CI, test harness | ✅ complete | A1 |
-| Target app (hostile legacy fixture) | ⬜ not started | A2 |
+| Target app (hostile legacy fixture) | ✅ complete | A2 |
 | Surface port, AX perception, sensitivity classifier | ⬜ not started | A3 |
 | Locator ladder, policy engine, redactor | ⬜ not started | A4 |
 | Artifact schema, replay engine, approval | ⬜ not started | A5 |

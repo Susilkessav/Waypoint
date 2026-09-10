@@ -1,0 +1,53 @@
+<html>
+<head><title>Member Search Results</title></head>
+<body bgcolor="#FFFFFF" style="font-family: Verdana, Arial, sans-serif; font-size: 11px;">
+<table cellpadding="0" cellspacing="0" border="0" width="100%">
+  <tr><td bgcolor="#DDDDD0" height="22">&nbsp;<b>Member Search Results</b></td></tr>
+</table>
+<br>
+
+{% if not rows %}
+  <!-- A declared business outcome, not an error: HTTP 200, no stack trace. -->
+  <table cellpadding="6" cellspacing="0" border="1" bordercolor="#B0B0A0" bgcolor="#FFF8E0">
+    <tr><td><b>No records found</b></td></tr>
+    <tr><td>No member exists with ID &quot;{{ member_id }}&quot;.</td></tr>
+  </table>
+  <br>
+  <a href="/console/content">Return to search</a>
+{% else %}
+  <table id="ctl00_MainContent_gvMembers" cellpadding="4" cellspacing="0"
+         border="1" bordercolor="#C0C0B0" width="100%">
+    <tr bgcolor="#E8E8DC">
+      <th align="left">Member ID</th>
+      <th align="left">Name</th>
+      <th align="left">Branch</th>
+      <th align="left">Status</th>
+      <th align="left">Joined</th>
+      <th align="left">&nbsp;</th>
+    </tr>
+    {% for m in rows %}
+    <tr{% if loop.index is odd %} bgcolor="#F7F7F2"{% endif %}>
+      <td>{{ m.member_id }}</td>
+      <td>{{ m.name }}</td>
+      <td>{{ m.branch }}</td>
+      <td>{{ m.status }}</td>
+      <td>{{ m.joined }}</td>
+      <td>
+        <!-- Every row's link has the same accessible name, and the element ID
+             encodes ROW POSITION, so it changes whenever the grid re-sorts.
+             Both properties are the reason anchored locators exist. -->
+        <a id="ctl00_MainContent_gvMembers_ctl{{ '%02d'|format(loop.index + 1) }}_lnkView"
+           href="/console/member?member_id={{ m.member_id }}">View</a>
+        {% if duplicates(m) %}
+        <a id="ctl00_MainContent_gvMembers_ctl{{ '%02d'|format(loop.index + 1) }}_lnkViewAlt"
+           href="/console/member?member_id={{ m.member_id }}">View</a>
+        {% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+  <br>
+  <font color="#666666">{{ rows|length }} record(s) in branch context.</font>
+{% endif %}
+</body>
+</html>
