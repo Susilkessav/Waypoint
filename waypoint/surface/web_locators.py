@@ -92,12 +92,16 @@ class WebMatcher:
         row = loc.locator("xpath=ancestor::tr[1]")
         return row.count() == 1 and role_locator(row, identity.target.role, expected).count() == 1
 
-    def synthesize(self, ref: str, inputs: Mapping[str, str]) -> LocatorBundle:
+    def synthesize(
+        self, ref: str, inputs: Mapping[str, str], *, extraction: bool = False
+    ) -> LocatorBundle:
         p = self.surface._perceived.get(ref)
         if p is None:
             raise ValueError("target is not in the current observation")
         e = p.element
-        name = e.name.text if e.name.cls.level == "public" else None
+        # An output is located by its labels and row, never by the value it holds
+        # (R-SENS-7): a locator keyed on "active" can never find a dormant member.
+        name = None if extraction else (e.name.text if e.name.cls.level == "public" else None)
         candidates: list[Candidate] = []
         if name is not None:
             candidates.append(

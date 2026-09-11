@@ -536,8 +536,10 @@ class WebSurface:
             )
             return NotFound("invalid_or_unavailable_locator")
 
-    def synthesize(self, ref: str, inputs: Mapping[str, str] | None = None) -> LocatorBundle:
-        return self.matcher.synthesize(ref, inputs or {})
+    def synthesize(
+        self, ref: str, inputs: Mapping[str, str] | None = None, *, extraction: bool = False
+    ) -> LocatorBundle:
+        return self.matcher.synthesize(ref, inputs or {}, extraction=extraction)
 
     # --------------------------------------------------------------- quiesce
 

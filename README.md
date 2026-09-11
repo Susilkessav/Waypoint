@@ -11,12 +11,14 @@ Built for the interface.ai take-home (Computer-Use Automation System).
 
 ---
 
-## Status: A1–A5 implemented
+## Status: A1–A6 implemented
 
 The target app, browser surface, locator ladder, policy engine, redactor, secret broker,
 capability artifact (schema, approval) and deterministic replay engine are implemented and
-covered by unit and live-browser tests. Discovery (A6) and operator handoff (A7) remain
-planned: `discover`, `compile`, `intervene` and `catalog` exit with “not implemented.”
+covered by unit and live-browser tests, as are discovery and the compiler (A6). The one
+genuine model-driven discovery run the brief requires is still to be recorded - it needs
+an Anthropic API key. Operator handoff (A7) remains planned: `intervene` and `catalog`
+exit with “not implemented.”
 Until A7, an escalation ends the run with evidence rather than handing the session to a person.
 
 | Component | Status | Milestone |
@@ -27,7 +29,7 @@ Until A7, an escalation ends the run with evidence rather than handing the sessi
 | Surface port, AX perception, sensitivity classifier | ✅ complete | A3 |
 | Locator ladder, policy engine, redactor, secret broker | ✅ complete | A4 |
 | Artifact schema, replay engine, approval | ✅ complete | A5 |
-| Discovery loop (real LLM), compiler | ⬜ not started | A6 |
+| Discovery loop (real LLM), compiler | ✅ built — genuine model run pending a key | A6 |
 | Control lease, escalation, live handoff | ⬜ not started | A7 |
 | Reconciliation, recovery, outcomes | ⬜ not started | B |
 | Tenant overrides, capability catalog | ⬜ conditional | C |
@@ -128,13 +130,34 @@ screenshots). Exit codes: `0` success or business outcome, `1` failure, `3` esca
 `waypoint approve <id> --note "..."` re-approves after a reviewed edit; it refuses while any
 approval gate is open.
 
-### Planned
+### Discovery (implemented)
 
-Live discovery (A6) will require `ANTHROPIC_API_KEY`; a recorded run will replay offline
-from a **cassette** keyed by snapshot hash, with no key and no network:
+Discovery drives the target app with a model, then compiles what it did into a **draft**
+artifact that must be reviewed and approved before it can replay. It is attended: an action
+the policy marks risky is put to you at the terminal, and refused when there is none.
 
 ```bash
-waypoint discover --capability-id lookup_member_balance --llm cassette   # PLANNED (A6)
+export ANTHROPIC_API_KEY=...   # live runs only
+waypoint discover --capability-id lookup_member_balance \
+  --goal "Look up member {{member_id}} and read their current savings balance" \
+  --entry http://127.0.0.1:8080/console \
+  --bind member_id=12345:string:internal \
+  --expect-output savings_balance:money:pii --expect-output account_status:string:internal
+```
+
+A live run uses Claude Haiku 4.5 (`claude-haiku-4-5`), the cheapest current model;
+`--model` selects a more capable one. It records a **cassette** in its evidence directory. The
+same command with `--llm cassette --cassette evidence/runs/<run_id>/cassette.json`
+reproduces it with no key and no network, as long as the screens still match - a changed
+application stops the replay rather than clicking stale decisions. `waypoint compile
+evidence/runs/<run_id>` recompiles a saved transcript. Neither command overwrites an
+existing artifact; the draft gets the next free version.
+
+### Planned
+
+Still to come:
+
+```bash
 watch -n 2 'waypoint intervene list'                                     # PLANNED (A7)
 waypoint replay lookup_member_balance --input member_id=12345 --inject interstitial  # B1
 waypoint replay lookup_member_balance --input member_id=12345 --inject 500           # B1

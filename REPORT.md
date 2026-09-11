@@ -84,6 +84,17 @@ The artifact is a contract, not a recording. Six decisions:
 
 ---
 
+**Compilation.** A discovery transcript is evidence; the artifact is a contract, and a
+reviewer should never need the transcript to approve it. The compiler has three declared
+sources and infers nothing else: inputs from the launch bindings, outputs from the model's
+`finish` call, goal success from `finish.success`. Every checkpoint the model nominates is
+verified against the recorded screens - true after the action, false somewhere else, about
+on-screen content - and a check that merely proves "a page loaded" is marked weak, which
+blocks approval. Where the screen shows which record it is about, the compiler adds that
+identity check even if the model forgot to. What fails compilation outright: an unfinished
+run, a step without a unique verified locator, an output located by its own value, and any
+sensitive-looking literal in the result.
+
 ## 3. Determinism & error handling
 
 **Status: DECIDED.**

@@ -340,7 +340,7 @@ def _text_targets(c: Candidate) -> list[TextTarget]:
     return out
 
 
-def _keys_on_value(c: Candidate) -> bool:
+def keys_on_value(c: Candidate) -> bool:
     """Whether a candidate finds an output by the very text it is meant to read."""
     if c.kind == "role_name" or (c.kind == "anchored" and c.name is not None):
         return True
@@ -384,7 +384,7 @@ def approval_gates(cap: Capability) -> list[str]:
         if any(c.is_positional and c.identity is None for c in bundle.candidates):
             reasons.append(f"{where}: positional candidate lacks identity (R-LOC-5)")
     for name, out in cap.outputs.properties.items():
-        if any(_keys_on_value(c) for c in out.extraction.candidates):
+        if any(keys_on_value(c) for c in out.extraction.candidates):
             reasons.append(f"outputs.{name}: extraction keys on the value it reads (R-SENS-7)")
     body = cap.model_dump(mode="json", by_alias=True, exclude={"provenance"})
     for path, text in _strings(body):
