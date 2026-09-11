@@ -188,3 +188,11 @@ def test_seeded_balances_match_the_documented_demo_path(console: Console) -> Non
     """PLAN.md section 11 quotes these values; keep them true."""
     assert "$4,281.19" in console.get("/console/member/accounts?member_id=12345")
     assert "$912.04" in console.get("/console/member/accounts?member_id=67890")
+
+
+def test_inject_wrong_member_renders_another_members_profile(console: Console) -> None:
+    """Fixture for T7: the right screen, for the wrong person."""
+    console.get("/console/content?inject=wrong_member")
+    html = console.get("/console/member?member_id=12345")
+    assert "Member Profile" in html
+    assert "<b>12345</b>" not in html and "<b>18820</b>" in html

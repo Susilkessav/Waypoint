@@ -16,7 +16,7 @@ from collections.abc import Iterable
 
 from flask import session
 
-from target_app.data import Member
+from target_app.data import Member, branch_roster
 
 SESSION_KEY = "wp_inject"
 CLEAR_VALUE = "none"
@@ -28,6 +28,7 @@ SUPPORTED = frozenset(
         "ambiguous",  # duplicates a control so two elements match  -> escalate
         "row_missing",  # target row absent, no banner              -> tests R-LOC-5
         "reorder",  # rows re-sorted, positions shift               -> tests R-LOC-5
+        "wrong_member",  # detail shows a different member          -> tests R-RESUME-5
     }
 )
 
@@ -74,3 +75,18 @@ def duplicates_view_link(member: Member, searched_member_id: str) -> bool:
     to Ambiguous and escalate rather than pick one (PLAN.md R-LOC-2).
     """
     return is_active("ambiguous") and member.member_id == searched_member_id
+
+
+def displayed_member_id(requested: str) -> str:
+    """The member the detail page actually renders.
+
+    Under ``wrong_member`` it is the next member of the same branch: the right screen
+    for the wrong person. A checkpoint asking only "is this a Member Profile?" would
+    pass; one that asserts *which* member must not (PLAN.md R-RESUME-5, T7).
+    """
+    if not is_active("wrong_member"):
+        return requested
+    roster = [m.member_id for m in branch_roster(requested)]
+    if requested not in roster or len(roster) < 2:
+        return requested
+    return roster[(roster.index(requested) + 1) % len(roster)]

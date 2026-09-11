@@ -43,23 +43,46 @@ def test_unlabelled_control_is_not_clicked_unattended(surface):
 
 
 def test_enter_cannot_bypass_submit_approval(surface):
-    snap = surface.observe()
-    target = find(snap, "textbox", anchor="Password")
-    assert surface.act(Action("type", ref=target.ref, value="$secrets.meridian_password")).ok
+    surface.page.set_content(
+        "<form action='/console/subaccount/confirm' method='post'>"
+        "<label>Amount<input name='amount'></label><button>Go</button></form>"
+    )
+    target = find(surface.observe(), "textbox")
+    assert surface.act(Action("type", ref=target.ref, value="25.00")).ok
     surface.context = RunContext(unattended=True, state_known=True)
     result = surface.act(Action("key", value="Enter"))
     assert result.error_code == "approval_required"
-    assert surface.page.url.endswith("/")
 
 
-def test_enter_inside_child_frame_checks_that_frames_form(surface):
+def test_enter_inside_child_frame_resolves_that_frames_form(surface):
+    """Resolved in the content frame, the search form's route is a reviewed read-only
+    POST. Resolved against the form-less frameset, the effect would be opaque and
+    need approval - so success here proves the child frame's form was used."""
     login(surface)
     target = find(surface.observe(), "textbox", anchor="Member ID")
     assert surface.act(Action("type", ref=target.ref, value="12345")).ok
     surface.context = RunContext(unattended=True, state_known=True)
     result = surface.act(Action("key", value="Enter"))
-    assert result.error_code == "approval_required"
-    assert surface.page.frame(name="content").url.endswith("/console/content")
+    assert result.ok, result.error
+    assert "/console/search" in surface.page.frame(name="content").url
+
+
+def test_webforms_tab_postback_is_classified_by_its_form_route(surface):
+    detail = open_member(surface)
+    surface.context = RunContext(unattended=True, state_known=True)
+    result = surface.act(Action("click", ref=find(detail, "cell", name="Accounts").ref))
+    assert result.ok, result.error
+
+
+def test_any_other_onclick_handler_stays_opaque(surface):
+    surface.page.set_content(
+        "<form method='post' action='/console/member'><table><tr>"
+        "<td onclick=\"__doPostBack('a',''); fetch('/console/member/flag')\">Go</td>"
+        "</tr></table></form>"
+    )
+    target = next(e for e in surface.observe().elements if e.name == "Go")
+    surface.context = RunContext(unattended=True, state_known=True)
+    assert surface.act(Action("click", ref=target.ref)).error_code == "approval_required"
 
 
 def test_secret_literal_is_blocked_and_broker_value_cannot_be_extracted(surface):

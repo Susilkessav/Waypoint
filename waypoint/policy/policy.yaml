@@ -7,6 +7,17 @@ mutating_routes:
   - "GET /console/member/flag"
   - "GET /console/subaccount/confirm*"
   - "GET /console/*/delete*"
+# Reviewed exceptions to mutating_routes, for this application only. Legacy
+# WebForms-style consoles POST for everything - sign-on, search, even switching
+# tabs - so "POST *" alone makes every read-only flow require approval. Each line
+# is a human-reviewed statement that the route reads or establishes a session and
+# changes no record. Control names are still checked against irreversible_verbs,
+# so a "Delete" postback to an exempt route is still irreversible. Residual risk:
+# a mutating postback whose control name carries no listed verb.
+readonly_routes:
+  - "POST /"                  # sign-on: establishes a session
+  - "POST /console/search"    # member search
+  - "POST /console/member"    # member-detail tab postbacks (__doPostBack)
 irreversible_verbs: [transfer, submit, confirm, delete, remove, close, wire, disburse,
                      post, approve, send, pay, withdraw, freeze]
 unknown_state_policy: safe_only

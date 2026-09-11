@@ -11,11 +11,13 @@ Built for the interface.ai take-home (Computer-Use Automation System).
 
 ---
 
-## Status: A1–A4 implemented
+## Status: A1–A5 implemented
 
-The target app, browser surface, locator ladder, policy engine, redactor and secret broker
-are implemented and covered by unit and live-browser tests. Discovery, capability replay
-and operator handoff remain planned; their CLI commands currently fail with “not implemented.”
+The target app, browser surface, locator ladder, policy engine, redactor, secret broker,
+capability artifact (schema, approval) and deterministic replay engine are implemented and
+covered by unit and live-browser tests. Discovery (A6) and operator handoff (A7) remain
+planned: `discover`, `compile`, `intervene` and `catalog` exit with “not implemented.”
+Until A7, an escalation ends the run with evidence rather than handing the session to a person.
 
 | Component | Status | Milestone |
 |---|---|---|
@@ -24,7 +26,7 @@ and operator handoff remain planned; their CLI commands currently fail with “n
 | Target app (hostile legacy fixture) | ✅ complete | A2 |
 | Surface port, AX perception, sensitivity classifier | ✅ complete | A3 |
 | Locator ladder, policy engine, redactor, secret broker | ✅ complete | A4 |
-| Artifact schema, replay engine, approval | ⬜ not started | A5 |
+| Artifact schema, replay engine, approval | ✅ complete | A5 |
 | Discovery loop (real LLM), compiler | ⬜ not started | A6 |
 | Control lease, escalation, live handoff | ⬜ not started | A7 |
 | Reconciliation, recovery, outcomes | ⬜ not started | B |
@@ -97,48 +99,49 @@ using the adapter; `.env` is not loaded automatically. Raw credentials are withh
 observations, extraction, error messages and screenshots. Public UI chrome remains visible;
 classification of previously unknown application layouts still needs tenant-specific review.
 
-## Planned usage
+## Usage
 
-The following discovery/replay/handoff commands are **not implemented**. Live discovery
-will require `ANTHROPIC_API_KEY`; the current tests do not.
+### Replay (implemented)
 
-### Running without live services
-
-Discovery decisions are recorded to a **cassette** keyed by snapshot hash, so a recorded
-LLM run can be reproduced offline with no API key and no network:
+Replay runs an **approved** artifact with no model in the loop. The committed
+`lookup_member_balance` 1.0.0 is approved; any edit to it revokes that approval until
+`waypoint approve` is run again after review.
 
 ```bash
-waypoint discover --capability-id lookup_member_balance --llm cassette   # PLANNED
-```
-
-### Demo
-
-Three terminals; the first two block.
-
-```bash
-# terminal 1
-make app                                       # implemented target app on :8080
-
-# terminal 2 (only while demonstrating the handoff)
-watch -n 2 'waypoint intervene list'           #                              PLANNED
+make app                                   # terminal 1: target app on :8080 (blocking)
 ```
 
 ```bash
-# terminal 3                                                                  PLANNED
-waypoint discover --capability-id lookup_member_balance \
-  --goal "Look up member {{member_id}} and read their current savings balance" \
-  --entry http://localhost:8080/console \
-  --bind member_id=12345:string:internal \
-  --expect-output savings_balance:money:pii
+# terminal 2 - fixture credentials from .env.example; .env is not loaded automatically
+export MERIDIAN_USER=operator1 MERIDIAN_PASS=changeme
 
-waypoint approve lookup_member_balance --version 1.0.0 --tenant base
-
-waypoint replay lookup_member_balance --input member_id=12345   # success
-waypoint replay lookup_member_balance --input member_id=67890   # generalizes to a new member
+waypoint replay lookup_member_balance --input member_id=12345   # success: $4,281.19, active
+waypoint replay lookup_member_balance --input member_id=67890   # same artifact, another member
 waypoint replay lookup_member_balance --input member_id=00000   # business_outcome, exit 0
-waypoint replay lookup_member_balance --input member_id=12345 --inject interstitial
-waypoint replay lookup_member_balance --input member_id=12345 --inject 500
+waypoint replay lookup_member_balance --input member_id=12345 --inject wrong_member  # escalated
+waypoint replay lookup_member_balance --input member_id=12345 --inject ambiguous     # escalated
 ```
+
+Add `--headed` to watch the browser. stdout is the caller's channel and carries outputs in
+full; `evidence/runs/<run_id>/` holds the redacted record (artifact copy, events, result,
+screenshots). Exit codes: `0` success or business outcome, `1` failure, `3` escalated.
+`waypoint approve <id> --note "..."` re-approves after a reviewed edit; it refuses while any
+approval gate is open.
+
+### Planned
+
+Live discovery (A6) will require `ANTHROPIC_API_KEY`; a recorded run will replay offline
+from a **cassette** keyed by snapshot hash, with no key and no network:
+
+```bash
+waypoint discover --capability-id lookup_member_balance --llm cassette   # PLANNED (A6)
+watch -n 2 'waypoint intervene list'                                     # PLANNED (A7)
+waypoint replay lookup_member_balance --input member_id=12345 --inject interstitial  # B1
+waypoint replay lookup_member_balance --input member_id=12345 --inject 500           # B1
+```
+
+The `interstitial` and `500` injections arrive with milestone B1; until then the target app
+ignores unknown injection names, so those two commands would run as ordinary replays.
 
 The full ten-command path, including the irreversible capability and the live-session
 handoff, is in [PLAN.md](PLAN.md) §11.

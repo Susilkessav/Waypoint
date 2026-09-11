@@ -122,7 +122,7 @@ def create_app() -> Flask:
         """Member detail. Tabs are postbacks, so the URL never reflects the tab."""
         source = request.form if request.method == "POST" else request.args
         member_id = (source.get("member_id") or "").strip()
-        member = get_member(member_id)
+        member = get_member(chaos.displayed_member_id(member_id))
         if member is None:
             return render_template("search_results.html", member_id=member_id, rows=[])
 

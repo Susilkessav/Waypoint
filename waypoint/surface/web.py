@@ -470,17 +470,31 @@ class WebSurface:
                 (['click','dismiss'].includes(kind) && isSubmit(e)));
             const submitter = submit && (kind === 'key' ?
                 Array.from(form.elements).find(x => isSubmit(x) && !x.disabled) : e);
+            // The WebForms idiom: an onclick that is exactly one __doPostBack call submits
+            // its form. Anything more in the handler stays opaque, so it needs approval.
+            const pbCall = new RegExp(
+                "^\\s*(?:javascript:)?\\s*__doPostBack\\(\\s*'[^']*'\\s*,\\s*'[^']*'\\s*\\)" +
+                "\\s*;?\\s*(?:return\\s+false\\s*;?)?\\s*$");
+            const postback = ['click','dismiss'].includes(kind) &&
+                pbCall.test(e.getAttribute('onclick') || '') &&
+                (form || document.forms['aspnetForm'] || document.forms[0]) || null;
             const labelledBy = (e.getAttribute('aria-labelledby') || '').split(/\s+/)
                 .map(id => document.getElementById(id)?.textContent || '').join(' ').trim();
-            return {url: location.href, name: labelledBy || e.getAttribute('aria-label') ||
-                e.innerText ||
-                (['submit','button'].includes(e.type) ? e.value : ''),
+            const ownName = labelledBy || e.getAttribute('aria-label') || e.innerText ||
+                (['submit','button'].includes(e.type) ? e.value : '');
+            // Enter in a field activates the form's submitter, so the submitter's name
+            // is the control whose effect is being classified. No submitter: unnamed.
+            const keyName = submitter ? (submitter.getAttribute('aria-label') ||
+                submitter.innerText || submitter.value || '') : '';
+            return {url: location.href, name: kind === 'key' && submit ? keyName : ownName,
                 destination: submit ? (submitter?.hasAttribute('formaction') ?
-                    submitter.formAction : form.action) : (link && link.href),
+                    submitter.formAction : form.action) :
+                    (postback ? postback.action : (link && link.href)),
                 method: submit ? (submitter?.hasAttribute('formmethod') ?
-                    submitter.formMethod : form.method).toUpperCase() : 'GET',
+                    submitter.formMethod : form.method).toUpperCase() :
+                    (postback ? (postback.method || 'post').toUpperCase() : 'GET'),
                 secret: e.type === 'password',
-                opaque: !!e.getAttribute('onclick') && !link && !submit};
+                opaque: !!e.getAttribute('onclick') && !link && !submit && !postback};
         }""",
             (
                 action.kind

@@ -194,7 +194,11 @@ exist in the target fixture deliberately. So classification also considers the r
 actions when the current state matches no known signature. At replay the artifact's declared risk
 is a baseline and the runtime classifier still runs: **a declaration can never downgrade an
 observed risk.** Irreversible or unknown, unattended, means escalate. A false positive costs a
-human a ping; a false negative moves money.
+human a ping; a false negative moves money. Legacy WebForms consoles POST for
+everything - sign-on, search, switching a tab - so a blanket "POST is a mutation" rule makes
+every read-only flow need a human. The answer is a short, reviewed list of read-only routes
+per application, matched only on exact canonical paths, with control names still checked on
+top; the residual risk is a mutating postback whose control carries no irreversible verb.
 
 **Sensitive data.** Classification happens at *perception time*, before anything leaves the
 surface — which is what makes redaction possible during the very first discovery run, when no

@@ -39,6 +39,8 @@ class PolicyConfig(BaseModel):
     model_config = ConfigDict(extra="forbid")
     allowlist: Allowlist
     mutating_routes: list[str] = []
+    readonly_routes: list[str] = []
+    """Reviewed exceptions to ``mutating_routes`` - see policy.yaml for why they exist."""
     irreversible_verbs: list[str] = []
     unknown_state_policy: Literal["safe_only", "block"] = "safe_only"
     limits: Limits = Field(default_factory=Limits)
@@ -129,8 +131,10 @@ class PolicyEngine:
             return "safe"
         risk: Risk = "safe"
         if facts.target_url:
-            route = f"{facts.method.upper()} {unquote(urlsplit(facts.target_url).path) or '/'}"
-            if any(fnmatch.fnmatchcase(route, p) for p in self.config.mutating_routes):
+            raw_path = urlsplit(facts.target_url).path or "/"
+            route = f"{facts.method.upper()} {unquote(raw_path)}"
+            mutating = any(fnmatch.fnmatchcase(route, p) for p in self.config.mutating_routes)
+            if mutating and not self._reviewed_readonly(facts.method, raw_path):
                 risk = "irreversible"
         if action.kind in ("click", "dismiss") or (
             action.kind == "key" and action.value in ("Enter", "Space", " ")
@@ -145,6 +149,18 @@ class PolicyEngine:
         if action.kind in ("type", "select") and facts.secret_field:
             risk = max((risk, "secret_write"), key=lambda r: RISK_RANK[r])
         return risk
+
+    def _reviewed_readonly(self, method: str, path: str) -> bool:
+        """A reviewed read-only route, matched only on the literal, canonical raw path.
+
+        An exemption is a statement about one literal route. A path that is encoded
+        (``/console/%73earch``) or changes under normalisation (``/console/search/../x``)
+        never borrows it, whatever it resolves to: the cost is one approval ping.
+        """
+        if path != posixpath.normpath(path) or "%" in path or "\\" in path:
+            return False
+        route = f"{method.upper()} {path}"
+        return any(fnmatch.fnmatchcase(route, p) for p in self.config.readonly_routes)
 
     def check(self, action: Action, facts: ActionFacts, context: RunContext) -> Verdict:
         if action.kind not in self.config.allowlist.actions:

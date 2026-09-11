@@ -62,8 +62,32 @@ def test_unlabelled_click_requires_approval():
 
 
 def test_enter_inherits_form_route_risk():
-    facts = ActionFacts(BASE + "/console", target_url=BASE + "/console/search", method="POST")
+    target = BASE + "/console/subaccount/confirm"
+    facts = ActionFacts(BASE + "/console", target_url=target, method="POST")
     verdict = PolicyEngine().check(Action("key", value="Enter"), facts, KNOWN)
+    assert isinstance(verdict, RequireApproval) and verdict.risk == "irreversible"
+
+
+@pytest.mark.parametrize("path", ["/", "/console/search", "/console/member"])
+def test_reviewed_readonly_posts_are_safe(path):
+    facts = ActionFacts(BASE + "/console", target_url=BASE + path, method="POST", name="Go")
+    assert PolicyEngine().check(Action("click", ref="x"), facts, KNOWN) == Allow("safe")
+
+
+@pytest.mark.parametrize(
+    "path", ["/console/search/../subaccount/confirm", "/console/%73earch", "/console/search/x"]
+)
+def test_readonly_exemption_needs_an_exact_canonical_route(path):
+    facts = ActionFacts(BASE + "/console", target_url=BASE + path, method="POST", name="Go")
+    verdict = PolicyEngine().check(Action("click", ref="x"), facts, KNOWN)
+    assert isinstance(verdict, RequireApproval) and verdict.risk == "irreversible"
+
+
+def test_readonly_route_does_not_excuse_an_irreversible_control_name():
+    facts = ActionFacts(
+        BASE + "/console", target_url=BASE + "/console/member", method="POST", name="Delete"
+    )
+    verdict = PolicyEngine().check(Action("click", ref="x"), facts, KNOWN)
     assert isinstance(verdict, RequireApproval) and verdict.risk == "irreversible"
 
 
