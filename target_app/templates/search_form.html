@@ -1,0 +1,20 @@
+<html>
+<head><title>Member Search</title></head>
+<body bgcolor="#FFFFFF" style="font-family: Verdana, Arial, sans-serif; font-size: 11px;">
+<table cellpadding="0" cellspacing="0" border="0" width="100%">
+  <tr><td bgcolor="#DDDDD0" height="22">&nbsp;<b>Member Search</b></td></tr>
+</table>
+<br>
+<form method="post" action="/console/search">
+<table cellpadding="5" cellspacing="0" border="0">
+  <!-- No <label for>, no ARIA, no test IDs. The field is identifiable only by
+       the text in the cell to its left. -->
+  <tr><td>Member ID</td>
+      <td><input type="text" name="ctl00$MainContent$txtMemberId"
+                 id="ctl00_MainContent_txtMemberId" size="12" maxlength="5"></td></tr>
+  <tr><td></td>
+      <td><input type="submit" id="ctl00_MainContent_btnSearch" value="Search"></td></tr>
+</table>
+</form>
+</body>
+</html>

@@ -1,0 +1,34 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # uv is the single installer for both CI and local development, so the
+      # committed lockfile governs both. `--locked` fails the build if uv.lock
+      # is out of date with pyproject.toml, rather than silently re-resolving.
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Install from lockfile
+        run: uv sync --locked --extra dev
+
+      - name: Install browser
+        run: uv run playwright install --with-deps chromium
+
+      - name: Lint
+        run: uv run ruff check .
+
+      - name: Type-check
+        run: uv run mypy waypoint
+
+      - name: Test
+        run: uv run pytest -m "not llm" -q

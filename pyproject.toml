@@ -1,0 +1,51 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "waypoint"
+version = "0.1.0"
+description = "Record-once, replay-many automation for legacy back-office UIs with no API."
+requires-python = ">=3.11"
+dependencies = [
+  "playwright>=1.47",
+  "pydantic>=2.8",
+  "anthropic>=0.40",
+  "flask>=3.0",
+  "fastapi>=0.115",
+  "uvicorn>=0.30",
+  "typer>=0.12",
+  "rich>=13.7",
+  "pyyaml>=6.0",
+  "jinja2>=3.1",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.3", "pytest-timeout>=2.3", "ruff>=0.6", "mypy>=1.11"]
+
+[project.scripts]
+waypoint = "waypoint.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["waypoint", "target_app"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+  "llm: requires a live Anthropic API key (deselected in CI)",
+  "browser: requires a Playwright browser",
+]
+timeout = 120
+addopts = "-ra"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.mypy]
+python_version = "3.13"
+ignore_missing_imports = true
+warn_unused_ignores = true

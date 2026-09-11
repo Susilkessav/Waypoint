@@ -1,0 +1,72 @@
+# Shared signatures for the Meridian Servicing Console. An authoring convenience
+# only: artifacts carry their own copies (PLAN.md R-PKG-1), and replay never reads
+# this file. Every signature asserts on-screen content (R-PKG-5), and every one
+# scoped to a member asserts WHICH member via an input reference (R-RESUME-5).
+
+authenticated:
+  description: Signed in - the navigation frame offers Sign Off.
+  match:
+    element_exists: {role: link, name: Sign Off, frame: [main, nav]}
+
+login_form_visible:
+  description: The operator sign-on form.
+  match:
+    all:
+      - element_exists: {role: button, name: Sign On}
+      - element_exists: {role: textbox, anchor: Password}
+
+user_id_filled:
+  description: The User ID field holds a value.
+  match:
+    element_exists: {role: textbox, anchor: User ID, filled: true}
+
+password_filled:
+  description: The Password field holds a value.
+  match:
+    element_exists: {role: textbox, anchor: Password, filled: true}
+
+member_search_form_visible:
+  description: The member search form, inside the content frame.
+  match:
+    all:
+      - element_exists: {role: textbox, anchor: Member ID, frame: [main, content]}
+      - element_exists: {role: button, name: Search, frame: [main, content]}
+
+search_field_populated:
+  description: The search field holds THIS member's ID.
+  match:
+    element_exists:
+      {role: textbox, anchor: Member ID, value_ref: $inputs.member_id, frame: [main, content]}
+
+member_in_results:
+  description: The results grid has a View link in THIS member's row.
+  match:
+    element_exists:
+      {role: link, name: View, anchor_ref: $inputs.member_id, frame: [main, content]}
+
+member_detail_loaded:
+  description: Member Profile for THIS member - not merely a member profile.
+  match:
+    all:
+      - element_exists: {name: Member Profile, frame: [main, content]}
+      - element_exists:
+          {role: LayoutTableCell, name_ref: $inputs.member_id, anchor: Member ID,
+           frame: [main, content]}
+
+accounts_tab_loaded:
+  description: THIS member's accounts grid, one frame deeper.
+  match:
+    all:
+      - element_exists:
+          {role: LayoutTableCell, name_ref: $inputs.member_id, anchor: Member ID,
+           frame: [main, content]}
+      - element_exists:
+          {role: columnheader, name: Balance,
+           frame: [main, content, "iframe#ctl00_MainContent_ifrAccounts"]}
+      - element_exists:
+          {role: cell, name: Savings, frame: [main, content, "iframe#ctl00_MainContent_ifrAccounts"]}
+
+no_records_banner:
+  description: The search found no member - a business outcome, not an error.
+  match:
+    text_contains: No records found

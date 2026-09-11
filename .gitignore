@@ -1,0 +1,52 @@
+# ── Python ────────────────────────────────────────────────────────────
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+
+# ── Secrets and local config ──────────────────────────────────────────
+# .env.example IS committed; the real .env never is.
+.env
+.env.local
+*.pem
+*.key
+
+# ── Runtime state ─────────────────────────────────────────────────────
+*.db
+*.sqlite3
+playwright-report/
+test-results/
+
+# ── Evidence ──────────────────────────────────────────────────────────
+# Local debugging runs stay out; curated showcase runs are committed,
+# because /evidence/ is a required deliverable.
+evidence/runs/*
+!evidence/runs/.gitkeep
+!evidence/runs/showcase-*/
+
+# ── Working documents (internal, not deliverables) ────────────────────
+PLAN.md
+/plans/
+/reports/
+/notes/
+NOTES.md
+*.draft.md
+*.scratch.md
+
+# REPORT.md is a REQUIRED DELIVERABLE (design write-up, seven headings).
+# It must never be ignored — this negation is a guard, not decoration.
+!/REPORT.md
+
+# ── OS and editors ────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+.claude/
