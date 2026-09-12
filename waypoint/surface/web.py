@@ -137,6 +137,11 @@ class WebSurface:
         self.context = context or RunContext()
         self.secrets = secrets or SecretBroker()
         self.approve = approve
+        self.lease_guard: Callable[[], None] | None = None
+        """Set by a holder of the control lease; act() calls it first (R-PROC-4)."""
+        self.before_dispatch: Callable[[Action], None] | None = None
+        """Called once policy and any approval have passed, immediately before dispatch.
+        The engine writes its intent record here (R-REC-4); raising stops the dispatch."""
         self.events: list[dict[str, object]] = []
         self.matcher = WebMatcher(self)
         self._cdp = page.context.new_cdp_session(page)
@@ -297,6 +302,10 @@ class WebSurface:
     # ------------------------------------------------------------------- act
 
     def act(self, action: Action) -> ActionResult:
+        if self.lease_guard is not None:
+            # Raises LeaseLost for a caller acting under a grant that has moved on.
+            # Deliberately outside the try below: a stale actor must not proceed.
+            self.lease_guard()
         started, navigations = time.monotonic(), self._navigations
         self._navigation_blocked = False
         try:
@@ -344,6 +353,8 @@ class WebSurface:
                     )
                 self.events.append({"event": "action_approved", "risk": verdict.risk})
             self.policy.record(action, facts)
+            if self.before_dispatch is not None:
+                self.before_dispatch(action)  # the last moment nothing has been sent
             self._dispatch(action)
         except (PlaywrightError, LookupError, ValueError) as exc:
             return ActionResult(

@@ -5,10 +5,11 @@
 > not yet validated against running code), or **OPEN**. Nothing here is written as though
 > it has been proven until it has. Target length for submission: 1–3 pages.
 
-**Implementation checkpoint (A4):** A1–A4 are implemented: the fixture, browser surface,
-perception/redaction, locator ladder, action policy and environment-backed secret broker.
-The replay/discovery processes, artifact approvals, leases, reconciliation and human action
-log described below are design decisions for A5 and later, not running features yet.
+**Implementation checkpoint (A7):** A1–A7 are implemented: the fixture, browser surface,
+perception/redaction, locator ladder, policy, secret broker, artifact approval, replay,
+discovery/compiler, and live operator handoff with leases, write-ahead intents and a human
+action log. One genuine Claude Haiku 4.5 discovery run is recorded in `evidence/`. The
+automatic reconciliation probe (§5, "Not repeating work") is milestone B.
 
 ---
 
@@ -95,6 +96,26 @@ identity check even if the model forgot to. What fails compilation outright: an 
 run, a step without a unique verified locator, an output located by its own value, and any
 sensitive-looking literal in the result.
 
+**What the live model run changed.** The first genuine Haiku 4.5 run compiled to nothing.
+It declared success on "a cell called `\tstatus`", which was on no screen, and pointed the
+`account_status` output at a member-profile cell no stable locator could identify. Both were
+found after the run, when the page was gone and nobody could fix them. So discovery now
+verifies what it can while the page is still open: every expectation is checked against the
+screen its action produced, a `finish` is put through the compiler's own checks, and what
+fails goes back to the model - with `recheck`, a tool that touches nothing and only restates
+an expectation, kept solely if it is true. That took the run from five unverifiable
+checkpoints to none.
+
+One class of error survives that, and it is the instructive one. The model's success
+condition was "the status is active" - true for the member it had just read, false for a
+dormant one. No amount of checking against *this* screen can catch it, because everything a
+discovery run sees is one record. The compiler refuses it structurally instead: a checkpoint
+may not assert the value of an output, since an output is by definition per-record. With
+that, the discovered artifact returns `$4,281.19 / active` for one member and
+`$912.04 / dormant` for another. What it honestly cannot do is declare business outcomes the
+model never saw: it never searched for a member who does not exist, so `member_not_found` is
+absent, and that input escalates rather than returning an outcome.
+
 ## 3. Determinism & error handling
 
 **Status: DECIDED.**
@@ -148,11 +169,12 @@ loss of the top tier.
 
 ## 5. Escalation & handoff
 
-**Status: DECIDED.**
+**Status: DECIDED; implemented in A7, except reconciliation (B).**
 
 **Who is in control.** A lease with a holder, an owner token and a monotonic generation counter.
-`act()` requires a matching token and generation, so a stale coroutine resuming after a handoff
-cannot act — a controller label alone would not prevent that.
+The surface checks the caller's token and generation inside `act()` itself, so a stale
+coroutine resuming after a handoff cannot act — a controller label alone would not prevent
+that. While the operator holds control, the run holds no token at all.
 
 **Handing over.** Never mid-action: the in-flight action completes or aborts, the session
 quiesces, pre-handoff state is captured, and only then does the lease transfer. If an
@@ -165,20 +187,29 @@ points** — and otherwise escalate again. Resume points are a small, deliberate
 checkpoints are state-complete: correct member, expected field values, prerequisites satisfied.
 An earlier draft resumed at the highest satisfied future checkpoint, which is unsafe: a generic
 "form visible" checkpoint matches an *empty* form, so the engine would have skipped the steps
-that fill it and confirmed a blank submission.
+that fill it and confirmed a blank submission. A run allows two handoffs; an operator who
+never takes control, or whose lease lapses, ends it escalated rather than resumed.
 
 **Not repeating work.** Before executing or re-executing an irreversible step, reconciliation
 asks a three-way question — completed, definitely not completed, or unknown. `Completed` requires
 a confirmation bound to *this* member and *this* operation, so a stale confirmation page cannot
 be adopted. **Absence of a confirmation is `Unknown`, never `NotCompleted`**, because a server
 that committed and then lost the response looks identical to one that never received the request.
-`Unknown` escalates. A write-ahead intent record, flushed before dispatch, means this holds
-across process death too.
+`Unknown` escalates. A write-ahead intent record, flushed before dispatch, is what makes this
+hold across process death too. It is written in the surface's `before_dispatch` hook - after
+policy and any approval, immediately before the click - so a refused action leaves no record
+to reconcile. An action that was sent but did not complete cleanly is never retried, and any
+intent left unresolved stops the next run of that same operation *before a browser starts*.
+Resolving one is an attested act: `waypoint intervene reconcile <id> --outcome
+completed|not-completed` records who decided and what they found. The automatic probe that
+would answer the question without a human is B.
 
 **What the human's actions produce.** A redacted log of control transfers, navigations, clicks,
 field changes and submissions. Navigation-only logging was rejected because the target app's
 controls are postback links that never change the URL — the exact case where it would silently
-record nothing.
+record nothing. The recording callbacks never call back into the browser driver: they queue,
+and the run's own thread writes the log. The first version resolved frame paths inside the
+callback and deadlocked the driver's event dispatch.
 
 ---
 
@@ -244,11 +275,11 @@ bounded, not eliminated, and is one reason irreversible steps require a human.
 | Human log → auto artifact patch | Designed, not built | Recording the human is planned core scope; auto-compiling it into a patch is the extra |
 | Confidence / success-rate gating | Not built | Plain draft→approved is what the catalog needs; statistical gating would be a third stretch goal |
 | Tier-5 visual locators | Recorded as diagnostics, never resolved against | Present because desktop and canvas surfaces will need them |
-| Process-death browser reattachment | Persistence planned; reconnection out of scope | The planned intent record forces reconciliation after a crash |
+| Process-death browser reattachment | Intent records written and enforced; the automatic probe is B; reconnection out of scope | The intent record forces reconciliation after a crash |
 | Credential vault | Env vars behind a `SecretBroker` | A vault drops into the same interface |
 | Queues, workers, multi-tenant plumbing | Not built | Explicitly not rewarded |
 
-**Next milestone:** A5 adds the artifact schema, state recognizers, checkpoints,
-deterministic replay and artifact approval. Discovery/compiler (A6) and live handoff (A7)
-follow. After core delivery, assisted single-step fallback and human-log-to-artifact patches
-could turn interventions into reviewed capability improvements.
+**Next milestone:** B adds a second capability with an irreversible step, the reconciliation
+probe that reads the intent records, bounded recovery, the remaining chaos injections and
+handoff hardening. After core delivery, assisted single-step fallback and
+human-log-to-artifact patches could turn interventions into reviewed capability improvements.

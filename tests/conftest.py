@@ -25,6 +25,9 @@ from pathlib import Path
 
 import pytest
 
+# The CLI loads a developer's .env (API key, credentials); no test may depend on one.
+os.environ.setdefault("WAYPOINT_NO_DOTENV", "1")
+
 READY_TIMEOUT_S = 20.0
 LOG_TAIL_CHARS = 4000
 

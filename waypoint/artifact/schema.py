@@ -431,4 +431,14 @@ def locate(root: Path, capability_id: str, version: str | None = None) -> Path:
     )
     if not found:
         raise FileNotFoundError(f"no artifacts for {capability_id!r} under {root}")
-    return found[-1]
+    from waypoint.artifact.approval import approval_status  # circular at module level
+
+    def approved(path: Path) -> bool:
+        try:
+            return approval_status(load(path)).approved
+        except (ValueError, OSError):
+            return False
+
+    # A freshly discovered draft sits at a higher version than the release in service.
+    # Without a version the caller means the current release, not whatever is newest.
+    return next((p for p in reversed(found) if approved(p)), found[-1])

@@ -106,10 +106,9 @@ class ClaudeDecider:
                     {"type": "tool_result", "tool_use_id": call.id, "is_error": True,
                      "content": f"Rejected before execution: {exc}"}]})
                 continue
-            if decision.kind in ("finish", "give_up"):
-                self._pending_tool_id = None  # the run ends; nothing will answer it
-            else:
-                self._pending_tool_id = call.id
+            # A finish can be handed back for correction, so it stays answerable; when it
+            # is accepted the run ends and nothing asks again. give_up always ends the run.
+            self._pending_tool_id = None if decision.kind == "give_up" else call.id
             return decision
         return Decision("give_up", reason="no_valid_decision_after_retries")
 

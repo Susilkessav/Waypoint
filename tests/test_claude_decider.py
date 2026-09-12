@@ -62,7 +62,7 @@ def test_request_shape() -> None:
     assert "fallbacks" not in call and "betas" not in call
     assert "thinking" not in call  # none on Haiku 4.5 - the cheapest option
     assert call["tool_choice"] == {"type": "auto", "disable_parallel_tool_use": True}
-    assert all(t["strict"] for t in call["tools"])
+    assert all(t.get("strict") for t in call["tools"] if t["name"] != "recheck")
     assert "navigate" not in {t["name"] for t in call["tools"]}
     assert call["cache_control"] == {"type": "ephemeral"}
     text = call["messages"][0]["content"][-1]["text"]
@@ -131,3 +131,37 @@ def test_preflight_looks_up_the_model() -> None:
     client.models = NS(retrieve=lambda model: looked_up.append(model))
     ClaudeDecider(client=client).preflight()  # type: ignore[arg-type]
     assert looked_up == ["claude-haiku-4-5"]
+
+
+def finish(bid: str) -> Block:
+    return tool_use(bid, "finish", {"summary": "done", "success": EXPECT,
+                                    "outputs": [{"name": "savings_balance", "element": "e1"}]})
+
+
+def test_a_finish_handed_back_for_correction_is_still_answered() -> None:
+    """The loop may reject a finish that would not compile; the tool call must be answered."""
+    client = FakeClient(reply(finish("t1")), reply(finish("t2")))
+    decider = ClaudeDecider(client=client)  # type: ignore[arg-type]
+    assert decider.decide(ctx()).kind == "finish"
+    decider.decide(ctx(turn=1, last="Not finished - this would not compile: ..."))
+    answered = client.calls[1]["messages"][-1]["content"][0]
+    assert answered["tool_use_id"] == "t1"
+    assert "would not compile" in answered["content"]
+
+
+def test_a_malformed_finish_is_rejected_not_crashed() -> None:
+    """A wrong outputs shape must come back as a correction, not end the run with a TypeError."""
+    bad = tool_use("t1", "finish", {"summary": "done", "success": EXPECT,
+                                    "outputs": {"savings_balance": "e1"}})
+    client = FakeClient(reply(bad), reply(finish("t2")))
+    decider = ClaudeDecider(client=client)  # type: ignore[arg-type]
+    assert decider.decide(ctx()).kind == "finish"
+    rejection = client.calls[1]["messages"][-1]["content"][0]
+    assert rejection["is_error"] and "list of {name, element}" in rejection["content"]
+
+
+def test_every_acting_tool_is_strict() -> None:
+    """Strict decoding is the schema guarantee; only the no-op recheck trades it away."""
+    from waypoint.discovery.decisions import TOOLS
+
+    assert {t["name"] for t in TOOLS if not t.get("strict")} == {"recheck"}

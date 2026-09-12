@@ -15,14 +15,20 @@ Every decision below is made by the artifact or by a rule:
 * Reads outputs through the surface's one raw door (R-SENS-6), returning them in
   full to the caller while writing them redacted to evidence.
 
-``escalated`` currently ends the run with evidence. Handing the live session to a
-human arrives with the control lease in milestone A7.
+With ``handoff`` on (PLAN.md 3.6, R-PROC, R-RESUME), an escalation does not end the
+run. The engine quiesces, opens an intervention and releases the control lease; a
+person takes control of the same headed window through ``waypoint intervene`` and
+hands it back. The engine re-acquires the lease under a new generation, diffs the
+screen, and walks the return ladder - outcome, postcondition, the escalated step's
+checkpoint, declared resume points - continuing only where one holds and escalating
+again otherwise. It never blind-advances. Without ``handoff``, escalation ends the run.
 """
 
 from __future__ import annotations
 
 import re
 import time
+import uuid
 from collections import Counter
 from collections.abc import Callable, Mapping
 from dataclasses import asdict, dataclass, replace
@@ -33,18 +39,29 @@ from urllib.parse import quote, urlsplit
 from waypoint.artifact.approval import approval_status
 from waypoint.artifact.schema import Capability, Step, content_hash
 from waypoint.evidence import EvidenceWriter
-from waypoint.policy.engine import PolicyConfig, PolicyEngine, RunContext
+from waypoint.policy.engine import PolicyConfig, PolicyEngine, RequireApproval, RunContext
 from waypoint.policy.redactor import Redactor, Sink
 from waypoint.policy.secrets import SecretBroker
 from waypoint.replay.result import FailureDetail, ReplayResult, Status
+from waypoint.replay.resume import LadderResult, Outcome, Resume, Success, describe, return_ladder
+from waypoint.session.escalation import Intervention, InterventionStore
+from waypoint.session.human_log import HumanRecorder
+from waypoint.session.intents import IntentState, IntentStore, inputs_hash
+from waypoint.session.lease import LeaseError, LeaseLost, LeaseStore, LeaseToken
+from waypoint.session.store import DEFAULT_DB, StateStore
 from waypoint.signatures.recognizers import rendered_inputs
 from waypoint.surface.locators import Ambiguous, Found, NotFound
-from waypoint.surface.ports import Action, TextClass, UISnapshot
+from waypoint.surface.ports import Action, InFlight, TextClass, UISnapshot
 from waypoint.surface.sensitivity import Binding
 from waypoint.surface.web import WebSurface
 
 MONEY = re.compile(r"^-?\$?(?:\d{1,3}(?:,\d{3})*|\d+)\.\d{2}$")
 _TEMPLATE_VAR = re.compile(r"\{([a-z][a-z0-9_]*)\}")
+_STEP_INDEX = re.compile(r"steps\[(\d+)\]")
+NO_HANDOFF = frozenset({"in_flight", "indeterminate", "lease_lost", "lease_timeout",
+                        "aborted_by_operator", "intervention_timeout"})
+"""Escalations a handoff cannot resolve: an effect of unknown completion (R-RESUME-2),
+or the control-transfer machinery itself ending the run."""
 
 
 @dataclass
@@ -56,10 +73,24 @@ class ReplayOptions:
     headed: bool = False
     require_approval: bool = True
     secrets: SecretBroker | None = None
+    approve: Callable[[RequireApproval, Action], bool] | None = None
+    """Asked before a risky action - attended capabilities only; unattended ones never ask."""
     poll_ms: int = 250
     on_launch: Callable[[WebSurface], None] | None = None
     after_preconditions: Callable[[WebSurface, str], None] | None = None
     """Called with the surface and the origin once signed in. Fixtures and demos only."""
+    handoff: bool = False
+    """Escalations pause for a person on the same live session instead of ending the run."""
+    state_db: Path = DEFAULT_DB
+    lease_ttl_s: float = 600.0
+    wait_timeout_s: float = 1800.0
+    """How long an open intervention may wait for someone to take it."""
+    max_handoffs: int = 2
+    lease_poll_ms: int = 500
+    notify: Callable[[Intervention], None] | None = None
+    """Called once an intervention is open; the CLI prints how to take control."""
+    while_human: Callable[[WebSurface, Intervention], None] | None = None
+    """Fixtures and demos only: called once, in this thread, after a person takes control."""
 
 
 class _Stop(Exception):
@@ -117,6 +148,25 @@ class _Run:
         self.entry_url = (
             self.origin + (entry.path or "/") + (f"?{entry.query}" if entry.query else "")
         )
+        self.handoffs: list[dict[str, object]] = []
+        self.owner = uuid.uuid4().hex
+        self.token: LeaseToken | None = None
+        self.recorder: HumanRecorder | None = None
+        self.state: StateStore | None = None
+        self.leases: LeaseStore | None = None
+        self.interventions: InterventionStore | None = None
+        self.intents: IntentStore | None = None
+        self.digest = inputs_hash(cap.capability_id, inputs)
+        self.open_intents: dict[str, str] = {}
+        """This run's irreversible actions not yet confirmed: where -> intent id."""
+        irreversible = any(s.risk == "irreversible" for _, s in cap.all_steps())
+        if opt.handoff or irreversible:
+            self.state = StateStore(opt.state_db)
+        if opt.handoff and self.state is not None:
+            self.leases = LeaseStore(self.state)
+            self.interventions = InterventionStore(self.state, self.leases)
+        if irreversible and self.state is not None:
+            self.intents = IntentStore(self.state)
 
     # ------------------------------------------------------------- lifecycle
 
@@ -150,6 +200,7 @@ class _Run:
             problems = validate_inputs(self.cap, self.inputs)
             if problems:
                 raise _Stop("failure", FailureDetail("invalid_input", "; ".join(problems)))
+            self._check_unreconciled()  # before any browser starts
             return self._finish("success", outputs=self._with_surface())
         except _Stop as stop:
             return self._finish(stop.status, detail=stop.detail, outcome=stop.outcome)
@@ -165,9 +216,12 @@ class _Run:
             policy=PolicyEngine(config),
             context=RunContext(unattended=self.cap.policy.unattended, state_known=False),
             secrets=self.opt.secrets or SecretBroker(),
+            approve=self.opt.approve,
         ) as surface:
             if self.opt.on_launch is not None:
                 self.opt.on_launch(surface)
+            if self.leases is not None:
+                self._take_lease(surface)
             try:
                 outputs = self._drive(surface)
                 self._capture(surface, "final")
@@ -177,12 +231,17 @@ class _Run:
                 if stop.detail is not None:
                     stop.detail = replace(stop.detail, screenshot=shot, snapshot=snap)
                 raise
+            except LeaseLost as exc:  # acted without control: never proceed (R-PROC-4)
+                shot, snap = self._capture(surface, "stop")
+                detail = FailureDetail("lease_lost", str(exc), screenshot=shot, snapshot=snap)
+                raise _Stop("escalated", detail) from exc
             except Exception as exc:  # a bug in the engine or driver: fail loudly, with evidence
                 shot, snap = self._capture(surface, "stop")
                 message = self.redactor.error(exc)
                 detail = FailureDetail("engine_error", message, screenshot=shot, snapshot=snap)
                 raise _Stop("failure", detail) from exc
             finally:
+                self._drop_lease()
                 for event in surface.events:
                     self.ev.event("surface", **event)
 
@@ -207,6 +266,8 @@ class _Run:
                 "steps": self.steps_run,
                 "duration_ms": int((time.monotonic() - self.started) * 1000),
                 "tier_histogram": {str(t): n for t, n in sorted(self.tiers.items())},
+                "handoffs": self.handoffs,
+                "unresolved_intents": sorted(self.open_intents.values()),
             },
             evidence_dir=str(self.ev.dir),
         )
@@ -237,8 +298,46 @@ class _Run:
         self._preconditions(surface)
         if self.opt.after_preconditions is not None:
             self.opt.after_preconditions(surface, self.origin)
-        for i, step in enumerate(self.cap.steps):
-            self._step(surface, f"steps[{i}]", step)
+        index, pending = 0, None
+        while True:
+            try:
+                if pending is not None:
+                    detail, pending = pending, None
+                    raise _Stop("escalated", detail)
+                while index < len(self.cap.steps):
+                    self._renew()
+                    self._step(surface, f"steps[{index}]", self.cap.steps[index])
+                    index += 1
+                self._postconditions(surface)
+                return self._extract(surface)
+            except _Stop as stop:
+                if not self._can_hand_off(stop):
+                    raise
+                assert stop.detail is not None
+                ladder = self._handoff(surface, stop.detail, index)
+                if isinstance(ladder, Resume):
+                    self._confirm_intents(ladder.index)
+                elif isinstance(ladder, Success):
+                    self._confirm_intents(len(self.cap.steps))
+                if isinstance(ladder, Success):
+                    return self._extract(surface)
+                if isinstance(ladder, Outcome):
+                    if ladder.class_ == "business":
+                        raise _Stop("business_outcome", outcome=ladder.name) from None
+                    raise self._fail("hard_failure", f"recognised {ladder.name!r}",
+                                     stop.detail.step) from None
+                if isinstance(ladder, Resume):
+                    index = ladder.index
+                    continue
+                pending = self._detail(
+                    "unrecognized_state_after_handoff",
+                    "after the handoff the screen matches no outcome, postcondition, "
+                    "current checkpoint or declared resume point",
+                    stop.detail.step, expected=stop.detail.expected_signature,
+                    snap=ladder.snapshot,
+                )
+
+    def _postconditions(self, surface: WebSurface) -> None:
         snap = self._observe(surface, "postconditions")
         for i, post in enumerate(self.cap.postconditions):
             if not self._holds(post.signature, snap):
@@ -249,7 +348,191 @@ class _Run:
                     expected=post.signature,
                     snap=snap,
                 )
-        return self._extract(surface)
+
+    # --------------------------------------------------------------- intents
+
+    def _check_unreconciled(self) -> None:
+        """R-REC-4: an earlier attempt at this operation may already have taken effect.
+
+        Until the probe of R-REC-5 exists (milestone B3) the answer is always Unknown,
+        and Unknown escalates: the run stops before a browser starts.
+        """
+        if self.intents is None:
+            return
+        left = self.intents.unresolved(self.cap.capability_id, self.digest)
+        if left:
+            first = left[0]
+            raise _Stop("escalated", FailureDetail(
+                "reconciliation_required",
+                f"run {first.run_id} left {first.step} {first.state}: whether it took effect "
+                f"is unknown. Check the application, then: waypoint intervene reconcile "
+                f"{first.id} --outcome completed|not-completed",
+                step=first.step,
+            ))
+
+    def _intent_begin(self, where: str) -> None:
+        assert self.intents is not None
+        intent = self.intents.begin(run_id=self.run_id, capability_id=self.cap.capability_id,
+                                    version=self.cap.version, step=where,
+                                    inputs_digest=self.digest)
+        self.open_intents[where] = intent.id
+        self.ev.event("intent", where=where, intent_id=intent.id, state="dispatching")
+
+    def _intent_advance(self, where: str, to: IntentState) -> None:
+        assert self.intents is not None
+        iid = self.open_intents[where]
+        if to == "reconciled":
+            self.intents.advance(iid, to, by="replay", resolution="confirmed_after_handoff")
+        else:
+            self.intents.advance(iid, to)
+        if to in ("observed", "reconciled"):
+            del self.open_intents[where]
+        self.ev.event("intent", where=where, intent_id=iid, state=to)
+
+    def _confirm_intents(self, upto: int) -> None:
+        """The return ladder moved past these steps because verified state shows them done."""
+        for where in list(self.open_intents):
+            found = _STEP_INDEX.fullmatch(where)
+            if found is not None and int(found.group(1)) < upto:
+                self._intent_advance(where, "reconciled")
+
+    # --------------------------------------------------------------- handoff
+
+    def _take_lease(self, surface: WebSurface) -> None:
+        assert self.leases is not None
+        self.token = self.leases.acquire(self.run_id, "AGENT", self.owner, self.opt.lease_ttl_s)
+        surface.lease_guard = self._guard
+        self.ev.event("lease", holder="AGENT", generation=self.token.generation)
+
+    def _guard(self) -> None:
+        if self.leases is None:
+            return
+        if self.token is None:
+            raise LeaseLost("this run has released control")
+        self.leases.assert_held(self.token)
+
+    def _renew(self) -> None:
+        if self.leases is not None and self.token is not None:
+            self.leases.renew(self.token, self.opt.lease_ttl_s)
+
+    def _drop_lease(self) -> None:
+        if self.leases is not None and self.token is not None:
+            try:
+                self.leases.release(self.token)
+            except LeaseError:
+                pass  # already moved on; nothing of ours to release
+            self.token = None
+
+    def _can_hand_off(self, stop: _Stop) -> bool:
+        return (
+            self.opt.handoff
+            and stop.status == "escalated"
+            and stop.detail is not None
+            and stop.detail.code not in NO_HANDOFF
+            and len(self.handoffs) < self.opt.max_handoffs
+        )
+
+    def _recorder(self, surface: WebSurface) -> HumanRecorder:
+        if self.recorder is None:
+            self.recorder = HumanRecorder(surface.page, WebSurface.frame_path, self.redactor,
+                                          self.ev.dir / "human" / "actions.jsonl")
+            self.recorder.install()
+        return self.recorder
+
+    def _handoff(self, surface: WebSurface, detail: FailureDetail, index: int) -> LadderResult:
+        assert self.leases is not None and self.interventions is not None
+        n = len(self.handoffs) + 1
+        if isinstance(surface.quiesce(), InFlight):  # R-RESUME-1/2: never hand over mid-action
+            raise _Stop("escalated", replace(
+                detail, code="indeterminate",
+                message="an action was still in flight; a person must reconcile it"))
+        before = surface.observe()
+        shot, snap_path = self._capture(surface, f"handoff{n}_before")
+        iv = self.interventions.open(
+            session_id=self.run_id, run_id=self.run_id, capability_id=self.cap.capability_id,
+            version=self.cap.version, reason_code=detail.code, message=detail.message,
+            step=detail.step, intent=detail.intent,
+            expected_signature=detail.expected_signature,
+            observed_signatures=detail.observed_signatures,
+            screenshot=str(self.ev.dir / shot) if shot else None,
+            snapshot=str(self.ev.dir / snap_path) if snap_path else None,
+            evidence_dir=str(self.ev.dir),
+        )
+        self.ev.event("intervention_opened", intervention=iv.id, reason=detail.code,
+                      step=detail.step)
+        recorder = self._recorder(surface)
+        actions_before = recorder.actions
+        assert self.token is not None
+        released = self.leases.release(self.token)
+        self.token = None  # anything still holding the old grant is now stale (R-PROC-4)
+        recorder.active = True  # record from the moment control is released
+        self.ev.event("lease", holder="NONE", generation=released.generation)
+        if self.opt.notify is not None:
+            self.opt.notify(iv)
+        try:
+            iv = self._await_return(surface, iv, detail, recorder)
+        except _Stop:
+            recorder.drain()  # keep what the person did before the run ended
+            recorder.active = False
+            raise
+        self.token = self.leases.acquire(self.run_id, "AGENT", self.owner, self.opt.lease_ttl_s)
+        recorder.stop(self.token.generation)
+        self.interventions.close(iv.id, "resolved")
+        self.ev.event("lease", holder="AGENT", generation=self.token.generation)
+        after = surface.observe()
+        ladder = return_ladder(self.cap, self.rendered, after, index)
+        human_actions = recorder.actions - actions_before
+        self.ev.json(f"handoff{n}_diff.json", {
+            "intervention": iv.id,
+            "before": {"url": before.url, "hash": before.hash,
+                       "frames": [u for _, u in before.frame_urls]},
+            "after": {"url": after.url, "hash": after.hash,
+                      "frames": [u for _, u in after.frame_urls]},
+            "screen_changed": before.hash != after.hash,
+            "human_actions": human_actions,
+            "ladder": describe(ladder),
+        })
+        self.handoffs.append({"intervention": iv.id, "reason": detail.code, "step": detail.step,
+                              "operator": iv.operator, "human_actions": human_actions,
+                              "ladder": describe(ladder)})
+        self.ev.event("control_returned", intervention=iv.id, ladder=describe(ladder))
+        return ladder
+
+    def _await_return(self, surface: WebSurface, iv: Intervention, detail: FailureDetail,
+                      recorder: HumanRecorder) -> Intervention:
+        """R-PROC-2: keep the browser open and poll the shared state until control returns."""
+        assert self.leases is not None and self.interventions is not None
+        assert self.state is not None
+        deadline = time.monotonic() + self.opt.wait_timeout_s
+        seen_human = hooked = False
+        while True:
+            surface.page.wait_for_timeout(self.opt.lease_poll_ms)  # also delivers human events
+            recorder.drain()
+            iv = self.interventions.get(iv.id)
+            if iv.status == "returned":
+                return iv
+            if iv.status == "aborted":
+                raise _Stop("escalated", replace(
+                    detail, code="aborted_by_operator", message="the operator ended the run"))
+            lease = self.leases.read(self.run_id)
+            if iv.status == "taken" and lease is not None:
+                if lease.effective_holder(self.state.clock()) == "NONE":  # R-PROC-5
+                    self.interventions.close(iv.id, "expired")
+                    raise _Stop("escalated", replace(
+                        detail, code="lease_timeout",
+                        message="the operator's lease expired before control was returned"))
+                if not seen_human:
+                    seen_human = True
+                    recorder.start(lease.generation)
+                    self.ev.event("lease", holder="HUMAN", generation=lease.generation,
+                                  operator=iv.operator)
+                if self.opt.while_human is not None and not hooked:
+                    hooked = True
+                    self.opt.while_human(surface, iv)
+            elif iv.status == "open" and time.monotonic() > deadline:
+                self.interventions.close(iv.id, "expired")
+                raise _Stop("escalated", replace(
+                    detail, code="intervention_timeout", message="nobody took control in time"))
 
     def _preconditions(self, surface: WebSurface) -> None:
         snap = self._observe(surface, "preconditions")
@@ -307,7 +590,13 @@ class _Run:
                 raise self._escalate(
                     "locator_not_found", "target not found after retries", where, step=step
                 )
-            result = surface.act(action)
+            if self.intents is not None and step.risk == "irreversible":
+                # Written after policy and approval, immediately before dispatch (R-REC-4).
+                surface.before_dispatch = lambda _action: self._intent_begin(where)
+            try:
+                result = surface.act(action)
+            finally:
+                surface.before_dispatch = None
             self.ev.event(
                 "action",
                 where=where,
@@ -322,8 +611,18 @@ class _Run:
                 duration_ms=result.duration_ms,
             )
             if result.ok:
+                if where in self.open_intents:
+                    self._intent_advance(where, "dispatched")
                 break
             code = result.error_code or "action_failed"
+            if where in self.open_intents and code != "in_flight":
+                # Sent, with no clean answer: its effect is unknown, so it is never retried.
+                raise self._escalate(
+                    "reconciliation_required",
+                    "the irreversible action was sent but did not complete cleanly; "
+                    "whether it took effect is unknown",
+                    where, step=step, tier=tier,
+                )
             if code in ("approval_required", "in_flight"):  # never retried
                 raise self._escalate(code, result.error or code, where, step=step, tier=tier)
             if code == "policy_block":
@@ -333,6 +632,8 @@ class _Run:
             surface.page.wait_for_timeout(step.retry.backoff_ms)
         self.steps_run += 1
         self._await_checkpoint(surface, where, step)
+        if where in self.open_intents:
+            self._intent_advance(where, "observed")
 
     def _action(
         self, surface: WebSurface, where: str, step: Step

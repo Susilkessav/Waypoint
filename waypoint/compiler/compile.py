@@ -24,6 +24,7 @@ unbound literal - compiles, and blocks approval instead.
 from __future__ import annotations
 
 import re
+from collections.abc import Mapping
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from typing import Any
@@ -77,6 +78,94 @@ def compile_transcript(
     return _Compiler(t).run(version, name, description, now or datetime.now(UTC))
 
 
+def nominated_predicates(
+    expect: dict[str, Any], post: UISnapshot | None, rendered: Mapping[str, str],
+    notes: list[str] | None = None, where: str = "", values: frozenset[str] = frozenset(),
+) -> list[Predicate]:
+    """The model's nomination as checkable predicates, dropping what must not be checked.
+
+    ``values`` are the on-screen texts the model designated as outputs. Asserting one is
+    asserting this record's data - "the status is active" passes for one member and fails
+    for a dormant one - so those are dropped even when the text is not sensitive.
+    """
+    preds: list[Predicate] = []
+    for e in expect.get("elements") or []:
+        role = e.get("role") or None
+        name, anchor = e.get("name") or "", e.get("anchor") or ""
+        if _REDACTED.search(name) or _REDACTED.search(anchor):
+            if notes is not None:
+                notes.append(
+                    f"{where}: dropped an expectation on redacted data - "
+                    "it would identify one record, not the step"
+                )
+            continue
+        if name and name in values:
+            if notes is not None:
+                notes.append(
+                    f"{where}: dropped an expectation on an output's own value - "
+                    "it would hold for this record only, not for the next one"
+                )
+            continue
+        kw: dict[str, Any] = {"role": role} if role else {}
+        for value, plain, ref in ((name, "name", "name_ref"), (anchor, "anchor", "anchor_ref")):
+            m = _PLACEHOLDER.match(value)
+            if m and m.group(1) in rendered:
+                kw[ref] = f"$inputs.{m.group(1)}"
+            elif m:
+                if notes is not None:
+                    notes.append(f"{where}: ignored an unknown placeholder {value!r}")
+            elif value:
+                kw[plain] = value
+        if not ({"role", "name", "name_ref"} & kw.keys()):
+            continue
+        ep = ElementPredicate(**kw)
+        if post is not None:
+            hits = [x for x in post.elements if ep.matches(x, rendered)]
+            if len(hits) == 1:
+                ep = ElementPredicate(**kw, frame=hits[0].frame_path)
+        preds.append(Predicate(element_exists=ep))
+    text = expect.get("text") or ""
+    if text and not _REDACTED.search(text):
+        preds.append(Predicate(text_contains=text))
+    return preds
+
+
+def nomination_holds(
+    expect: dict[str, Any], snapshot: UISnapshot, rendered: Mapping[str, str]
+) -> bool:
+    """Is what the model said to expect actually true on this screen?
+
+    Discovery asks after every action: an expectation that is false compiles as an
+    unverified checkpoint, which blocks approval, and by then nobody can fix it.
+    """
+    preds = nominated_predicates(expect, snapshot, rendered)
+    if not preds:
+        return False
+    sig = Signature(match=preds[0] if len(preds) == 1 else Predicate(all=tuple(preds)))
+    return sig.evaluate(snapshot, rendered)
+
+
+def finish_problems(t: Transcript) -> list[str]:
+    """What compilation would reject about ``t.finish``: its outputs and its goal success.
+
+    Discovery asks at the model's finish, so a condition that is false on the screen or an
+    output with no stable locator goes back to the model as a correction - instead of
+    surfacing after the run, when nothing can be fixed.
+    """
+    compiler = _Compiler(t)
+    reasons: list[str] = []
+    compiler._outputs(reasons)
+    compiler._postcondition(reasons)
+    return reasons
+
+
+def locator_problem(exc: ValueError) -> str:
+    """A short reason from a bundle error; pydantic's own text is for neither people nor models."""
+    if isinstance(exc, ValidationError):
+        return "; ".join(str(e["msg"]).removeprefix("Value error, ") for e in exc.errors())
+    return str(exc)
+
+
 class _Compiler:
     def __init__(self, t: Transcript) -> None:
         self.t = t
@@ -91,14 +180,24 @@ class _Compiler:
             self.keyed["final"] = snapshot_from_dict(t.finish.snapshot)
         self.signatures: dict[str, Signature] = {}
         self.extra_inputs: dict[str, dict[str, Any]] = {}
+        finish = t.finish.outputs if t.finish is not None else {}
+        self.output_values = frozenset(
+            str((entry.get("element") or {}).get("name") or "")
+            for entry in finish.values()
+        ) - {""}
 
     # ------------------------------------------------------------ helpers
 
     def _post_key(self, turn: int) -> str | None:
-        nxt = str(turn + 1)
-        if nxt in self.keyed:
-            return nxt
-        return "final" if turn + 1 == self.final_turn and "final" in self.keyed else None
+        """The screen this turn produced: the next *recorded* step's, else the final one.
+
+        Turns that record no step - a recheck, a rejected finish - leave gaps, so the
+        next key is not always ``turn + 1``.
+        """
+        later = [int(k) for k in self.keyed if k.isdigit() and int(k) > turn]
+        if later:
+            return str(min(later))
+        return "final" if "final" in self.keyed else None
 
     def _verify(self, sig: Signature, post_key: str | None) -> tuple[bool, bool]:
         """(verified: true on the post-state, discriminating: false somewhere else)."""
@@ -120,37 +219,8 @@ class _Compiler:
     def _nominated(
         self, expect: dict[str, Any], post: UISnapshot | None, where: str
     ) -> list[Predicate]:
-        preds: list[Predicate] = []
-        for e in expect.get("elements") or []:
-            role = e.get("role") or None
-            name, anchor = e.get("name") or "", e.get("anchor") or ""
-            if _REDACTED.search(name) or _REDACTED.search(anchor):
-                self.notes.append(
-                    f"{where}: dropped an expectation on redacted data - "
-                    "it would identify one record, not the step"
-                )
-                continue
-            kw: dict[str, Any] = {"role": role} if role else {}
-            for value, plain, ref in ((name, "name", "name_ref"), (anchor, "anchor", "anchor_ref")):
-                m = _PLACEHOLDER.match(value)
-                if m and m.group(1) in self.rendered:
-                    kw[ref] = f"$inputs.{m.group(1)}"
-                elif m:
-                    self.notes.append(f"{where}: ignored an unknown placeholder {value!r}")
-                elif value:
-                    kw[plain] = value
-            if not ({"role", "name", "name_ref"} & kw.keys()):
-                continue
-            ep = ElementPredicate(**kw)
-            if post is not None:
-                hits = [x for x in post.elements if ep.matches(x, self.rendered)]
-                if len(hits) == 1:
-                    ep = ElementPredicate(**kw, frame=hits[0].frame_path)
-            preds.append(Predicate(element_exists=ep))
-        text = expect.get("text") or ""
-        if text and not _REDACTED.search(text):
-            preds.append(Predicate(text_contains=text))
-        return preds
+        return nominated_predicates(expect, post, self.rendered, self.notes, where,
+                                    self.output_values)
 
     def _identity(
         self, post: UISnapshot | None, preds: list[Predicate], where: str
@@ -292,7 +362,11 @@ class _Compiler:
                     f"output {spec.name!r}: {entry.get('bundle_error') or 'no element recorded'}"
                 )
                 continue
-            bundle = LocatorBundle.model_validate(raw)
+            try:
+                bundle = LocatorBundle.model_validate(raw)
+            except ValidationError as exc:
+                reasons.append(f"output {spec.name!r}: {locator_problem(exc)}")
+                continue
             if any(keys_on_value(c) for c in bundle.candidates):
                 reasons.append(
                     f"output {spec.name!r}: extraction keys on the value it reads (R-SENS-7)"

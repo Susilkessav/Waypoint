@@ -21,7 +21,7 @@ import pytest
 
 from target_app.data import MEMBERS
 from waypoint.artifact.approval import approve
-from waypoint.compiler.compile import compile_transcript
+from waypoint.compiler.compile import CompileError, compile_transcript
 from waypoint.discovery.agent import DiscoveryOptions, InputBinding, discover
 from waypoint.discovery.cassette import Cassette, CassetteDecider, DecisionContext, RecordingDecider
 from waypoint.discovery.decisions import Decision, Expectation, ExpectedElement
@@ -170,3 +170,167 @@ def test_cli_discover_from_a_cassette_writes_an_approvable_draft(discovered, liv
     assert done.returncode == 0, done.stderr
     assert (root / "lookup_member_balance" / "1.0.0.json").exists()
     assert "no open gates" in done.stdout
+
+
+class _Sloppy(ScriptedDecider):
+    """Finishes by naming a control that is not on the screen - as Haiku did on the live run.
+
+    The compiler would reject it, so the loop must hand the reasons back while the page is
+    still open. ``corrigible`` decides whether this stand-in takes the correction.
+    """
+
+    model = "scripted-sloppy-decider"
+    corrigible = True
+
+    def __init__(self) -> None:
+        self.finishes = 0
+        self.corrections: list[str] = []
+
+    def decide(self, ctx: DecisionContext) -> Decision:
+        decision = super().decide(ctx)
+        if decision.kind != "finish":
+            return decision
+        self.finishes += 1
+        if ctx.last_result and ctx.last_result.startswith("Not finished"):
+            self.corrections.append(ctx.last_result)
+        if self.corrigible and self.finishes > 1:
+            return decision
+        return Decision("finish", summary=decision.summary, outputs=decision.outputs,
+                        expect=Expectation((E("cell", "\tstatus", "active"),)))
+
+
+def test_a_finish_that_would_not_compile_goes_back_to_the_model(live_server, tmp_path) -> None:
+    decider = _Sloppy()
+    result = discover(decider, options(live_server, tmp_path))
+    assert result.transcript.ending == "finished", result.transcript.ending_detail
+    assert decider.finishes == 2, "the first finish should have been handed back"
+    assert decider.corrections and "would not compile" in decider.corrections[0]
+    assert "success condition was not true" in decider.corrections[0]
+    assert compile_transcript(result.transcript).open_gates == ()
+
+
+def test_corrections_are_bounded_and_the_evidence_survives(live_server, tmp_path) -> None:
+    """An incorrigible model ends the run; compilation then fails for a stated reason."""
+    decider = _Sloppy()
+    decider.corrigible = False
+    result = discover(decider, options(live_server, tmp_path))
+    assert decider.finishes == 3  # the first, then two corrections
+    assert result.transcript.ending == "finished"
+    with pytest.raises(CompileError) as refused:
+        compile_transcript(result.transcript)
+    assert "finish: the success condition was not true on the final screen" in refused.value.reasons
+    rejected = [json.loads(line) for line in
+                (result.run_dir / "events.jsonl").read_text().splitlines()
+                if "finish_rejected" in line]
+    assert len(rejected) == 2
+
+
+class _BadExpectation(ScriptedDecider):
+    """Nominates a heading this application does not have; the loop must say so next turn."""
+
+    model = "scripted-bad-expectation-decider"
+
+    def __init__(self) -> None:
+        self.told: list[str] = []
+        self.actions = 0
+
+    def decide(self, ctx: DecisionContext) -> Decision:
+        if ctx.last_result:
+            self.told.append(ctx.last_result)
+        decision = super().decide(ctx)
+        self.actions += 1
+        if self.actions == 1:
+            return Decision(decision.kind, intent=decision.intent, element=decision.element,
+                            value=decision.value,
+                            expect=Expectation((E("heading", "Meridian Servicing Console"),)))
+        return decision
+
+
+def test_an_expectation_that_turns_out_false_is_reported_to_the_model(live_server, tmp_path
+                                                                      ) -> None:
+    decider = _BadExpectation()
+    result = discover(decider, options(live_server, tmp_path))
+    assert result.transcript.ending == "finished", result.transcript.ending_detail
+    assert any("not true on this screen" in told for told in decider.told)
+    assert [t for t in decider.told if "not true" in t][0].startswith("Done")
+    notes = compile_transcript(result.transcript).notes
+    assert any("turn 0: checkpoint was not true" in n for n in notes)
+
+
+def test_corrections_do_not_count_towards_being_stuck(live_server, tmp_path) -> None:
+    """A rejected finish leaves the screen alone; only actions can be 'no progress'."""
+    decider = _Sloppy()
+    decider.corrigible = False
+    opts = options(live_server, tmp_path)
+    opts.finish_corrections = 4  # more corrections in a row than stuck_after (3)
+    result = discover(decider, opts)
+    assert result.transcript.ending == "finished", result.transcript.ending_detail
+    assert decider.finishes == 5
+
+
+class _Rechecks(_BadExpectation):
+    """Told its expectation was false, it restates one - first a wrong one, then a true one."""
+
+    model = "scripted-recheck-decider"
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.attempts = 0
+
+    def decide(self, ctx: DecisionContext) -> Decision:
+        told = ctx.last_result or ""
+        if ("not true on this screen" in told and self.attempts == 0) or "Still not true" in told:
+            self.told.append(told)
+            self.attempts += 1
+            if self.attempts == 1:  # refused: no such element on this screen
+                return Decision("recheck", expect=Expectation((E("heading", "Nope"),)))
+            return Decision("recheck", expect=Expectation((E("textbox", "", "User ID"),)))
+        return super().decide(ctx)
+
+
+def test_recheck_replaces_a_false_expectation_only_when_the_new_one_is_true(live_server, tmp_path
+                                                                            ) -> None:
+    decider = _Rechecks()
+    result = discover(decider, options(live_server, tmp_path))
+    assert result.transcript.ending == "finished", result.transcript.ending_detail
+    assert decider.attempts == 2, "the first restatement should have been refused"
+    assert any("Still not true" in told for told in decider.told)
+
+    restated = result.transcript.steps[0].decision["expect"]["elements"]
+    assert list(restated) == [{"role": "textbox", "name": "", "anchor": "User ID"}]
+    report = compile_transcript(result.transcript)
+    assert not any("turn 0: checkpoint was not true" in n for n in report.notes)
+    assert report.open_gates == (), report.open_gates
+    events = (result.run_dir / "events.jsonl").read_text()
+    assert "expectation_restated" in events
+
+
+class _AssertsTheValue(ScriptedDecider):
+    """Finishes by asserting the account status it just read - true for this member only."""
+
+    model = "scripted-value-asserting-decider"
+
+    def decide(self, ctx: DecisionContext) -> Decision:
+        decision = super().decide(ctx)
+        if decision.kind != "finish":
+            return decision
+        return Decision("finish", summary=decision.summary, outputs=decision.outputs,
+                        expect=Expectation((E("columnheader", "Balance"),
+                                            E("cell", "active", "Status"))))
+
+
+def test_a_checkpoint_may_not_assert_an_outputs_own_value(live_server, tmp_path) -> None:
+    """T14's real failure mode: "the status is active" fails for a dormant member."""
+    result = discover(_AssertsTheValue(), options(live_server, tmp_path))
+    assert result.transcript.ending == "finished", result.transcript.ending_detail
+    report = compile_transcript(result.transcript)
+    assert any("dropped an expectation on an output's own value" in n for n in report.notes)
+    goal = report.capability.signatures[report.capability.postconditions[0].signature]
+    assert "active" not in json.dumps(goal.model_dump(mode="json"))
+
+    approved = approve(report.capability, approver="test")
+    run = replay(approved, {"member_id": "67890"}, ReplayOptions(
+        base_url=live_server, evidence_root=tmp_path / "runs",
+        secrets=SecretBroker(environ=CREDENTIALS)))
+    assert run.status == "success", run.failure
+    assert run.outputs == {"savings_balance": "$912.04", "account_status": "dormant"}

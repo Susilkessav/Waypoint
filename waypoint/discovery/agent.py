@@ -15,6 +15,10 @@ every side effect:
   approval callback, and with no operator it is refused.
 * Before acting, a locator bundle is synthesized for the target while it is still live
   - the compiler cannot do that afterwards.
+* A finish is checked exactly as the compiler will check it - outputs that a later run
+  can locate, a success condition true on this screen - and what fails goes back to the
+  model as a correction, a bounded number of times. Found at the end of a run, the same
+  problem could no longer be fixed.
 
 The run stops on finish, give_up, a refusal, a cassette mismatch, the step limit, or a
 screen that has not changed for ``stuck_after`` turns.
@@ -30,6 +34,7 @@ from pathlib import Path
 from typing import Any, cast
 from urllib.parse import urlsplit
 
+from waypoint.compiler.compile import finish_problems, locator_problem, nomination_holds
 from waypoint.discovery.cassette import CassetteMismatch, Decider, DecisionContext
 from waypoint.discovery.decisions import Decision
 from waypoint.discovery.transcript import (
@@ -42,9 +47,16 @@ from waypoint.discovery.transcript import (
 )
 from waypoint.evidence import EvidenceWriter
 from waypoint.policy.engine import PolicyConfig, PolicyEngine, RequireApproval, RunContext
-from waypoint.policy.redactor import Redactor
+from waypoint.policy.redactor import Redactor, binding_placeholder
 from waypoint.policy.secrets import SecretBroker
-from waypoint.surface.ports import Action, ActionKind, ActionResult, Sensitivity, UIElement
+from waypoint.surface.ports import (
+    Action,
+    ActionKind,
+    ActionResult,
+    Sensitivity,
+    UIElement,
+    UISnapshot,
+)
 from waypoint.surface.sensitivity import Binding
 from waypoint.surface.web import WebSurface
 
@@ -70,6 +82,8 @@ class DiscoveryOptions:
     secret_names: Sequence[str] = ("meridian_user", "meridian_password")
     max_steps: int = 20
     stuck_after: int = 3
+    finish_corrections: int = 2
+    """How many times a finish that would not compile goes back to the model to fix."""
     evidence_root: Path = Path("evidence/runs")
     headed: bool = False
     secrets: SecretBroker | None = None
@@ -120,9 +134,12 @@ class _Discovery:
         self.values = {b.name: b.value for b in options.inputs}
         self.bindings = [Binding(b.name, b.value, b.sensitivity) for b in options.inputs]
         self.redactor = Redactor(self.bindings)
+        self.rendered = {b.name: binding_placeholder(b.name) for b in options.inputs
+                         if b.sensitivity != "public"}
         self.goal = render_goal(options.goal, [b.name for b in options.inputs])
         self.run_id = EvidenceWriter.new_run_id()
         self.ev = EvidenceWriter(options.evidence_root, self.run_id, self.redactor)
+        self.corrections = 0
         self.transcript = Transcript(
             run_id=self.run_id,
             capability_id=options.capability_id,
@@ -181,12 +198,14 @@ class _Discovery:
             self._end("error", f"could not open the entry page: {opened.error}")
             return
         last_result: str | None = "Opened the entry page."
-        previous_hash, unchanged = None, 0
+        previous_hash, unchanged, acted = None, 0, False
         for turn in range(self.opt.max_steps):
             snap = surface.observe()
             if self.transcript.steps and self.transcript.steps[-1].post_hash is None:
                 self.transcript.steps[-1].post_hash = snap.hash
-            unchanged = unchanged + 1 if snap.hash == previous_hash else 0
+                last_result = self._unmet(self.transcript.steps[-1], snap, last_result)
+            if acted:  # only an action can change the screen; a correction is not one
+                unchanged = unchanged + 1 if snap.hash == previous_hash else 0
             previous_hash = snap.hash
             if unchanged >= self.opt.stuck_after:
                 self._end("stuck", f"the screen did not change for {unchanged} turns")
@@ -208,10 +227,16 @@ class _Discovery:
                 refused = decision.reason.startswith("model_refusal")
                 self._end("refused" if refused else "gave_up", decision.reason)
                 return
+            if decision.kind == "recheck":
+                last_result, acted = self._recheck(decision, snap), False
+                continue
             if decision.kind == "finish":
-                self._finish(surface, decision, dict(ids), snap)
-                return
-            last_result = self._act(surface, turn, decision, dict(ids), snap)
+                feedback = self._finish(surface, decision, dict(ids), snap)
+                if feedback is None:
+                    return
+                last_result, acted = feedback, False
+                continue
+            last_result, acted = self._act(surface, turn, decision, dict(ids), snap), True
         self._end("max_steps", f"stopped after {self.opt.max_steps} turns")
 
     # ---------------------------------------------------------------- steps
@@ -256,7 +281,7 @@ class _Discovery:
                 bundle = surface.synthesize(element.ref, self.values)
                 step.bundle = bundle.model_dump(mode="json")
             except ValueError as exc:  # no unique, verified locator for this target
-                step.bundle_error = str(exc)
+                step.bundle_error = locator_problem(exc)
         events_before = len(surface.events)
         kind = cast(ActionKind, decision.kind)  # click | type | select | key, checked above
         action = Action(
@@ -277,8 +302,40 @@ class _Discovery:
                       bundle=bool(step.bundle))
         return _describe(result)
 
+    def _recheck(self, decision: Decision, snap: UISnapshot) -> str:
+        """Restate the last action's expectation - kept only if it is true on this screen."""
+        assert decision.expect is not None
+        step = self.transcript.steps[-1] if self.transcript.steps else None
+        if step is None or not step.ok:
+            return "Nothing to restate: there is no completed action to attach it to."
+        expect = asdict(decision.expect)
+        if not nomination_holds(expect, snap, self.rendered):
+            return ("Still not true on this screen. Name elements from the table below, with "
+                    "the role and name exactly as shown, or continue without restating.")
+        step.decision["expect"] = expect
+        self.ev.event("expectation_restated", turn=step.turn)
+        return "Recorded for the previous action. Carry on with the goal."
+
+    def _unmet(self, step: Step, snap: UISnapshot, result: str | None) -> str | None:
+        """Tell the model when its expectation turned out false, while later ones can improve.
+
+        A false expectation compiles as an unverified checkpoint (R-PKG-5), which blocks
+        approval; discovering that after the run is too late for anyone to fix it.
+        """
+        expect = step.decision.get("expect") or {}
+        if not step.ok or not expect or nomination_holds(expect, snap, self.rendered):
+            return result
+        self.ev.event("expectation_unverified", turn=step.turn)
+        return (
+            f"{result or 'Done.'} The action itself was performed - do not repeat it - but "
+            "what you said to expect is not true on this screen, so that step cannot be "
+            "approved. Call recheck with an expectation that names elements from the table "
+            "below, with the role and name exactly as shown."
+        )
+
     def _finish(self, surface: WebSurface, decision: Decision, ids: dict[str, UIElement],
-                snap: Any) -> None:
+                snap: Any) -> str | None:
+        """Record the finish; or, if it would not compile, the correction for the model."""
         outputs: dict[str, dict[str, Any]] = {}
         for spec in self.opt.outputs:
             eid = decision.outputs.get(spec.name)
@@ -293,14 +350,26 @@ class _Discovery:
                         element.ref, self.values, extraction=True
                     ).model_dump(mode="json")
                 except ValueError as exc:
-                    entry["bundle_error"] = str(exc)
+                    entry["bundle_error"] = locator_problem(exc)
             outputs[spec.name] = entry
         assert decision.expect is not None
         self.transcript.finish = FinishRecord(
             snapshot=snapshot_to_dict(snap), success=asdict(decision.expect),
             summary=decision.summary, outputs=outputs,
         )
+        problems = finish_problems(self.transcript)
+        if problems and self.corrections < self.opt.finish_corrections:
+            self.corrections += 1
+            self.transcript.finish = None
+            self.ev.event("finish_rejected", correction=self.corrections, problems=problems)
+            return (
+                "Not finished - this would not compile: " + "; ".join(problems) + ". Name "
+                "elements exactly as they appear on this screen (role, name, anchor), and for "
+                "each output pick an element a later run can find again by a row label and a "
+                "column header. Then call finish again."
+            )
         self._end("finished", decision.summary)
+        return None
 
     def _capture(self, surface: WebSurface) -> None:
         try:

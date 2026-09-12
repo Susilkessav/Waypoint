@@ -11,15 +11,15 @@ Built for the interface.ai take-home (Computer-Use Automation System).
 
 ---
 
-## Status: A1–A6 implemented
+## Status: A1–A7 implemented
 
 The target app, browser surface, locator ladder, policy engine, redactor, secret broker,
-capability artifact (schema, approval) and deterministic replay engine are implemented and
-covered by unit and live-browser tests, as are discovery and the compiler (A6). The one
-genuine model-driven discovery run the brief requires is still to be recorded - it needs
-an Anthropic API key. Operator handoff (A7) remains planned: `intervene` and `catalog`
-exit with “not implemented.”
-Until A7, an escalation ends the run with evidence rather than handing the session to a person.
+capability artifact (schema, approval), deterministic replay engine, discovery and compiler
+(A6), and live operator handoff (A7) are implemented and covered by unit and live-browser
+tests. The genuine model-driven discovery run the brief requires has been recorded with
+Claude Haiku 4.5 and is kept, with its cassette, in
+[`evidence/runs/showcase-discovery-haiku/`](evidence/runs/showcase-discovery-haiku).
+`catalog` (C2) exits with “not implemented.”
 
 | Component | Status | Milestone |
 |---|---|---|
@@ -29,8 +29,8 @@ Until A7, an escalation ends the run with evidence rather than handing the sessi
 | Surface port, AX perception, sensitivity classifier | ✅ complete | A3 |
 | Locator ladder, policy engine, redactor, secret broker | ✅ complete | A4 |
 | Artifact schema, replay engine, approval | ✅ complete | A5 |
-| Discovery loop (real LLM), compiler | ✅ built — genuine model run pending a key | A6 |
-| Control lease, escalation, live handoff | ⬜ not started | A7 |
+| Discovery loop (real LLM), compiler | ✅ complete — genuine Haiku 4.5 run recorded | A6 |
+| Control lease, escalation, live handoff | ✅ complete | A7 |
 | Reconciliation, recovery, outcomes | ⬜ not started | B |
 | Tenant overrides, capability catalog | ⬜ conditional | C |
 
@@ -71,9 +71,9 @@ uv run waypoint version       # installed CLI smoke check
 fails rather than silently re-resolving if the lock is stale. Dependencies cannot drift
 without a change to this repository. Use `make lock` to update them deliberately.
 
-A4 verification: **168 tests passed**, Ruff and mypy passed (22 source files), and the
-source distribution/wheel built successfully with the policy YAML included. This was
-verified using a clean virtual environment outside Desktop; no live LLM was used.
+Verification: `make test` - **307 passed**; `make lint` - Ruff and mypy clean
+(43 source files). Every test runs without an API key; the one live model run is recorded
+as evidence rather than repeated in the suite.
 
 On macOS, keep the virtual environment outside iCloud-synced Desktop/Documents folders.
 Hidden `.pth` files can break the installed CLI even while imports from the project folder
@@ -85,14 +85,14 @@ those folders before running the commands above, for example
 generation-scoped references; `synthesize()` creates a serializable locator bundle;
 `resolve()` returns `Found`, `Ambiguous` or `NotFound`; and `act()` applies policy before dispatch.
 An action result reports browser quiescence, not application-level success. An `in_flight`
-result blocks further writes until quiescence; checkpoints and reconciliation arrive in A5/B.
+result blocks further writes until quiescence; reconciliation of irreversible steps is B.
 
 Policy defaults live in [`waypoint/policy/policy.yaml`](waypoint/policy/policy.yaml).
 Host and port must match the allowlist, including document redirects. Tests explicitly
 configure their ephemeral server origin. `RunContext` defaults to unattended and unknown
 state; a trusted caller will supply recognized state and declared risk. Attended approval
-currently uses an injected callback. The operator workflow and durable approval records
-are later milestones. Arbitrary JavaScript effects are not inferred: known mutating routes,
+uses an injected callback; an escalated run hands off through `waypoint intervene` (below).
+Arbitrary JavaScript effects are not inferred: known mutating routes,
 form effects, control names and opaque inline handlers drive the current classifier.
 
 Credentials use `$secrets.meridian_user` / `$secrets.meridian_password`, resolved directly
@@ -114,7 +114,8 @@ make app                                   # terminal 1: target app on :8080 (bl
 ```
 
 ```bash
-# terminal 2 - fixture credentials from .env.example; .env is not loaded automatically
+# terminal 2 - the CLI reads .env from the working directory (copy .env.example);
+# anything already exported wins over it.
 export MERIDIAN_USER=operator1 MERIDIAN_PASS=changeme
 
 waypoint replay lookup_member_balance --input member_id=12345   # success: $4,281.19, active
@@ -136,8 +137,15 @@ Discovery drives the target app with a model, then compiles what it did into a *
 artifact that must be reviewed and approved before it can replay. It is attended: an action
 the policy marks risky is put to you at the terminal, and refused when there is none.
 
+Discovery is verified as it goes, because a nomination can only be checked while the page
+is still open: each expectation is tested against the screen its action produced, a `finish`
+is put through the compiler's own checks, and what fails goes back to the model to correct
+(`recheck`). What still cannot be verified from one run - that a check will hold for the
+*next* record - is enforced by the compiler, which refuses a checkpoint asserting an
+output's own value.
+
 ```bash
-export ANTHROPIC_API_KEY=...   # live runs only
+export ANTHROPIC_API_KEY=...   # or put it in .env; live runs only
 waypoint discover --capability-id lookup_member_balance \
   --goal "Look up member {{member_id}} and read their current savings balance" \
   --entry http://127.0.0.1:8080/console \
@@ -151,14 +159,66 @@ same command with `--llm cassette --cassette evidence/runs/<run_id>/cassette.jso
 reproduces it with no key and no network, as long as the screens still match - a changed
 application stops the replay rather than clicking stale decisions. `waypoint compile
 evidence/runs/<run_id>` recompiles a saved transcript. Neither command overwrites an
-existing artifact; the draft gets the next free version.
+existing artifact; the draft gets the next free version, and `waypoint replay <id>` keeps
+running the highest *approved* version, so a new draft never takes over by existing.
+
+The recorded Haiku run is committed with its evidence; it compiled with no open gates into
+[`capabilities/lookup_member_balance/1.1.0.json`](capabilities/lookup_member_balance/1.1.0.json),
+which is **left unapproved on purpose** - approving it is the human review step. Approved in
+a scratch copy it returns `$4,281.19 / active` for 12345 and `$912.04 / dormant` for 67890
+from the same artifact. It declares no business outcomes: the model never searched a member
+who does not exist, so `member_not_found` is not in it, and 00000 escalates instead of
+returning an outcome. Reproduce the run without a key or network:
+
+```bash
+waypoint discover --capability-id lookup_member_balance \
+  --goal "Look up member {{member_id}} and read their current savings balance" \
+  --entry http://127.0.0.1:8080/console \
+  --bind member_id=12345:string:internal \
+  --expect-output savings_balance:money:pii --expect-output account_status:string:internal \
+  --llm cassette --cassette evidence/runs/showcase-discovery-haiku/cassette.json
+```
+
+### Operator handoff (implemented)
+
+With `--handoff`, an escalation pauses the run instead of ending it. The browser window stays
+open (`--handoff` implies `--headed`), an intervention is written to `.waypoint/state.db`, and
+the run releases its control lease and polls every 500 ms.
+
+```bash
+# terminal 2
+waypoint replay lookup_member_balance --input member_id=12345 --inject ambiguous --handoff
+```
+
+```bash
+# terminal 3 - the operator
+waypoint intervene list                 # id, status, capability, step, reason
+waypoint intervene show <id>            # expected vs observed, screenshot and snapshot paths
+waypoint intervene take <id>            # the lease moves to you; drive the headed window
+waypoint intervene return <id>          # hand back; the run re-checks the screen
+waypoint intervene abort <id>           # or end the run: exit 3, with evidence
+```
+
+On return the run takes control back under a new lease generation - anything still holding
+the old one is refused by the surface - and walks a ladder with no default branch: a declared
+outcome, the postcondition, the escalated step's checkpoint, then a declared **resume
+point**; otherwise it escalates again (at most two handoffs per run). In the `ambiguous`
+demo, open the member's record from their row and return: the run resumes at the Accounts
+tab and prints the balance. Returning without doing anything escalates again - the results
+page satisfies an earlier checkpoint, but that step is not a resume point, so the run does
+not guess.
+
+What the operator did is logged, redacted, in `evidence/runs/<run_id>/human/actions.jsonl`:
+control transfers, clicks, field changes (length only, none for passwords), submits and
+navigations, next to a before-screenshot and a before/after diff (`handoff1_diff.json`). If
+nobody takes control within 30 minutes, or the operator's lease lapses (`take --ttl`,
+default 900 s), the run ends escalated instead of resuming.
 
 ### Planned
 
 Still to come:
 
 ```bash
-watch -n 2 'waypoint intervene list'                                     # PLANNED (A7)
 waypoint replay lookup_member_balance --input member_id=12345 --inject interstitial  # B1
 waypoint replay lookup_member_balance --input member_id=12345 --inject 500           # B1
 ```
@@ -196,12 +256,15 @@ Full reasoning in [REPORT.md](REPORT.md) §7.
 
 - **Desktop surface** — the port is defined and `DesktopSurface` raises `NotImplementedError`
   with each method's UIA/AXAPI equivalent documented. The seam is real; the implementation is absent.
-- **Operator console** — a planned CLI (`waypoint intervene`) rather than a web UI;
-  control-transfer storage and the operator workflow are not implemented yet.
+- **Operator console** — a CLI (`waypoint intervene`) rather than a web UI. It reads and
+  writes the same SQLite tables a web page would, so a page would be a view over an unchanged
+  model: `list`, `show`, `take`, `return`, `abort`, plus `intents` and `reconcile`.
 - **Credential storage** — environment variables behind a `SecretBroker` interface that a real
   vault would drop into.
-- **Process-death recovery** — write-ahead intent records and reconciliation are planned;
-  automatic browser reattachment is outside the current scope.
+- **Process-death recovery** — write-ahead intent records are written before any irreversible
+  dispatch and block a repeat of the same operation until an operator reconciles it
+  (`waypoint intervene intents` / `reconcile`). The automatic probe that would answer
+  "did it happen?" without a human arrives in B; browser reattachment is out of scope.
 - **No queues, workers, or multi-tenant infrastructure** — the brief explicitly does not reward it.
 
 ---

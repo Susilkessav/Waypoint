@@ -10,6 +10,11 @@ for page text to inject into. Two further restrictions are deliberate:
 * Every state-changing decision carries ``intent`` (why) and ``expect`` (what must
   be true afterwards). ``intent`` is what makes the compiled artifact reviewable;
   ``expect`` is the checkpoint nomination the compiler verifies (R-PKG-5).
+
+``recheck`` is the one tool that touches nothing: it restates the expectation for the
+action just taken, and the loop keeps it only if it is true on the screen that action
+produced. It exists because an expectation is nominated before its result can be seen,
+and a wrong one is only found afterwards - when, without this, nobody could fix it.
 """
 
 from __future__ import annotations
@@ -18,7 +23,7 @@ import re
 from dataclasses import asdict, dataclass, field
 from typing import Any, Literal
 
-DecisionKind = Literal["click", "type", "select", "key", "finish", "give_up"]
+DecisionKind = Literal["click", "type", "select", "key", "recheck", "finish", "give_up"]
 KEYS = ("Enter", "Tab", "Escape")
 ELEMENT_ID = re.compile(r"^e[1-9][0-9]*$")
 
@@ -93,7 +98,9 @@ _EXPECT_SCHEMA: dict[str, Any] = {
                 "properties": {
                     "role": {"type": "string"},
                     "name": {"type": "string"},
-                    "anchor": {"type": "string", "description": "A nearby label, or ''."},
+                    "anchor": {"type": "string", "description": "One nearby label, copied "
+                               "from that element's near=... list - never the whole list. "
+                               "Or ''."},
                 },
                 "required": ["role", "name", "anchor"],
                 "additionalProperties": False,
@@ -106,11 +113,17 @@ _EXPECT_SCHEMA: dict[str, Any] = {
 }
 
 
-def _tool(name: str, description: str, properties: dict[str, Any]) -> dict[str, Any]:
-    return {
+def _tool(name: str, description: str, properties: dict[str, Any],
+          strict: bool = True) -> dict[str, Any]:
+    """One tool schema. ``strict`` asks the API to constrain decoding to the schema.
+
+    Strict tools share one compiled grammar with a size limit, and the expectation schema
+    repeated across them is most of it. ``recheck`` therefore goes without: every decision
+    is parsed and validated here in any case, so an off-schema call is refused either way.
+    """
+    tool: dict[str, Any] = {
         "name": name,
         "description": description,
-        "strict": True,
         "input_schema": {
             "type": "object",
             "properties": properties,
@@ -118,6 +131,9 @@ def _tool(name: str, description: str, properties: dict[str, Any]) -> dict[str, 
             "additionalProperties": False,
         },
     }
+    if strict:
+        tool["strict"] = True
+    return tool
 
 
 _ELEMENT = {"type": "string", "description": "An element id from the current table, e.g. e12."}
@@ -152,13 +168,16 @@ TOOLS: list[dict[str, Any]] = [
         "success": _EXPECT_SCHEMA,
         "summary": {"type": "string", "description": "One sentence: what was achieved."},
     }),
+    _tool("recheck", "Restate what must be true after your last action, when you were told "
+                     "the expectation you gave was false. Changes nothing on screen.",
+          {"expect": _EXPECT_SCHEMA}, strict=False),
     _tool("give_up", "Stop: the goal cannot be completed safely from here.",
           {"reason": {"type": "string"}}),
 ]
 
 _KIND_BY_TOOL: dict[str, DecisionKind] = {
     "click": "click", "type_text": "type", "select_option": "select", "press_key": "key",
-    "finish": "finish", "give_up": "give_up",
+    "recheck": "recheck", "finish": "finish", "give_up": "give_up",
 }
 
 
@@ -179,7 +198,12 @@ def parse_tool_call(name: str, arguments: dict[str, Any]) -> Decision:
     if kind == "give_up":
         return Decision("give_up", reason=str(arguments.get("reason", "")))
     if kind == "finish":
-        outputs = {str(o["name"]): str(o["element"]) for o in arguments.get("outputs") or []}
+        try:
+            outputs = {str(o["name"]): str(o["element"]) for o in arguments.get("outputs") or []}
+        except (TypeError, KeyError, IndexError) as exc:  # a shape the schema did not enforce
+            raise InvalidDecision(
+                f"outputs must be a list of {{name, element}} objects ({exc})"
+            ) from None
         bad = [e for e in outputs.values() if not ELEMENT_ID.match(e)]
         if bad:
             raise InvalidDecision(f"finish names unknown element ids: {bad}")
@@ -191,6 +215,8 @@ def parse_tool_call(name: str, arguments: dict[str, Any]) -> Decision:
     expect = _expectation(arguments.get("expect") or {})
     if expect.is_empty():
         raise InvalidDecision("every action must say what should be true afterwards (expect)")
+    if kind == "recheck":
+        return Decision("recheck", expect=expect)
     intent = str(arguments.get("intent", "")).strip()
     if not intent:
         raise InvalidDecision("every action needs an intent")
