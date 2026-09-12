@@ -46,7 +46,7 @@ CAPABILITIES = Path("capabilities")
 @app.command()
 def approve(
     capability_id: str,
-    version: Annotated[str | None, typer.Option(help="Defaults to the highest release.")] = None,
+    version: Annotated[str | None, typer.Option(help="Defaults to the newest version.")] = None,
     variant: Annotated[str, typer.Option(help="Tenant variant to approve.")] = "base",
     note: Annotated[str | None, typer.Option(help="Why this is approved.")] = None,
     approver: Annotated[str | None, typer.Option(help="Defaults to the OS user.")] = None,
@@ -59,7 +59,7 @@ def approve(
     from waypoint.artifact.approval import approve as approve_artifact
     from waypoint.artifact.schema import content_hash, load, locate
 
-    path = locate(root, capability_id, version)
+    path = locate(root, capability_id, version, release=False)
     cap = load(path)
     try:
         approved = approve_artifact(
@@ -342,6 +342,54 @@ def replay(
         err=True,
     )
     raise typer.Exit(code=result.exit_code)
+
+
+@app.command()
+def approvals(
+    root: Annotated[Path, typer.Option(help="Capabilities directory.")] = CAPABILITIES,
+    db: Annotated[Path, typer.Option("--db", help="Shared session state (SQLite).")] = DEFAULT_DB,
+) -> None:
+    """The approval queue: drafts awaiting review, and runs waiting on a person's approval."""
+    import re
+    import time
+
+    from waypoint.artifact.approval import approval_status
+    from waypoint.artifact.schema import SEMVER, load
+
+    typer.echo("drafts awaiting review:")
+    drafts = 0
+    for folder in sorted(p for p in root.glob("*") if p.is_dir()):
+        for path in sorted(folder.glob("*.json")):
+            if not re.match(SEMVER, path.stem):
+                continue
+            cap = load(path)
+            status = approval_status(cap)
+            if status.approved:
+                continue
+            drafts += 1
+            gates = [r for r in status.reasons if "not approved" not in r]
+            state = "approvable" if not gates else f"{len(gates)} open gate(s): {gates[0]}"
+            typer.echo(f"  {cap.capability_id} {cap.version}  {state}")
+            if not gates:
+                typer.echo(f"    -> waypoint approve {cap.capability_id} --version {cap.version}")
+    if not drafts:
+        typer.echo("  none")
+
+    typer.echo("runs waiting for approval:")
+    waiting = []
+    if db.exists():
+        from waypoint.session.escalation import InterventionStore
+        from waypoint.session.store import StateStore
+
+        waiting = [iv for iv in InterventionStore(StateStore(db)).list(("open",))
+                   if iv.reason_code in ("approval_required", "risk_exceeds_declared")]
+    now = time.time()
+    for iv in waiting:
+        typer.echo(f"  {iv.id}  {iv.capability_id}@{iv.version}  {iv.step}  "
+                   f"{iv.intent or ''!r}  {iv.message}  {int(now - iv.created_at)}s ago")
+        typer.echo(f"    -> waypoint intervene take {iv.id}{_db_flag(db)}")
+    if not waiting:
+        typer.echo("  none")
 
 
 intervene_app = typer.Typer(

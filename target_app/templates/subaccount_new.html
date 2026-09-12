@@ -1,0 +1,41 @@
+<html>
+<head><title>New Sub-Account</title></head>
+<body bgcolor="#FFFFFF" style="font-family: Verdana, Arial, sans-serif; font-size: 11px;">
+<table cellpadding="0" cellspacing="0" border="0" width="100%">
+  <tr><td bgcolor="#DDDDD0" height="22">&nbsp;<b>New Sub-Account</b></td></tr>
+</table>
+<br>
+{% if error %}
+<!-- The application's own refusal: an answer, not a fault. 200, with a banner. -->
+<table cellpadding="4" cellspacing="0" border="0" bgcolor="#F4E0E0" width="100%">
+  <tr><td id="ctl00_MainContent_lblError"><b>{{ error }}</b></td></tr>
+</table>
+<br>
+{% endif %}
+<form method="post" action="/console/subaccount/review">
+<input type="hidden" name="member_id" value="{{ member.member_id }}">
+<table cellpadding="5" cellspacing="0" border="0">
+  <!-- Labels are the cell to the left. No <label for>, no ARIA, no test IDs. -->
+  <tr><td>Member ID</td>
+      <td id="ctl00_MainContent_lblMemberId">{{ member.member_id }}</td></tr>
+  <tr><td>Account type</td>
+      <td><select name="ctl00$MainContent$ddlAccountType" id="ctl00_MainContent_ddlAccountType">
+            <option value="">-- select --</option>
+            {% for kind in types %}
+            <option value="{{ kind }}"{{ ' selected' if values.get('kind') == kind else '' }}>{{ kind }}</option>
+            {% endfor %}
+          </select></td></tr>
+  <tr><td>Initial deposit</td>
+      <td><input type="text" name="ctl00$MainContent$txtDeposit"
+                 id="ctl00_MainContent_txtDeposit" size="12"
+                 value="{{ values.get('deposit', '') }}"></td></tr>
+  <tr><td></td>
+      <!-- Under inject=drift this keeps its id and loses its name: a locator that
+           knows only "the button called Review" stops matching here. -->
+      <td><input type="submit" id="ctl00_MainContent_btnReview" value="{{ submit }}"></td></tr>
+</table>
+</form>
+<br>
+<a href="/console/member?member_id={{ member.member_id }}">Back to member</a>
+</body>
+</html>

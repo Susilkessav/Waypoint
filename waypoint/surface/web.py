@@ -326,6 +326,7 @@ class WebSurface:
             if isinstance(verdict, RequireApproval):
                 if (
                     self.context.unattended
+                    or not verdict.approvable
                     or self.approve is None
                     or not self.approve(verdict, action)
                 ):

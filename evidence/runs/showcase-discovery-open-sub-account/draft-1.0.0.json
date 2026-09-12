@@ -1,0 +1,2313 @@
+{
+  "schema_version": "1.0.0",
+  "capability_id": "open_sub_account",
+  "version": "1.0.0",
+  "name": "open_sub_account (discovered)",
+  "description": "Open a $inputs.account_type sub-account for member $inputs.member_id with an initial deposit of $inputs.initial_deposit",
+  "surface": {
+    "kind": "web",
+    "entry": "http://127.0.0.1:8765/console",
+    "app_fingerprint": {}
+  },
+  "inputs": {
+    "type": "object",
+    "required": [
+      "member_id",
+      "account_type",
+      "initial_deposit"
+    ],
+    "properties": {
+      "member_id": {
+        "type": "string",
+        "pattern": null,
+        "enum": null,
+        "format": null,
+        "sensitivity": "internal",
+        "description": ""
+      },
+      "account_type": {
+        "type": "string",
+        "pattern": null,
+        "enum": null,
+        "format": null,
+        "sensitivity": "public",
+        "description": ""
+      },
+      "initial_deposit": {
+        "type": "string",
+        "pattern": null,
+        "enum": null,
+        "format": null,
+        "sensitivity": "internal",
+        "description": ""
+      }
+    }
+  },
+  "outputs": {
+    "type": "object",
+    "properties": {
+      "account_id": {
+        "type": "string",
+        "format": null,
+        "enum": null,
+        "sensitivity": "internal",
+        "extraction": {
+          "recorded_tier": 3,
+          "candidates": [
+            {
+              "tier": 3,
+              "kind": "anchored",
+              "frame_path": [
+                "main",
+                "content"
+              ],
+              "role": "LayoutTableCell",
+              "name": null,
+              "label": null,
+              "anchor": {
+                "role": "cell",
+                "text": "Account",
+                "text_ref": null,
+                "exact": true
+              },
+              "column": null,
+              "path": null,
+              "identity": null,
+              "bbox": null
+            },
+            {
+              "tier": 4,
+              "kind": "structural",
+              "frame_path": [
+                "main",
+                "content"
+              ],
+              "role": "LayoutTableCell",
+              "name": null,
+              "label": null,
+              "anchor": null,
+              "column": null,
+              "path": "html:nth-of-type(1) > body:nth-of-type(1) > table:nth-of-type(2) > tbody:nth-of-type(1) > tr:nth-of-type(3) > td:nth-of-type(2)",
+              "identity": {
+                "relation": "same_row",
+                "target": {
+                  "role": "cell",
+                  "text": "Account",
+                  "text_ref": null,
+                  "exact": true
+                }
+              },
+              "bbox": null
+            }
+          ],
+          "diagnostics": [
+            {
+              "candidate": {
+                "tier": 5,
+                "kind": "visual",
+                "frame_path": [
+                  "main",
+                  "content"
+                ],
+                "role": "LayoutTableCell",
+                "name": null,
+                "label": null,
+                "anchor": null,
+                "column": null,
+                "path": null,
+                "identity": {
+                  "relation": "same_row",
+                  "target": {
+                    "role": "cell",
+                    "text": "Account",
+                    "text_ref": null,
+                    "exact": true
+                  }
+                },
+                "bbox": [
+                  333,
+                  101,
+                  225,
+                  29
+                ]
+              },
+              "matches_at_record": 0,
+              "reason": "not_unique_target_or_unverified_identity"
+            }
+          ]
+        }
+      }
+    }
+  },
+  "signatures": {
+    "step0_enter_the_user_id_for_authentica": {
+      "description": "After: Enter the user ID for authentication",
+      "match": {
+        "element_exists": null,
+        "element_absent": null,
+        "text_contains": null,
+        "url_matches": null,
+        "all": [
+          {
+            "element_exists": {
+              "role": "textbox",
+              "name": null,
+              "name_ref": null,
+              "name_contains": null,
+              "anchor": "User ID",
+              "anchor_ref": null,
+              "value_ref": null,
+              "filled": true,
+              "frame": [
+                "main"
+              ]
+            },
+            "element_absent": null,
+            "text_contains": null,
+            "url_matches": null,
+            "all": null,
+            "any": null,
+            "none": null
+          },
+          {
+            "element_exists": {
+              "role": "textbox",
+              "name": null,
+              "name_ref": null,
+              "name_contains": null,
+              "anchor": "User ID",
+              "anchor_ref": null,
+              "value_ref": null,
+              "filled": null,
+              "frame": [
+                "main"
+              ]
+            },
+            "element_absent": null,
+            "text_contains": null,
+            "url_matches": null,
+            "all": null,
+            "any": null,
+            "none": null
+          }
+        ],
+        "any": null,
+        "none": null
+      }
+    },
+    "step1_enter_the_password_for_authentic": {
+      "description": "After: Enter the password for authentication",
+      "match": {
+        "element_exists": null,
+        "element_absent": null,
+        "text_contains": null,
+        "url_matches": null,
+        "all": [
+          {
+            "element_exists": {
+              "role": "textbox",
+              "name": null,
+              "name_ref": null,
+              "name_contains": null,
+              "anchor": "Password",
+              "anchor_ref": null,
+              "value_ref": null,
+              "filled": true,
+              "frame": [
+                "main"
+              ]
+            },
+            "element_absent": null,
+            "text_contains": null,
+            "url_matches": null,
+            "all": null,
+            "any": null,
+            "none": null
+          },
+          {
+            "element_exists": {
+              "role": "textbox",
+              "name": null,
+              "name_ref": null,
+              "name_contains": null,
+              "anchor": "Password",
+              "anchor_ref": null,
+              "value_ref": null,
+              "filled": null,
+              "frame": [
+                "main"
+              ]
+            },
+            "element_absent": null,
+            "text_contains": null,
+            "url_matches": null,
+            "all": null,
+            "any": null,
+            "none": null
+          }
+        ],
+        "any": null,
+        "none": null
+      }
+    },
+    "step2_submit_the_sign_on_form_with_cre": {
+      "description": "After: Submit the sign-on form with credentials",
+      "match": {
+        "element_exists": {
+          "role": "LayoutTableCell",
+          "name": "Member Search",
+          "name_ref": null,
+          "name_contains": null,
+          "anchor": null,
+          "anchor_ref": null,
+          "value_ref": null,
+          "filled": null,
+          "frame": [
+            "main",
+            "content"
+          ]
+        },
+        "element_absent": null,
+        "text_contains": null,
+        "url_matches": null,
+        "all": null,
+        "any": null,
+        "none": null
+      }
+    },
+    "step3_enter_the_member_id_to_search_fo": {
+      "description": "After: Enter the member ID to search for the member",
+      "match": {
+        "element_exists": null,
+        "element_absent": null,
+        "text_contains": null,
+        "url_matches": null,
+        "all": [
+          {
+            "element_exists": {
+              "role": "textbox",
+              "name": null,
+              "name_ref": null,
+              "name_contains": null,
+              "anchor": "Member ID",
+              "anchor_ref": null,
+              "value_ref": "$inputs.member_id",
+              "filled": null,
+              "frame": [
+                "main",
+                "content"
+              ]
+            },
+            "element_absent": null,
+            "text_contains": null,
+            "url_matches": null,
+            "all": null,
+            "any": null,
+            "none": null
+          },
+          {
+            "element_exists": {
+              "role": "textbox",
+              "name": null,
+              "name_ref": null,
+              "name_contains": null,
+              "anchor": "Member ID",
+              "anchor_ref": null,
+              "value_ref": null,
+              "filled": null,
+              "frame": [
+                "main",
+                "content"
+              ]
+            },
+            "element_absent": null,
+            "text_contains": null,
+            "url_matches": null,
+            "all": null,
+            "any": null,
+            "none": null
+          }
+        ],
+        "any": null,
+        "none": null
+      }
+    },
+    "step4_search_for_the_member_by_id": {
+      "description": "After: Search for the member by ID",
+      "match": {
+        "element_exists": {
+          "role": "cell",
+          "name": null,
+          "name_ref": "$inputs.member_id",
+          "name_contains": null,
+          "anchor": "Member ID",
+          "anchor_ref": null,
+          "value_ref": null,
+          "filled": null,
+          "frame": [
+            "main",
+            "content"
+          ]
+        },
+        "element_absent": null,
+        "text_contains": null,
+        "url_matches": null,
+        "all": null,
+        "any": null,
+        "none": null
+      }
+    },
+    "step5_view_the_member_details": {
+      "description": "After: View the member details",
+      "match": {
+        "element_exists": {
+          "role": "LayoutTableCell",
+          "name": null,
+          "name_ref": "$inputs.member_id",
+          "name_contains": null,
+          "anchor": "Member ID",
+          "anchor_ref": null,
+          "value_ref": null,
+          "filled": null,
+          "frame": [
+            "main",
+            "content"
+          ]
+        },
+        "element_absent": null,
+        "text_contains": null,
+        "url_matches": null,
+        "all": null,
+        "any": null,
+        "none": null
+      }
+    },
+    "step6_open_the_sub_account_creation_fo": {
+      "description": "After: Open the sub-account creation form",
+      "match": {
+        "element_exists": null,
+        "element_absent": null,
+        "text_contains": null,
+        "url_matches": null,
+        "all": [
+          {
+            "element_exists": {
+              "role": "LayoutTableCell",
+              "name": "New Sub-Account",
+              "name_ref": null,
+              "name_contains": null,
+              "anchor": null,
+              "anchor_ref": null,
+              "value_ref": null,
+              "filled": null,
+              "frame": [
+                "main",
+                "content"
+              ]
+            },
+            "element_absent": null,
+            "text_contains": null,
+            "url_matches": null,
+            "all": null,
+            "any": null,
+            "none": null
+          },
+          {
+            "element_exists": {
+              "role": "LayoutTableCell",
+              "name": null,
+              "name_ref": "$inputs.member_id",
+              "name_contains": null,
+              "anchor": "Member ID",
+              "anchor_ref": null,
+              "value_ref": null,
+              "filled": null,
+              "frame": [
+                "main",
+                "content"
+              ]
+            },
+            "element_absent": null,
+            "text_contains": null,
+            "url_matches": null,
+            "all": null,
+            "any": null,
+            "none": null
+          }
+        ],
+        "any": null,
+        "none": null
+      }
+    },
+    "step7_select_the_specified_account_typ": {
+      "description": "After: Select the specified account type from the dropdown",
+      "match": {
+        "element_exists": null,
+        "element_absent": null,
+        "text_contains": null,
+        "url_matches": null,
+        "all": [
+          {
+            "element_exists": {
+              "role": "combobox",
+              "name": null,
+              "name_ref": null,
+              "name_contains": null,
+              "anchor": "Account type",
+              "anchor_ref": null,
+              "value_ref": null,
+              "filled": true,
+              "frame": [
+                "main",
+                "content"
+              ]
+            },
+            "element_absent": null,
+            "text_contains": null,
+            "url_matches": null,
+            "all": null,
+            "any": null,
+            "none": null
+          },
+          {
+            "element_exists": {
+              "role": "combobox",
+              "name": null,
+              "name_ref": null,
+              "name_contains": null,
+              "anchor": "Account type",
+              "anchor_ref": null,
+              "value_ref": null,
+              "filled": null,
+              "frame": [
+                "main",
+                "content"
+              ]
+            },
+            "element_absent": null,
+            "text_contains": null,
+            "url_matches": null,
+            "all": null,
+            "any": null,
+            "none": null
+          },
+          {
+            "element_exists": {
+              "role": "LayoutTableCell",
+              "name": null,
+              "name_ref": "$inputs.member_id",
+              "name_contains": null,
+              "anchor": "Member ID",
+              "anchor_ref": null,
+              "value_ref": null,
+              "filled": null,
+              "frame": [
+                "main",
+                "content"
+              ]
+            },
+            "element_absent": null,
+            "text_contains": null,
+            "url_matches": null,
+            "all": null,
+            "any": null,
+            "none": null
+          }
+        ],
+        "any": null,
+        "none": null
+      }
+    },
+    "step8_enter_the_initial_deposit_amount": {
+      "description": "After: Enter the initial deposit amount",
+      "match": {
+        "element_exists": null,
+        "element_absent": null,
+        "text_contains": null,
+        "url_matches": null,
+        "all": [
+          {
+            "element_exists": {
+              "role": "textbox",
+              "name": null,
+              "name_ref": null,
+              "name_contains": null,
+              "anchor": "Initial deposit",
+              "anchor_ref": null,
+              "value_ref": "$inputs.initial_deposit",
+              "filled": null,
+              "frame": [
+                "main",
+                "content"
+              ]
+            },
+            "element_absent": null,
+            "text_contains": null,
+            "url_matches": null,
+            "all": null,
+            "any": null,
+            "none": null
+          },
+          {
+            "element_exists": {
+              "role": "textbox",
+              "name": null,
+              "name_ref": null,
+              "name_contains": null,
+              "anchor": "Initial deposit",
+              "anchor_ref": null,
+              "value_ref": null,
+              "filled": null,
+              "frame": [
+                "main",
+                "content"
+              ]
+            },
+            "element_absent": null,
+            "text_contains": null,
+            "url_matches": null,
+            "all": null,
+            "any": null,
+            "none": null
+          },
+          {
+            "element_exists": {
+              "role": "LayoutTableCell",
+              "name": null,
+              "name_ref": "$inputs.member_id",
+              "name_contains": null,
+              "anchor": "Member ID",
+              "anchor_ref": null,
+              "value_ref": null,
+              "filled": null,
+              "frame": [
+                "main",
+                "content"
+              ]
+            },
+            "element_absent": null,
+            "text_contains": null,
+            "url_matches": null,
+            "all": null,
+            "any": null,
+            "none": null
+          }
+        ],
+        "any": null,
+        "none": null
+      }
+    },
+    "step9_submit_the_sub_account_creation_": {
+      "description": "After: Submit the sub-account creation form for review",
+      "match": {
+        "element_exists": null,
+        "element_absent": null,
+        "text_contains": null,
+        "url_matches": null,
+        "all": [
+          {
+            "element_exists": {
+              "role": "LayoutTableCell",
+              "name": "Review Sub-Account",
+              "name_ref": null,
+              "name_contains": null,
+              "anchor": null,
+              "anchor_ref": null,
+              "value_ref": null,
+              "filled": null,
+              "frame": [
+                "main",
+                "content"
+              ]
+            },
+            "element_absent": null,
+            "text_contains": null,
+            "url_matches": null,
+            "all": null,
+            "any": null,
+            "none": null
+          },
+          {
+            "element_exists": {
+              "role": "LayoutTableCell",
+              "name": null,
+              "name_ref": "$inputs.member_id",
+              "name_contains": null,
+              "anchor": "Member ID",
+              "anchor_ref": null,
+              "value_ref": null,
+              "filled": null,
+              "frame": [
+                "main",
+                "content"
+              ]
+            },
+            "element_absent": null,
+            "text_contains": null,
+            "url_matches": null,
+            "all": null,
+            "any": null,
+            "none": null
+          }
+        ],
+        "any": null,
+        "none": null
+      }
+    },
+    "step10_confirm_and_create_the_sub_accou": {
+      "description": "After: Confirm and create the sub-account",
+      "match": {
+        "element_exists": null,
+        "element_absent": null,
+        "text_contains": null,
+        "url_matches": null,
+        "all": [
+          {
+            "element_exists": {
+              "role": "LayoutTableCell",
+              "name": "Sub-Account Opened",
+              "name_ref": null,
+              "name_contains": null,
+              "anchor": null,
+              "anchor_ref": null,
+              "value_ref": null,
+              "filled": null,
+              "frame": [
+                "main",
+                "content"
+              ]
+            },
+            "element_absent": null,
+            "text_contains": null,
+            "url_matches": null,
+            "all": null,
+            "any": null,
+            "none": null
+          },
+          {
+            "element_exists": {
+              "role": "LayoutTableCell",
+              "name": null,
+              "name_ref": "$inputs.member_id",
+              "name_contains": null,
+              "anchor": "Member ID",
+              "anchor_ref": null,
+              "value_ref": null,
+              "filled": null,
+              "frame": [
+                "main",
+                "content"
+              ]
+            },
+            "element_absent": null,
+            "text_contains": null,
+            "url_matches": null,
+            "all": null,
+            "any": null,
+            "none": null
+          }
+        ],
+        "any": null,
+        "none": null
+      }
+    }
+  },
+  "preconditions": [],
+  "postconditions": [
+    {
+      "signature": "step10_confirm_and_create_the_sub_accou"
+    }
+  ],
+  "steps": [
+    {
+      "intent": "Enter the user ID for authentication",
+      "action": "type",
+      "target": {
+        "recorded_tier": 3,
+        "candidates": [
+          {
+            "tier": 3,
+            "kind": "anchored",
+            "frame_path": [
+              "main"
+            ],
+            "role": "textbox",
+            "name": "",
+            "label": null,
+            "anchor": {
+              "role": "cell",
+              "text": "User ID",
+              "text_ref": null,
+              "exact": true
+            },
+            "column": null,
+            "path": null,
+            "identity": null,
+            "bbox": null
+          },
+          {
+            "tier": 3,
+            "kind": "anchored",
+            "frame_path": [
+              "main"
+            ],
+            "role": "textbox",
+            "name": null,
+            "label": null,
+            "anchor": {
+              "role": "cell",
+              "text": "User ID",
+              "text_ref": null,
+              "exact": true
+            },
+            "column": null,
+            "path": null,
+            "identity": null,
+            "bbox": null
+          },
+          {
+            "tier": 4,
+            "kind": "structural",
+            "frame_path": [
+              "main"
+            ],
+            "role": "textbox",
+            "name": null,
+            "label": null,
+            "anchor": null,
+            "column": null,
+            "path": "html:nth-of-type(1) > body:nth-of-type(1) > center:nth-of-type(1) > table:nth-of-type(1) > tbody:nth-of-type(1) > tr:nth-of-type(2) > td:nth-of-type(2) > input:nth-of-type(1)",
+            "identity": {
+              "relation": "same_row",
+              "target": {
+                "role": "cell",
+                "text": "User ID",
+                "text_ref": null,
+                "exact": true
+              }
+            },
+            "bbox": null
+          }
+        ],
+        "diagnostics": [
+          {
+            "candidate": {
+              "tier": 1,
+              "kind": "role_name",
+              "frame_path": [
+                "main"
+              ],
+              "role": "textbox",
+              "name": "",
+              "label": null,
+              "anchor": null,
+              "column": null,
+              "path": null,
+              "identity": null,
+              "bbox": null
+            },
+            "matches_at_record": 2,
+            "reason": "not_unique_target_or_unverified_identity"
+          },
+          {
+            "candidate": {
+              "tier": 2,
+              "kind": "label",
+              "frame_path": [
+                "main"
+              ],
+              "role": "textbox",
+              "name": null,
+              "label": "User ID",
+              "anchor": null,
+              "column": null,
+              "path": null,
+              "identity": null,
+              "bbox": null
+            },
+            "matches_at_record": 0,
+            "reason": "not_unique_target_or_unverified_identity"
+          },
+          {
+            "candidate": {
+              "tier": 5,
+              "kind": "visual",
+              "frame_path": [
+                "main"
+              ],
+              "role": "textbox",
+              "name": null,
+              "label": null,
+              "anchor": null,
+              "column": null,
+              "path": null,
+              "identity": {
+                "relation": "same_row",
+                "target": {
+                  "role": "cell",
+                  "text": "User ID",
+                  "text_ref": null,
+                  "exact": true
+                }
+              },
+              "bbox": [
+                608,
+                121,
+                153,
+                21
+              ]
+            },
+            "matches_at_record": 0,
+            "reason": "not_unique_target_or_unverified_identity"
+          }
+        ]
+      },
+      "value_ref": "$secrets.meridian_user",
+      "url_template": null,
+      "key": null,
+      "risk": "safe",
+      "checkpoint": {
+        "signature": "step0_enter_the_user_id_for_authentica",
+        "weak": false,
+        "unverified": false
+      },
+      "resume_point": false,
+      "retry": {
+        "max": 0,
+        "backoff_ms": 500
+      },
+      "timeout_ms": 5000,
+      "reconcile": null,
+      "unreviewed_literal": false
+    },
+    {
+      "intent": "Enter the password for authentication",
+      "action": "type",
+      "target": {
+        "recorded_tier": 3,
+        "candidates": [
+          {
+            "tier": 3,
+            "kind": "anchored",
+            "frame_path": [
+              "main"
+            ],
+            "role": "textbox",
+            "name": "",
+            "label": null,
+            "anchor": {
+              "role": "cell",
+              "text": "Password",
+              "text_ref": null,
+              "exact": true
+            },
+            "column": null,
+            "path": null,
+            "identity": null,
+            "bbox": null
+          },
+          {
+            "tier": 3,
+            "kind": "anchored",
+            "frame_path": [
+              "main"
+            ],
+            "role": "textbox",
+            "name": null,
+            "label": null,
+            "anchor": {
+              "role": "cell",
+              "text": "Password",
+              "text_ref": null,
+              "exact": true
+            },
+            "column": null,
+            "path": null,
+            "identity": null,
+            "bbox": null
+          },
+          {
+            "tier": 4,
+            "kind": "structural",
+            "frame_path": [
+              "main"
+            ],
+            "role": "textbox",
+            "name": null,
+            "label": null,
+            "anchor": null,
+            "column": null,
+            "path": "html:nth-of-type(1) > body:nth-of-type(1) > center:nth-of-type(1) > table:nth-of-type(1) > tbody:nth-of-type(1) > tr:nth-of-type(3) > td:nth-of-type(2) > input:nth-of-type(1)",
+            "identity": {
+              "relation": "same_row",
+              "target": {
+                "role": "cell",
+                "text": "Password",
+                "text_ref": null,
+                "exact": true
+              }
+            },
+            "bbox": null
+          }
+        ],
+        "diagnostics": [
+          {
+            "candidate": {
+              "tier": 1,
+              "kind": "role_name",
+              "frame_path": [
+                "main"
+              ],
+              "role": "textbox",
+              "name": "",
+              "label": null,
+              "anchor": null,
+              "column": null,
+              "path": null,
+              "identity": null,
+              "bbox": null
+            },
+            "matches_at_record": 2,
+            "reason": "not_unique_target_or_unverified_identity"
+          },
+          {
+            "candidate": {
+              "tier": 2,
+              "kind": "label",
+              "frame_path": [
+                "main"
+              ],
+              "role": "textbox",
+              "name": null,
+              "label": "Password",
+              "anchor": null,
+              "column": null,
+              "path": null,
+              "identity": null,
+              "bbox": null
+            },
+            "matches_at_record": 0,
+            "reason": "not_unique_target_or_unverified_identity"
+          },
+          {
+            "candidate": {
+              "tier": 5,
+              "kind": "visual",
+              "frame_path": [
+                "main"
+              ],
+              "role": "textbox",
+              "name": null,
+              "label": null,
+              "anchor": null,
+              "column": null,
+              "path": null,
+              "identity": {
+                "relation": "same_row",
+                "target": {
+                  "role": "cell",
+                  "text": "Password",
+                  "text_ref": null,
+                  "exact": true
+                }
+              },
+              "bbox": [
+                608,
+                156,
+                153,
+                21
+              ]
+            },
+            "matches_at_record": 0,
+            "reason": "not_unique_target_or_unverified_identity"
+          }
+        ]
+      },
+      "value_ref": "$secrets.meridian_password",
+      "url_template": null,
+      "key": null,
+      "risk": "safe",
+      "checkpoint": {
+        "signature": "step1_enter_the_password_for_authentic",
+        "weak": false,
+        "unverified": false
+      },
+      "resume_point": false,
+      "retry": {
+        "max": 0,
+        "backoff_ms": 500
+      },
+      "timeout_ms": 5000,
+      "reconcile": null,
+      "unreviewed_literal": false
+    },
+    {
+      "intent": "Submit the sign-on form with credentials",
+      "action": "click",
+      "target": {
+        "recorded_tier": 1,
+        "candidates": [
+          {
+            "tier": 1,
+            "kind": "role_name",
+            "frame_path": [
+              "main"
+            ],
+            "role": "button",
+            "name": "Sign On",
+            "label": null,
+            "anchor": null,
+            "column": null,
+            "path": null,
+            "identity": null,
+            "bbox": null
+          },
+          {
+            "tier": 4,
+            "kind": "structural",
+            "frame_path": [
+              "main"
+            ],
+            "role": "button",
+            "name": null,
+            "label": null,
+            "anchor": null,
+            "column": null,
+            "path": "html:nth-of-type(1) > body:nth-of-type(1) > center:nth-of-type(1) > table:nth-of-type(1) > tbody:nth-of-type(1) > tr:nth-of-type(4) > td:nth-of-type(1) > input:nth-of-type(1)",
+            "identity": {
+              "relation": "self",
+              "target": {
+                "role": "button",
+                "text": "Sign On",
+                "text_ref": null,
+                "exact": true
+              }
+            },
+            "bbox": null
+          }
+        ],
+        "diagnostics": [
+          {
+            "candidate": {
+              "tier": 5,
+              "kind": "visual",
+              "frame_path": [
+                "main"
+              ],
+              "role": "button",
+              "name": null,
+              "label": null,
+              "anchor": null,
+              "column": null,
+              "path": null,
+              "identity": {
+                "relation": "self",
+                "target": {
+                  "role": "button",
+                  "text": "Sign On",
+                  "text_ref": null,
+                  "exact": true
+                }
+              },
+              "bbox": [
+                697,
+                191,
+                64,
+                21
+              ]
+            },
+            "matches_at_record": 0,
+            "reason": "not_unique_target_or_unverified_identity"
+          }
+        ]
+      },
+      "value_ref": null,
+      "url_template": null,
+      "key": null,
+      "risk": "safe",
+      "checkpoint": {
+        "signature": "step2_submit_the_sign_on_form_with_cre",
+        "weak": false,
+        "unverified": false
+      },
+      "resume_point": false,
+      "retry": {
+        "max": 0,
+        "backoff_ms": 500
+      },
+      "timeout_ms": 5000,
+      "reconcile": null,
+      "unreviewed_literal": false
+    },
+    {
+      "intent": "Enter the member ID to search for the member",
+      "action": "type",
+      "target": {
+        "recorded_tier": 1,
+        "candidates": [
+          {
+            "tier": 1,
+            "kind": "role_name",
+            "frame_path": [
+              "main",
+              "content"
+            ],
+            "role": "textbox",
+            "name": "",
+            "label": null,
+            "anchor": null,
+            "column": null,
+            "path": null,
+            "identity": null,
+            "bbox": null
+          },
+          {
+            "tier": 3,
+            "kind": "anchored",
+            "frame_path": [
+              "main",
+              "content"
+            ],
+            "role": "textbox",
+            "name": "",
+            "label": null,
+            "anchor": {
+              "role": "cell",
+              "text": "Member ID",
+              "text_ref": null,
+              "exact": true
+            },
+            "column": null,
+            "path": null,
+            "identity": null,
+            "bbox": null
+          },
+          {
+            "tier": 3,
+            "kind": "anchored",
+            "frame_path": [
+              "main",
+              "content"
+            ],
+            "role": "textbox",
+            "name": null,
+            "label": null,
+            "anchor": {
+              "role": "cell",
+              "text": "Member ID",
+              "text_ref": null,
+              "exact": true
+            },
+            "column": null,
+            "path": null,
+            "identity": null,
+            "bbox": null
+          },
+          {
+            "tier": 4,
+            "kind": "structural",
+            "frame_path": [
+              "main",
+              "content"
+            ],
+            "role": "textbox",
+            "name": null,
+            "label": null,
+            "anchor": null,
+            "column": null,
+            "path": "html:nth-of-type(1) > body:nth-of-type(1) > form:nth-of-type(1) > table:nth-of-type(1) > tbody:nth-of-type(1) > tr:nth-of-type(1) > td:nth-of-type(2) > input:nth-of-type(1)",
+            "identity": {
+              "relation": "same_row",
+              "target": {
+                "role": "cell",
+                "text": "Member ID",
+                "text_ref": null,
+                "exact": true
+              }
+            },
+            "bbox": null
+          }
+        ],
+        "diagnostics": [
+          {
+            "candidate": {
+              "tier": 2,
+              "kind": "label",
+              "frame_path": [
+                "main",
+                "content"
+              ],
+              "role": "textbox",
+              "name": null,
+              "label": "Member ID",
+              "anchor": null,
+              "column": null,
+              "path": null,
+              "identity": null,
+              "bbox": null
+            },
+            "matches_at_record": 0,
+            "reason": "not_unique_target_or_unverified_identity"
+          },
+          {
+            "candidate": {
+              "tier": 5,
+              "kind": "visual",
+              "frame_path": [
+                "main",
+                "content"
+              ],
+              "role": "textbox",
+              "name": null,
+              "label": null,
+              "anchor": null,
+              "column": null,
+              "path": null,
+              "identity": {
+                "relation": "same_row",
+                "target": {
+                  "role": "cell",
+                  "text": "Member ID",
+                  "text_ref": null,
+                  "exact": true
+                }
+              },
+              "bbox": [
+                294,
+                48,
+                97,
+                21
+              ]
+            },
+            "matches_at_record": 0,
+            "reason": "not_unique_target_or_unverified_identity"
+          }
+        ]
+      },
+      "value_ref": "$inputs.member_id",
+      "url_template": null,
+      "key": null,
+      "risk": "safe",
+      "checkpoint": {
+        "signature": "step3_enter_the_member_id_to_search_fo",
+        "weak": false,
+        "unverified": false
+      },
+      "resume_point": true,
+      "retry": {
+        "max": 0,
+        "backoff_ms": 500
+      },
+      "timeout_ms": 5000,
+      "reconcile": null,
+      "unreviewed_literal": false
+    },
+    {
+      "intent": "Search for the member by ID",
+      "action": "click",
+      "target": {
+        "recorded_tier": 1,
+        "candidates": [
+          {
+            "tier": 1,
+            "kind": "role_name",
+            "frame_path": [
+              "main",
+              "content"
+            ],
+            "role": "button",
+            "name": "Search",
+            "label": null,
+            "anchor": null,
+            "column": null,
+            "path": null,
+            "identity": null,
+            "bbox": null
+          },
+          {
+            "tier": 4,
+            "kind": "structural",
+            "frame_path": [
+              "main",
+              "content"
+            ],
+            "role": "button",
+            "name": null,
+            "label": null,
+            "anchor": null,
+            "column": null,
+            "path": "html:nth-of-type(1) > body:nth-of-type(1) > form:nth-of-type(1) > table:nth-of-type(1) > tbody:nth-of-type(1) > tr:nth-of-type(2) > td:nth-of-type(2) > input:nth-of-type(1)",
+            "identity": {
+              "relation": "self",
+              "target": {
+                "role": "button",
+                "text": "Search",
+                "text_ref": null,
+                "exact": true
+              }
+            },
+            "bbox": null
+          }
+        ],
+        "diagnostics": [
+          {
+            "candidate": {
+              "tier": 5,
+              "kind": "visual",
+              "frame_path": [
+                "main",
+                "content"
+              ],
+              "role": "button",
+              "name": null,
+              "label": null,
+              "anchor": null,
+              "column": null,
+              "path": null,
+              "identity": {
+                "relation": "self",
+                "target": {
+                  "role": "button",
+                  "text": "Search",
+                  "text_ref": null,
+                  "exact": true
+                }
+              },
+              "bbox": [
+                294,
+                79,
+                58,
+                21
+              ]
+            },
+            "matches_at_record": 0,
+            "reason": "not_unique_target_or_unverified_identity"
+          }
+        ]
+      },
+      "value_ref": null,
+      "url_template": null,
+      "key": null,
+      "risk": "safe",
+      "checkpoint": {
+        "signature": "step4_search_for_the_member_by_id",
+        "weak": false,
+        "unverified": false
+      },
+      "resume_point": true,
+      "retry": {
+        "max": 0,
+        "backoff_ms": 500
+      },
+      "timeout_ms": 5000,
+      "reconcile": null,
+      "unreviewed_literal": false
+    },
+    {
+      "intent": "View the member details",
+      "action": "click",
+      "target": {
+        "recorded_tier": 3,
+        "candidates": [
+          {
+            "tier": 3,
+            "kind": "anchored",
+            "frame_path": [
+              "main",
+              "content"
+            ],
+            "role": "link",
+            "name": "View",
+            "label": null,
+            "anchor": {
+              "role": "cell",
+              "text": null,
+              "text_ref": "$inputs.member_id",
+              "exact": true
+            },
+            "column": null,
+            "path": null,
+            "identity": null,
+            "bbox": null
+          },
+          {
+            "tier": 3,
+            "kind": "anchored",
+            "frame_path": [
+              "main",
+              "content"
+            ],
+            "role": "link",
+            "name": null,
+            "label": null,
+            "anchor": {
+              "role": "cell",
+              "text": null,
+              "text_ref": "$inputs.member_id",
+              "exact": true
+            },
+            "column": null,
+            "path": null,
+            "identity": null,
+            "bbox": null
+          },
+          {
+            "tier": 4,
+            "kind": "structural",
+            "frame_path": [
+              "main",
+              "content"
+            ],
+            "role": "link",
+            "name": null,
+            "label": null,
+            "anchor": null,
+            "column": null,
+            "path": "html:nth-of-type(1) > body:nth-of-type(1) > table:nth-of-type(2) > tbody:nth-of-type(1) > tr:nth-of-type(3) > td:nth-of-type(6) > a:nth-of-type(1)",
+            "identity": {
+              "relation": "same_row",
+              "target": {
+                "role": "cell",
+                "text": null,
+                "text_ref": "$inputs.member_id",
+                "exact": true
+              }
+            },
+            "bbox": null
+          }
+        ],
+        "diagnostics": [
+          {
+            "candidate": {
+              "tier": 1,
+              "kind": "role_name",
+              "frame_path": [
+                "main",
+                "content"
+              ],
+              "role": "link",
+              "name": "View",
+              "label": null,
+              "anchor": null,
+              "column": null,
+              "path": null,
+              "identity": null,
+              "bbox": null
+            },
+            "matches_at_record": 8,
+            "reason": "not_unique_target_or_unverified_identity"
+          },
+          {
+            "candidate": {
+              "tier": 3,
+              "kind": "anchored",
+              "frame_path": [
+                "main",
+                "content"
+              ],
+              "role": "link",
+              "name": "View",
+              "label": null,
+              "anchor": {
+                "role": "cell",
+                "text": "BR-014",
+                "text_ref": null,
+                "exact": true
+              },
+              "column": null,
+              "path": null,
+              "identity": null,
+              "bbox": null
+            },
+            "matches_at_record": 8,
+            "reason": "not_unique_target_or_unverified_identity"
+          },
+          {
+            "candidate": {
+              "tier": 3,
+              "kind": "anchored",
+              "frame_path": [
+                "main",
+                "content"
+              ],
+              "role": "link",
+              "name": null,
+              "label": null,
+              "anchor": {
+                "role": "cell",
+                "text": "BR-014",
+                "text_ref": null,
+                "exact": true
+              },
+              "column": null,
+              "path": null,
+              "identity": null,
+              "bbox": null
+            },
+            "matches_at_record": 8,
+            "reason": "not_unique_target_or_unverified_identity"
+          },
+          {
+            "candidate": {
+              "tier": 3,
+              "kind": "anchored",
+              "frame_path": [
+                "main",
+                "content"
+              ],
+              "role": "link",
+              "name": "View",
+              "label": null,
+              "anchor": {
+                "role": "cell",
+                "text": "active",
+                "text_ref": null,
+                "exact": true
+              },
+              "column": null,
+              "path": null,
+              "identity": null,
+              "bbox": null
+            },
+            "matches_at_record": 5,
+            "reason": "not_unique_target_or_unverified_identity"
+          },
+          {
+            "candidate": {
+              "tier": 3,
+              "kind": "anchored",
+              "frame_path": [
+                "main",
+                "content"
+              ],
+              "role": "link",
+              "name": null,
+              "label": null,
+              "anchor": {
+                "role": "cell",
+                "text": "active",
+                "text_ref": null,
+                "exact": true
+              },
+              "column": null,
+              "path": null,
+              "identity": null,
+              "bbox": null
+            },
+            "matches_at_record": 5,
+            "reason": "not_unique_target_or_unverified_identity"
+          },
+          {
+            "candidate": {
+              "tier": 5,
+              "kind": "visual",
+              "frame_path": [
+                "main",
+                "content"
+              ],
+              "role": "link",
+              "name": null,
+              "label": null,
+              "anchor": null,
+              "column": null,
+              "path": null,
+              "identity": {
+                "relation": "same_row",
+                "target": {
+                  "role": "cell",
+                  "text": null,
+                  "text_ref": "$inputs.member_id",
+                  "exact": true
+                }
+              },
+              "bbox": [
+                1186,
+                107,
+                38,
+                19
+              ]
+            },
+            "matches_at_record": 0,
+            "reason": "not_unique_target_or_unverified_identity"
+          }
+        ]
+      },
+      "value_ref": null,
+      "url_template": null,
+      "key": null,
+      "risk": "safe",
+      "checkpoint": {
+        "signature": "step5_view_the_member_details",
+        "weak": false,
+        "unverified": false
+      },
+      "resume_point": true,
+      "retry": {
+        "max": 0,
+        "backoff_ms": 500
+      },
+      "timeout_ms": 5000,
+      "reconcile": null,
+      "unreviewed_literal": false
+    },
+    {
+      "intent": "Open the sub-account creation form",
+      "action": "click",
+      "target": {
+        "recorded_tier": 1,
+        "candidates": [
+          {
+            "tier": 1,
+            "kind": "role_name",
+            "frame_path": [
+              "main",
+              "content"
+            ],
+            "role": "link",
+            "name": "Open sub-account",
+            "label": null,
+            "anchor": null,
+            "column": null,
+            "path": null,
+            "identity": null,
+            "bbox": null
+          },
+          {
+            "tier": 4,
+            "kind": "structural",
+            "frame_path": [
+              "main",
+              "content"
+            ],
+            "role": "link",
+            "name": null,
+            "label": null,
+            "anchor": null,
+            "column": null,
+            "path": "html:nth-of-type(1) > body:nth-of-type(1) > form:nth-of-type(1) > table:nth-of-type(4) > tbody:nth-of-type(1) > tr:nth-of-type(1) > td:nth-of-type(1) > a:nth-of-type(2)",
+            "identity": {
+              "relation": "self",
+              "target": {
+                "role": "link",
+                "text": "Open sub-account",
+                "text_ref": null,
+                "exact": true
+              }
+            },
+            "bbox": null
+          }
+        ],
+        "diagnostics": [
+          {
+            "candidate": {
+              "tier": 5,
+              "kind": "visual",
+              "frame_path": [
+                "main",
+                "content"
+              ],
+              "role": "link",
+              "name": null,
+              "label": null,
+              "anchor": null,
+              "column": null,
+              "path": null,
+              "identity": {
+                "relation": "self",
+                "target": {
+                  "role": "link",
+                  "text": "Open sub-account",
+                  "text_ref": null,
+                  "exact": true
+                }
+              },
+              "bbox": [
+                345,
+                284,
+                146,
+                19
+              ]
+            },
+            "matches_at_record": 0,
+            "reason": "not_unique_target_or_unverified_identity"
+          }
+        ]
+      },
+      "value_ref": null,
+      "url_template": null,
+      "key": null,
+      "risk": "safe",
+      "checkpoint": {
+        "signature": "step6_open_the_sub_account_creation_fo",
+        "weak": false,
+        "unverified": false
+      },
+      "resume_point": true,
+      "retry": {
+        "max": 0,
+        "backoff_ms": 500
+      },
+      "timeout_ms": 5000,
+      "reconcile": null,
+      "unreviewed_literal": false
+    },
+    {
+      "intent": "Select the specified account type from the dropdown",
+      "action": "select",
+      "target": {
+        "recorded_tier": 1,
+        "candidates": [
+          {
+            "tier": 1,
+            "kind": "role_name",
+            "frame_path": [
+              "main",
+              "content"
+            ],
+            "role": "combobox",
+            "name": "",
+            "label": null,
+            "anchor": null,
+            "column": null,
+            "path": null,
+            "identity": null,
+            "bbox": null
+          },
+          {
+            "tier": 3,
+            "kind": "anchored",
+            "frame_path": [
+              "main",
+              "content"
+            ],
+            "role": "combobox",
+            "name": "",
+            "label": null,
+            "anchor": {
+              "role": "cell",
+              "text": "Account type",
+              "text_ref": null,
+              "exact": true
+            },
+            "column": null,
+            "path": null,
+            "identity": null,
+            "bbox": null
+          },
+          {
+            "tier": 3,
+            "kind": "anchored",
+            "frame_path": [
+              "main",
+              "content"
+            ],
+            "role": "combobox",
+            "name": null,
+            "label": null,
+            "anchor": {
+              "role": "cell",
+              "text": "Account type",
+              "text_ref": null,
+              "exact": true
+            },
+            "column": null,
+            "path": null,
+            "identity": null,
+            "bbox": null
+          },
+          {
+            "tier": 4,
+            "kind": "structural",
+            "frame_path": [
+              "main",
+              "content"
+            ],
+            "role": "combobox",
+            "name": null,
+            "label": null,
+            "anchor": null,
+            "column": null,
+            "path": "html:nth-of-type(1) > body:nth-of-type(1) > form:nth-of-type(1) > table:nth-of-type(1) > tbody:nth-of-type(1) > tr:nth-of-type(2) > td:nth-of-type(2) > select:nth-of-type(1)",
+            "identity": {
+              "relation": "same_row",
+              "target": {
+                "role": "cell",
+                "text": "Account type",
+                "text_ref": null,
+                "exact": true
+              }
+            },
+            "bbox": null
+          }
+        ],
+        "diagnostics": [
+          {
+            "candidate": {
+              "tier": 2,
+              "kind": "label",
+              "frame_path": [
+                "main",
+                "content"
+              ],
+              "role": "combobox",
+              "name": null,
+              "label": "Account type",
+              "anchor": null,
+              "column": null,
+              "path": null,
+              "identity": null,
+              "bbox": null
+            },
+            "matches_at_record": 0,
+            "reason": "not_unique_target_or_unverified_identity"
+          },
+          {
+            "candidate": {
+              "tier": 5,
+              "kind": "visual",
+              "frame_path": [
+                "main",
+                "content"
+              ],
+              "role": "combobox",
+              "name": null,
+              "label": null,
+              "anchor": null,
+              "column": null,
+              "path": null,
+              "identity": {
+                "relation": "same_row",
+                "target": {
+                  "role": "cell",
+                  "text": "Account type",
+                  "text_ref": null,
+                  "exact": true
+                }
+              },
+              "bbox": [
+                314,
+                77,
+                107,
+                19
+              ]
+            },
+            "matches_at_record": 0,
+            "reason": "not_unique_target_or_unverified_identity"
+          }
+        ]
+      },
+      "value_ref": "$inputs.account_type",
+      "url_template": null,
+      "key": null,
+      "risk": "safe",
+      "checkpoint": {
+        "signature": "step7_select_the_specified_account_typ",
+        "weak": false,
+        "unverified": false
+      },
+      "resume_point": true,
+      "retry": {
+        "max": 0,
+        "backoff_ms": 500
+      },
+      "timeout_ms": 5000,
+      "reconcile": null,
+      "unreviewed_literal": false
+    },
+    {
+      "intent": "Enter the initial deposit amount",
+      "action": "type",
+      "target": {
+        "recorded_tier": 1,
+        "candidates": [
+          {
+            "tier": 1,
+            "kind": "role_name",
+            "frame_path": [
+              "main",
+              "content"
+            ],
+            "role": "textbox",
+            "name": "",
+            "label": null,
+            "anchor": null,
+            "column": null,
+            "path": null,
+            "identity": null,
+            "bbox": null
+          },
+          {
+            "tier": 3,
+            "kind": "anchored",
+            "frame_path": [
+              "main",
+              "content"
+            ],
+            "role": "textbox",
+            "name": "",
+            "label": null,
+            "anchor": {
+              "role": "cell",
+              "text": "Initial deposit",
+              "text_ref": null,
+              "exact": true
+            },
+            "column": null,
+            "path": null,
+            "identity": null,
+            "bbox": null
+          },
+          {
+            "tier": 3,
+            "kind": "anchored",
+            "frame_path": [
+              "main",
+              "content"
+            ],
+            "role": "textbox",
+            "name": null,
+            "label": null,
+            "anchor": {
+              "role": "cell",
+              "text": "Initial deposit",
+              "text_ref": null,
+              "exact": true
+            },
+            "column": null,
+            "path": null,
+            "identity": null,
+            "bbox": null
+          },
+          {
+            "tier": 4,
+            "kind": "structural",
+            "frame_path": [
+              "main",
+              "content"
+            ],
+            "role": "textbox",
+            "name": null,
+            "label": null,
+            "anchor": null,
+            "column": null,
+            "path": "html:nth-of-type(1) > body:nth-of-type(1) > form:nth-of-type(1) > table:nth-of-type(1) > tbody:nth-of-type(1) > tr:nth-of-type(3) > td:nth-of-type(2) > input:nth-of-type(1)",
+            "identity": {
+              "relation": "same_row",
+              "target": {
+                "role": "cell",
+                "text": "Initial deposit",
+                "text_ref": null,
+                "exact": true
+              }
+            },
+            "bbox": null
+          }
+        ],
+        "diagnostics": [
+          {
+            "candidate": {
+              "tier": 2,
+              "kind": "label",
+              "frame_path": [
+                "main",
+                "content"
+              ],
+              "role": "textbox",
+              "name": null,
+              "label": "Initial deposit",
+              "anchor": null,
+              "column": null,
+              "path": null,
+              "identity": null,
+              "bbox": null
+            },
+            "matches_at_record": 0,
+            "reason": "not_unique_target_or_unverified_identity"
+          },
+          {
+            "candidate": {
+              "tier": 5,
+              "kind": "visual",
+              "frame_path": [
+                "main",
+                "content"
+              ],
+              "role": "textbox",
+              "name": null,
+              "label": null,
+              "anchor": null,
+              "column": null,
+              "path": null,
+              "identity": {
+                "relation": "same_row",
+                "target": {
+                  "role": "cell",
+                  "text": "Initial deposit",
+                  "text_ref": null,
+                  "exact": true
+                }
+              },
+              "bbox": [
+                314,
+                106,
+                97,
+                21
+              ]
+            },
+            "matches_at_record": 0,
+            "reason": "not_unique_target_or_unverified_identity"
+          }
+        ]
+      },
+      "value_ref": "$inputs.initial_deposit",
+      "url_template": null,
+      "key": null,
+      "risk": "safe",
+      "checkpoint": {
+        "signature": "step8_enter_the_initial_deposit_amount",
+        "weak": false,
+        "unverified": false
+      },
+      "resume_point": true,
+      "retry": {
+        "max": 0,
+        "backoff_ms": 500
+      },
+      "timeout_ms": 5000,
+      "reconcile": null,
+      "unreviewed_literal": false
+    },
+    {
+      "intent": "Submit the sub-account creation form for review",
+      "action": "click",
+      "target": {
+        "recorded_tier": 1,
+        "candidates": [
+          {
+            "tier": 1,
+            "kind": "role_name",
+            "frame_path": [
+              "main",
+              "content"
+            ],
+            "role": "button",
+            "name": "Review",
+            "label": null,
+            "anchor": null,
+            "column": null,
+            "path": null,
+            "identity": null,
+            "bbox": null
+          },
+          {
+            "tier": 4,
+            "kind": "structural",
+            "frame_path": [
+              "main",
+              "content"
+            ],
+            "role": "button",
+            "name": null,
+            "label": null,
+            "anchor": null,
+            "column": null,
+            "path": "html:nth-of-type(1) > body:nth-of-type(1) > form:nth-of-type(1) > table:nth-of-type(1) > tbody:nth-of-type(1) > tr:nth-of-type(4) > td:nth-of-type(2) > input:nth-of-type(1)",
+            "identity": {
+              "relation": "self",
+              "target": {
+                "role": "button",
+                "text": "Review",
+                "text_ref": null,
+                "exact": true
+              }
+            },
+            "bbox": null
+          }
+        ],
+        "diagnostics": [
+          {
+            "candidate": {
+              "tier": 5,
+              "kind": "visual",
+              "frame_path": [
+                "main",
+                "content"
+              ],
+              "role": "button",
+              "name": null,
+              "label": null,
+              "anchor": null,
+              "column": null,
+              "path": null,
+              "identity": {
+                "relation": "self",
+                "target": {
+                  "role": "button",
+                  "text": "Review",
+                  "text_ref": null,
+                  "exact": true
+                }
+              },
+              "bbox": [
+                314,
+                137,
+                60,
+                21
+              ]
+            },
+            "matches_at_record": 0,
+            "reason": "not_unique_target_or_unverified_identity"
+          }
+        ]
+      },
+      "value_ref": null,
+      "url_template": null,
+      "key": null,
+      "risk": "safe",
+      "checkpoint": {
+        "signature": "step9_submit_the_sub_account_creation_",
+        "weak": false,
+        "unverified": false
+      },
+      "resume_point": true,
+      "retry": {
+        "max": 0,
+        "backoff_ms": 500
+      },
+      "timeout_ms": 5000,
+      "reconcile": null,
+      "unreviewed_literal": false
+    },
+    {
+      "intent": "Confirm and create the sub-account",
+      "action": "click",
+      "target": {
+        "recorded_tier": 1,
+        "candidates": [
+          {
+            "tier": 1,
+            "kind": "role_name",
+            "frame_path": [
+              "main",
+              "content"
+            ],
+            "role": "link",
+            "name": "Confirm",
+            "label": null,
+            "anchor": null,
+            "column": null,
+            "path": null,
+            "identity": null,
+            "bbox": null
+          },
+          {
+            "tier": 4,
+            "kind": "structural",
+            "frame_path": [
+              "main",
+              "content"
+            ],
+            "role": "link",
+            "name": null,
+            "label": null,
+            "anchor": null,
+            "column": null,
+            "path": "html:nth-of-type(1) > body:nth-of-type(1) > a:nth-of-type(1)",
+            "identity": {
+              "relation": "self",
+              "target": {
+                "role": "link",
+                "text": "Confirm",
+                "text_ref": null,
+                "exact": true
+              }
+            },
+            "bbox": null
+          }
+        ],
+        "diagnostics": [
+          {
+            "candidate": {
+              "tier": 5,
+              "kind": "visual",
+              "frame_path": [
+                "main",
+                "content"
+              ],
+              "role": "link",
+              "name": null,
+              "label": null,
+              "anchor": null,
+              "column": null,
+              "path": null,
+              "identity": {
+                "relation": "self",
+                "target": {
+                  "role": "link",
+                  "text": "Confirm",
+                  "text_ref": null,
+                  "exact": true
+                }
+              },
+              "bbox": [
+                189,
+                172,
+                44,
+                13
+              ]
+            },
+            "matches_at_record": 0,
+            "reason": "not_unique_target_or_unverified_identity"
+          }
+        ]
+      },
+      "value_ref": null,
+      "url_template": null,
+      "key": null,
+      "risk": "irreversible",
+      "checkpoint": {
+        "signature": "step10_confirm_and_create_the_sub_accou",
+        "weak": false,
+        "unverified": false
+      },
+      "resume_point": true,
+      "retry": {
+        "max": 0,
+        "backoff_ms": 500
+      },
+      "timeout_ms": 5000,
+      "reconcile": null,
+      "unreviewed_literal": false
+    }
+  ],
+  "outcomes": [],
+  "recovery": [],
+  "overrides": {},
+  "policy": {
+    "allowed_routes": [
+      "/",
+      "/console",
+      "/console/*"
+    ],
+    "max_steps": 25,
+    "unattended": true
+  },
+  "provenance": {
+    "discovered_by": {
+      "model": "claude-haiku-4-5",
+      "run_id": "20260912T200156Z-775fa2"
+    },
+    "authored_by": null,
+    "compiled_at": "2026-09-12T20:03:06+00:00",
+    "approval": {
+      "base": "draft"
+    },
+    "approval_hash": {
+      "base": null
+    },
+    "approved_by": null,
+    "approved_at": null,
+    "approval_note": null,
+    "approval_gates": null
+  }
+}

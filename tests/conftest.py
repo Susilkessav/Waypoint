@@ -101,3 +101,12 @@ def live_server(target_app_log: Path) -> Iterator[str]:
             except subprocess.TimeoutExpired:
                 proc.kill()
                 proc.wait(timeout=5)
+
+
+@pytest.fixture
+def fresh_app(live_server: str) -> str:
+    """The live server with its server-side state cleared - sub-accounts outlive sessions."""
+    request = urllib.request.Request(f"{live_server}/_fixture/reset", data=b"", method="POST")
+    with urllib.request.urlopen(request, timeout=10):
+        pass
+    return live_server

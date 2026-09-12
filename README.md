@@ -11,15 +11,16 @@ Built for the interface.ai take-home (Computer-Use Automation System).
 
 ---
 
-## Status: A1–A7 implemented
+## Status: milestones A and B implemented
 
-The target app, browser surface, locator ladder, policy engine, redactor, secret broker,
-capability artifact (schema, approval), deterministic replay engine, discovery and compiler
-(A6), and live operator handoff (A7) are implemented and covered by unit and live-browser
-tests. The genuine model-driven discovery run the brief requires has been recorded with
-Claude Haiku 4.5 and is kept, with its cassette, in
-[`evidence/runs/showcase-discovery-haiku/`](evidence/runs/showcase-discovery-haiku).
-`catalog` (C2) exits with “not implemented.”
+Everything through milestone B is implemented and covered by unit and live-browser tests: the
+target app with every chaos injection, the browser surface, locators, policy and redaction,
+artifact approval, replay with declared recovery and typed outcomes, discovery and compiler,
+live operator handoff, and three-way reconciliation of irreversible steps. Two genuine Claude
+Haiku 4.5 discovery runs are recorded with their cassettes:
+[`showcase-discovery-haiku`](evidence/runs/showcase-discovery-haiku) (read-only lookup) and
+[`showcase-discovery-open-sub-account`](evidence/runs/showcase-discovery-open-sub-account)
+(irreversible, attended). `catalog` and tenant B (milestone C) are not built.
 
 | Component | Status | Milestone |
 |---|---|---|
@@ -31,7 +32,7 @@ Claude Haiku 4.5 and is kept, with its cassette, in
 | Artifact schema, replay engine, approval | ✅ complete | A5 |
 | Discovery loop (real LLM), compiler | ✅ complete — genuine Haiku 4.5 run recorded | A6 |
 | Control lease, escalation, live handoff | ✅ complete | A7 |
-| Reconciliation, recovery, outcomes | ⬜ not started | B |
+| Reconciliation, recovery, outcomes, second capability | ✅ complete | B |
 | Tenant overrides, capability catalog | ⬜ conditional | C |
 
 `PLAN.md` is a working document and is not part of the submission (it is gitignored).
@@ -71,8 +72,8 @@ uv run waypoint version       # installed CLI smoke check
 fails rather than silently re-resolving if the lock is stale. Dependencies cannot drift
 without a change to this repository. Use `make lock` to update them deliberately.
 
-Verification: `make test` - **307 passed**; `make lint` - Ruff and mypy clean
-(43 source files). Every test runs without an API key; the one live model run is recorded
+Verification: `make test` - **380 passed**; `make lint` - Ruff and mypy clean
+(44 source files). Every test runs without an API key; the one live model run is recorded
 as evidence rather than repeated in the suite.
 
 On macOS, keep the virtual environment outside iCloud-synced Desktop/Documents folders.
@@ -85,7 +86,7 @@ those folders before running the commands above, for example
 generation-scoped references; `synthesize()` creates a serializable locator bundle;
 `resolve()` returns `Found`, `Ambiguous` or `NotFound`; and `act()` applies policy before dispatch.
 An action result reports browser quiescence, not application-level success. An `in_flight`
-result blocks further writes until quiescence; reconciliation of irreversible steps is B.
+result blocks further writes until quiescence; an irreversible step is reconciled, never retried.
 
 Policy defaults live in [`waypoint/policy/policy.yaml`](waypoint/policy/policy.yaml).
 Host and port must match the allowlist, including document redirects. Tests explicitly
@@ -214,20 +215,46 @@ navigations, next to a before-screenshot and a before/after diff (`handoff1_diff
 nobody takes control within 30 minutes, or the operator's lease lapses (`take --ttl`,
 default 900 s), the run ends escalated instead of resuming.
 
-### Planned
+### Recovery, outcomes and the irreversible capability (implemented)
 
-Still to come:
+Two reviewed drafts are committed and **left unapproved** - approving is the review step:
+`lookup_member_balance` 1.2.0 (1.0.0 plus declared recovery and outcomes) and
+`open_sub_account` 1.0.0 (discovered live, reconcile block added at review by
+[`scripts/review_capabilities.py`](scripts/review_capabilities.py)). See the queue, then
+approve:
 
 ```bash
-waypoint replay lookup_member_balance --input member_id=12345 --inject interstitial  # B1
-waypoint replay lookup_member_balance --input member_id=12345 --inject 500           # B1
+waypoint approvals                       # drafts awaiting review, runs waiting for approval
+waypoint approve lookup_member_balance --version 1.2.0 --note "reviewed recovery and outcomes"
+waypoint approve open_sub_account --version 1.0.0 --note "reviewed the reconcile probe"
 ```
 
-The `interstitial` and `500` injections arrive with milestone B1; until then the target app
-ignores unknown injection names, so those two commands would run as ordinary replays.
+```bash
+waypoint replay lookup_member_balance --input member_id=12345 --inject interstitial  # success, recoveries: dismiss
+waypoint replay lookup_member_balance --input member_id=12345 --inject session       # success, recoveries: reauth
+waypoint replay lookup_member_balance --input member_id=12345 --inject 500           # failure: expected vs observed
+waypoint replay lookup_member_balance --input member_id=99999                        # business_outcome: not_authorized
+```
 
-The full ten-command path, including the irreversible capability and the live-session
-handoff, is in [PLAN.md](PLAN.md) §11.
+The irreversible capability runs unattended, so Confirm waits for a person:
+
+```bash
+waypoint replay open_sub_account --handoff --input member_id=12345 \
+  --input "account_type=Money Market" --input initial_deposit=250.00
+# escalated: Confirm needs a person's approval -> waypoint intervene take <id>
+# click Confirm in the browser -> waypoint intervene return <id>
+# the engine reads the member's accounts grid, proves the sub-account exists, and adopts its ID
+```
+
+An irreversible step is never repeated to find out whether it worked. If nothing confirms it -
+a lost response (`--inject commit_then_drop`), someone else's receipt (`--inject
+stale_confirmation`) - its probe answers completed (adopt), not completed (fail) or unknown
+(escalate). An intent a crashed run left behind is settled the same way before anything
+executes. Server-side state survives restarts of the app process's sessions, not of the
+process; restart `make app` after pulling, since the fixture changed.
+
+The full ten-command path is in [PLAN.md](PLAN.md) §11; commands 9 and 10 (tenant B, the
+catalog) are milestone C.
 
 ---
 
@@ -261,10 +288,9 @@ Full reasoning in [REPORT.md](REPORT.md) §7.
   model: `list`, `show`, `take`, `return`, `abort`, plus `intents` and `reconcile`.
 - **Credential storage** — environment variables behind a `SecretBroker` interface that a real
   vault would drop into.
-- **Process-death recovery** — write-ahead intent records are written before any irreversible
-  dispatch and block a repeat of the same operation until an operator reconciles it
-  (`waypoint intervene intents` / `reconcile`). The automatic probe that would answer
-  "did it happen?" without a human arrives in B; browser reattachment is out of scope.
+- **Process-death recovery** — a crashed run's intent is settled by the next run's reconcile
+  probe before anything executes (or by hand: `waypoint intervene intents` / `reconcile`).
+  Reattaching to the crashed run's browser is out of scope.
 - **No queues, workers, or multi-tenant infrastructure** — the brief explicitly does not reward it.
 
 ---

@@ -11,6 +11,8 @@ from playwright.sync_api import Frame, Locator
 from waypoint.surface.locators import Candidate, Identity, LocatorBundle, TextTarget, compile_bundle
 from waypoint.surface.ports import Action
 
+SIBLING_CELLS = "xpath=preceding-sibling::td | following-sibling::td"
+
 if TYPE_CHECKING:
     from waypoint.surface.web import WebSurface
 
@@ -56,6 +58,12 @@ class WebMatcher:
                         for i, header in enumerate(headers.all()):
                             if header.inner_text().strip() == c.column:
                                 result.append(row.locator(":scope > td, :scope > th").nth(i))
+                    elif c.name is None and c.role in ("cell", "LayoutTableCell"):
+                        # A label/value row: the value sits beside its label and is never
+                        # the label itself. Selecting every cell of the row would count the
+                        # anchor too, so no such candidate could ever be unique - and every
+                        # confirmation page is built of exactly these rows.
+                        result.append(a.locator(SIBLING_CELLS))
                     else:
                         result.append(role_locator(row, c.role or "", c.name))
         return result

@@ -22,6 +22,18 @@ hands it back. The engine re-acquires the lease under a new generation, diffs th
 screen, and walks the return ladder - outcome, postcondition, the escalated step's
 checkpoint, declared resume points - continuing only where one holds and escalating
 again otherwise. It never blind-advances. Without ``handoff``, escalation ends the run.
+
+An irreversible step is never repeated to find out whether it worked (R-REC). Its intent
+is written immediately before dispatch; if nothing confirms it afterwards, the step's
+``reconcile`` probe visits a read-only screen and answers completed (adopt the outputs
+it shows), not completed (fail - the contract was not kept), or unknown (escalate). The
+same probe settles an intent an earlier run left behind before this run executes
+anything, and settles the step after a person handled it during a handoff.
+
+Recovery is declared and bounded (R-OUT-3): a notice is dismissed, a slow page waited
+for, a lapsed session re-entered - and the safe prefix replayed only if nothing
+irreversible has been sent. Declared risk is a reviewed claim: a page that now computes
+higher escalates rather than running under a stale label (R-RISK-7).
 """
 
 from __future__ import annotations
@@ -34,6 +46,7 @@ from collections.abc import Callable, Mapping
 from dataclasses import asdict, dataclass, replace
 from datetime import UTC, datetime
 from pathlib import Path
+from typing import NoReturn
 from urllib.parse import quote, urlsplit
 
 from waypoint.artifact.approval import approval_status
@@ -42,15 +55,16 @@ from waypoint.evidence import EvidenceWriter
 from waypoint.policy.engine import PolicyConfig, PolicyEngine, RequireApproval, RunContext
 from waypoint.policy.redactor import Redactor, Sink
 from waypoint.policy.secrets import SecretBroker
+from waypoint.replay.reconcile import Reconciliation, decide, parse_time
 from waypoint.replay.result import FailureDetail, ReplayResult, Status
 from waypoint.replay.resume import LadderResult, Outcome, Resume, Success, describe, return_ladder
 from waypoint.session.escalation import Intervention, InterventionStore
 from waypoint.session.human_log import HumanRecorder
-from waypoint.session.intents import IntentState, IntentStore, inputs_hash
+from waypoint.session.intents import Intent, IntentState, IntentStore, Resolution, inputs_hash
 from waypoint.session.lease import LeaseError, LeaseLost, LeaseStore, LeaseToken
 from waypoint.session.store import DEFAULT_DB, StateStore
 from waypoint.signatures.recognizers import rendered_inputs
-from waypoint.surface.locators import Ambiguous, Found, NotFound
+from waypoint.surface.locators import Ambiguous, Found, LocatorBundle, NotFound
 from waypoint.surface.ports import Action, InFlight, TextClass, UISnapshot
 from waypoint.surface.sensitivity import Binding
 from waypoint.surface.web import WebSurface
@@ -76,6 +90,8 @@ class ReplayOptions:
     approve: Callable[[RequireApproval, Action], bool] | None = None
     """Asked before a risky action - attended capabilities only; unattended ones never ask."""
     poll_ms: int = 250
+    capture_steps: bool = True
+    """A screenshot and sanitized snapshot after every confirmed step (evidence depth)."""
     on_launch: Callable[[WebSurface], None] | None = None
     after_preconditions: Callable[[WebSurface, str], None] | None = None
     """Called with the surface and the origin once signed in. Fixtures and demos only."""
@@ -99,6 +115,18 @@ class _Stop(Exception):
     ) -> None:
         super().__init__(status)
         self.status, self.detail, self.outcome = status, detail, outcome
+
+
+class _Reauth(Exception):
+    """A reauth recovery: re-enter the application and replay the safe prefix (R-OUT-3)."""
+
+
+class _Adopted(Exception):
+    """An irreversible step reconciled as completed: its outputs are adopted, not re-made."""
+
+    def __init__(self, where: str, outputs: dict[str, str]) -> None:
+        super().__init__(where)
+        self.where, self.outputs = where, outputs
 
 
 def validate_inputs(cap: Capability, inputs: Mapping[str, str]) -> list[str]:
@@ -149,6 +177,16 @@ class _Run:
             self.origin + (entry.path or "/") + (f"?{entry.query}" if entry.query else "")
         )
         self.handoffs: list[dict[str, object]] = []
+        self.recoveries: list[dict[str, object]] = []
+        self.recovery_counts: Counter[int] = Counter()
+        self.reconciliations: list[dict[str, object]] = []
+        self.adopted = False
+        self.entered = False
+        self.sent_irreversible = False
+        self.intent_at: dict[str, float] = {}
+        self.leftovers: list[Intent] = []
+        self.handoff_started_at: datetime | None = None
+        self.step_captures = 0
         self.owner = uuid.uuid4().hex
         self.token: LeaseToken | None = None
         self.recorder: HumanRecorder | None = None
@@ -268,6 +306,9 @@ class _Run:
                 "tier_histogram": {str(t): n for t, n in sorted(self.tiers.items())},
                 "handoffs": self.handoffs,
                 "unresolved_intents": sorted(self.open_intents.values()),
+                "recoveries": self.recoveries,
+                "reconciliations": self.reconciliations,
+                "adopted": self.adopted,
             },
             evidence_dir=str(self.ev.dir),
         )
@@ -283,21 +324,10 @@ class _Run:
     # ---------------------------------------------------------------- driving
 
     def _drive(self, surface: WebSurface) -> dict[str, str]:
-        entry = Action("navigate", url=self.entry_url, intent="Open the entry point")
-        result = surface.act(entry)
-        self.ev.event(
-            "action",
-            where="entry",
-            action="navigate",
-            ok=result.ok,
-            error_code=result.error_code,
-            error=result.error,
-        )
-        if not result.ok:
-            raise self._fail("entry_unreachable", result.error or "navigation failed", "entry")
-        self._preconditions(surface)
-        if self.opt.after_preconditions is not None:
-            self.opt.after_preconditions(surface, self.origin)
+        self._enter(surface)
+        adopted = self._reconcile_leftovers(surface)
+        if adopted is not None:
+            return adopted
         index, pending = 0, None
         while True:
             try:
@@ -310,11 +340,24 @@ class _Run:
                     index += 1
                 self._postconditions(surface)
                 return self._extract(surface)
+            except _Reauth:
+                # Nothing irreversible has been sent (checked before raising), so the safe
+                # prefix is replayed from the entry point.
+                self._enter(surface)
+                index = 0
+            except _Adopted as settled:
+                return self._adopt(settled.where, settled.outputs)
             except _Stop as stop:
                 if not self._can_hand_off(stop):
                     raise
                 assert stop.detail is not None
                 ladder = self._handoff(surface, stop.detail, index)
+                handled = self._settle_after_handoff(surface, stop.detail)
+                if handled is not None:
+                    outputs, pending = handled
+                    if outputs is not None:
+                        return outputs
+                    continue
                 if isinstance(ladder, Resume):
                     self._confirm_intents(ladder.index)
                 elif isinstance(ladder, Success):
@@ -337,6 +380,27 @@ class _Run:
                     snap=ladder.snapshot,
                 )
 
+    def _enter(self, surface: WebSurface) -> None:
+        """Open the entry point and establish preconditions - at the start, and again after
+        a reauth, or after a leftover operation turned out never to have happened."""
+        surface.context = RunContext(unattended=self.cap.policy.unattended, state_known=False)
+        entry = Action("navigate", url=self.entry_url, intent="Open the entry point")
+        result = surface.act(entry)
+        self.ev.event(
+            "action",
+            where="entry",
+            action="navigate",
+            ok=result.ok,
+            error_code=result.error_code,
+            error=result.error,
+        )
+        if not result.ok:
+            raise self._fail("entry_unreachable", result.error or "navigation failed", "entry")
+        self._preconditions(surface)
+        if not self.entered and self.opt.after_preconditions is not None:
+            self.opt.after_preconditions(surface, self.origin)
+        self.entered = True
+
     def _postconditions(self, surface: WebSurface) -> None:
         snap = self._observe(surface, "postconditions")
         for i, post in enumerate(self.cap.postconditions):
@@ -354,21 +418,24 @@ class _Run:
     def _check_unreconciled(self) -> None:
         """R-REC-4: an earlier attempt at this operation may already have taken effect.
 
-        Until the probe of R-REC-5 exists (milestone B3) the answer is always Unknown,
-        and Unknown escalates: the run stops before a browser starts.
+        When the step it names declares a reconcile probe, the run settles it first, in the
+        browser, before executing anything. Otherwise the answer can only be Unknown, and
+        the run escalates before a browser starts.
         """
         if self.intents is None:
             return
         left = self.intents.unresolved(self.cap.capability_id, self.digest)
-        if left:
-            first = left[0]
-            raise _Stop("escalated", FailureDetail(
-                "reconciliation_required",
-                f"run {first.run_id} left {first.step} {first.state}: whether it took effect "
-                f"is unknown. Check the application, then: waypoint intervene reconcile "
-                f"{first.id} --outcome completed|not-completed",
-                step=first.step,
-            ))
+        for intent in left:
+            step = self._step_at(intent.step)
+            if step is None or step.reconcile is None:
+                raise _Stop("escalated", FailureDetail(
+                    "reconciliation_required",
+                    f"run {intent.run_id} left {intent.step} {intent.state}: whether it took "
+                    f"effect is unknown. Check the application, then: waypoint intervene "
+                    f"reconcile {intent.id} --outcome completed|not-completed",
+                    step=intent.step,
+                ))
+        self.leftovers = left
 
     def _intent_begin(self, where: str) -> None:
         assert self.intents is not None
@@ -376,13 +443,16 @@ class _Run:
                                     version=self.cap.version, step=where,
                                     inputs_digest=self.digest)
         self.open_intents[where] = intent.id
+        self.intent_at[where] = intent.at
+        self.sent_irreversible = True
         self.ev.event("intent", where=where, intent_id=intent.id, state="dispatching")
 
-    def _intent_advance(self, where: str, to: IntentState) -> None:
+    def _intent_advance(self, where: str, to: IntentState,
+                        resolution: Resolution = "confirmed_after_handoff") -> None:
         assert self.intents is not None
         iid = self.open_intents[where]
         if to == "reconciled":
-            self.intents.advance(iid, to, by="replay", resolution="confirmed_after_handoff")
+            self.intents.advance(iid, to, by="replay", resolution=resolution)
         else:
             self.intents.advance(iid, to)
         if to in ("observed", "reconciled"):
@@ -460,6 +530,7 @@ class _Run:
         )
         self.ev.event("intervention_opened", intervention=iv.id, reason=detail.code,
                       step=detail.step)
+        self.handoff_started_at = datetime.fromtimestamp(iv.created_at, UTC)
         recorder = self._recorder(surface)
         actions_before = recorder.actions
         assert self.token is not None
@@ -559,7 +630,8 @@ class _Run:
                         snap=snap,
                     )
                 for j, step in enumerate(pre.remedy.steps):
-                    self._step(surface, f"{where}.remedy[{j}]", step)
+                    # A remedy IS the recovery for this state; recovering inside it would loop.
+                    self._step(surface, f"{where}.remedy[{j}]", step, recover=False)
                 snap = self._observe(surface, where)
                 if self._holds(pre.signature, snap):
                     self.ev.event("precondition_met", where=where, signature=pre.signature)
@@ -573,12 +645,21 @@ class _Run:
                     snap=snap,
                 )
 
-    def _step(self, surface: WebSurface, where: str, step: Step) -> None:
-        self._observe(surface, where)  # R-OUT-1: declared outcomes before every step
-        # The previous checkpoint, precondition or remedy trigger held, so the state
-        # is recognised; the step's declared risk is a floor the surface cannot lower.
+    def _step(self, surface: WebSurface, where: str, step: Step, *, recover: bool = True,
+              capture: bool = True, probe: bool = False) -> None:
+        if not probe:
+            # R-OUT-1: declared outcomes before every step. Not before a reconcile probe: it
+            # runs *because* of the screen it starts on (a lost response, a wrong receipt),
+            # and exists to leave it. Its own screen is still checked once it arrives.
+            snap = self._observe(surface, where)
+            while recover and self._recover(surface, where, snap):
+                snap = self._observe(surface, where)
+        # The previous checkpoint, precondition or remedy trigger held, so the state is
+        # recognised. The declared risk is a reviewed claim: if the page now computes a
+        # higher one, the surface refuses and the run escalates (R-RISK-7).
         surface.context = RunContext(
-            unattended=self.cap.policy.unattended, state_known=True, declared_risk=step.risk
+            unattended=self.cap.policy.unattended, state_known=True, declared_risk=step.risk,
+            declared_by_artifact=True,
         )
         attempts = step.retry.max + 1
         for attempt in range(1, attempts + 1):
@@ -616,24 +697,38 @@ class _Run:
                 break
             code = result.error_code or "action_failed"
             if where in self.open_intents and code != "in_flight":
-                # Sent, with no clean answer: its effect is unknown, so it is never retried.
-                raise self._escalate(
-                    "reconciliation_required",
-                    "the irreversible action was sent but did not complete cleanly; "
-                    "whether it took effect is unknown",
-                    where, step=step, tier=tier,
-                )
+                # Sent, with no clean answer: reconciled, never retried (R-REC-1).
+                self._settle(surface, where, step,
+                             "the irreversible action was sent but did not complete cleanly")
             if code in ("approval_required", "in_flight"):  # never retried
-                raise self._escalate(code, result.error or code, where, step=step, tier=tier)
+                message = result.error or code
+                if code == "approval_required":
+                    risk = next((e.get("risk") for e in reversed(surface.events)
+                                 if e.get("event") == "approval_required"), None)
+                    message = f"needs a person's approval: {risk or 'risky'} ({message})"
+                if result.error == "risk_exceeds_declared":
+                    code = "risk_exceeds_declared"
+                    message = (f"the page computes {risk or 'more risk'} for a step the artifact "
+                               f"declares {step.risk}: review the artifact, not the action")
+                raise self._escalate(code, message, where, step=step, tier=tier)
             if code == "policy_block":
                 raise self._fail(code, result.error or code, where, step=step, tier=tier)
             if attempt == attempts:
                 raise self._fail("action_failed", result.error or code, where, step=step, tier=tier)
             surface.page.wait_for_timeout(step.retry.backoff_ms)
         self.steps_run += 1
-        self._await_checkpoint(surface, where, step)
+        try:
+            self._await_checkpoint(surface, where, step, recover=recover)
+        except _Stop as stop:
+            if where in self.open_intents and stop.status in ("escalated", "failure"):
+                seen = stop.detail.code if stop.detail else stop.status
+                self._settle(surface, where, step,
+                             f"the irreversible action was sent and not confirmed ({seen})")
+            raise
         if where in self.open_intents:
             self._intent_advance(where, "observed")
+        if capture and self.opt.capture_steps:
+            self._capture_step(surface, where)
 
     def _action(
         self, surface: WebSurface, where: str, step: Step
@@ -672,14 +767,18 @@ class _Run:
             )
         return Action(step.action, ref=ref, value=value, intent=step.intent), tier
 
-    def _await_checkpoint(self, surface: WebSurface, where: str, step: Step) -> None:
+    def _await_checkpoint(self, surface: WebSurface, where: str, step: Step, *,
+                          recover: bool = True) -> None:
         name = step.checkpoint.signature
         deadline = time.monotonic() + step.timeout_ms / 1000
         while True:
-            snap = self._observe(surface, where)
+            snap = self._observe(surface, where, expected=name)
             if self._holds(name, snap):
                 self.ev.event("checkpoint_met", where=where, signature=name)
                 return
+            if recover and self._recover(surface, where, snap):
+                deadline = time.monotonic() + step.timeout_ms / 1000  # the obstacle took time
+                continue
             if time.monotonic() >= deadline:
                 break
             surface.page.wait_for_timeout(self.opt.poll_ms)
@@ -692,11 +791,14 @@ class _Run:
             snap=snap,
         )
 
-    def _extract(self, surface: WebSurface) -> dict[str, str]:
+    def _extract(
+        self, surface: WebSurface, source: Mapping[str, LocatorBundle] | None = None
+    ) -> dict[str, str]:
         out: dict[str, str] = {}
         for name, spec in self.cap.outputs.properties.items():
             where = f"outputs.{name}"
-            res = surface.resolve(spec.extraction, self.inputs)
+            bundle = spec.extraction if source is None else source[name]
+            res = surface.resolve(bundle, self.inputs)
             if isinstance(res, Ambiguous):
                 raise self._escalate("ambiguous_locator", res.reason, where, tier=res.tier)
             if not isinstance(res, Found):
@@ -713,9 +815,200 @@ class _Run:
         self.ev.event("outputs_extracted", names=sorted(out))
         return out
 
+    # ------------------------------------------------------- recovery (R-OUT-3)
+
+    def _recover(self, surface: WebSurface, where: str, snap: UISnapshot) -> bool:
+        """Apply the declared recovery whose state holds - boundedly. True if one acted."""
+        for i, rule in enumerate(self.cap.recovery):
+            if not self._holds(rule.on, snap):
+                continue
+            self.recovery_counts[i] += 1
+            attempt = self.recovery_counts[i]
+            if attempt > rule.max:
+                message = f"{rule.on!r} persisted after {rule.max} {rule.do} attempt(s)"
+                if rule.else_ == "fail":
+                    raise self._fail("recovery_exhausted", message, where, snap=snap)
+                raise self._escalate("recovery_exhausted", message, where, snap=snap)
+            record: dict[str, object] = {"on": rule.on, "do": rule.do, "where": where,
+                                         "attempt": attempt}
+            self.recoveries.append(record)
+            self.ev.event("recovery", **record)
+            if rule.do == "wait":
+                surface.page.wait_for_timeout(rule.backoff_ms or self.opt.poll_ms)
+                return True
+            if rule.do == "dismiss":
+                assert rule.target is not None
+                res = surface.resolve(rule.target, self.inputs)
+                if not isinstance(res, Found):
+                    raise self._escalate("recovery_failed",
+                                         f"nothing on screen dismisses {rule.on!r}", where,
+                                         snap=snap)
+                surface.context = RunContext(
+                    unattended=self.cap.policy.unattended, state_known=True,
+                    declared_risk="safe", declared_by_artifact=True,
+                )
+                result = surface.act(Action("click", ref=res.ref, intent=f"Dismiss {rule.on}"))
+                if not result.ok:
+                    raise self._escalate("recovery_failed", result.error or "dismiss failed",
+                                         where, snap=snap)
+                if rule.backoff_ms:
+                    surface.page.wait_for_timeout(rule.backoff_ms)
+                return True
+            if self.sent_irreversible:
+                raise self._escalate(
+                    "reauth_after_irreversible",
+                    "the session lapsed after an irreversible action was sent; replaying the "
+                    "flow could repeat it", where, snap=snap,
+                )
+            raise _Reauth()
+        return False
+
+    # ------------------------------------------------------ reconciliation (R-REC)
+
+    def _step_at(self, where: str) -> Step | None:
+        found = _STEP_INDEX.fullmatch(where)
+        if found is None:
+            return None
+        i = int(found.group(1))
+        return self.cap.steps[i] if i < len(self.cap.steps) else None
+
+    def _reconcile(
+        self, surface: WebSurface, where: str, step: Step, attempted_at: datetime
+    ) -> tuple[Reconciliation, dict[str, str] | None]:
+        """Visit the probe screen and reach the three-way verdict. Never acts."""
+        r = step.reconcile
+        assert r is not None
+        self.ev.event("reconcile_started", where=where,
+                      attempted_at=attempted_at.isoformat(timespec="seconds"))
+        outputs: dict[str, str] | None = None
+        try:
+            for k, probe in enumerate(r.probe):
+                self._step(surface, f"{where}.reconcile.probe[{k}]", probe,
+                           recover=False, capture=False, probe=True)
+        except (_Stop, _Reauth) as exc:
+            seen = exc.detail.code if isinstance(exc, _Stop) and exc.detail else "reauth"
+            verdict = Reconciliation("unknown", f"the probe could not reach its screen ({seen})")
+        else:
+            snap = surface.observe()
+            times = None
+            if r.recency is not None:
+                # Creation times are redacted from every snapshot; they are read raw, compared,
+                # and dropped - only the verdict leaves this method.
+                cells = [e for e in snap.elements if r.recency.cells.matches(e, self.rendered)]
+                times = [parse_time(surface.extract_raw(e.ref) or "") for e in cells]
+            verdict = decide(r, self.cap.signatures, snap, self.rendered, times, attempted_at)
+            if verdict.verdict == "completed":
+                try:
+                    outputs = self._extract(surface, r.extract)
+                except _Stop as stop:
+                    seen = stop.detail.message if stop.detail else stop.status
+                    verdict = Reconciliation(
+                        "unknown", f"completed, but its outputs could not be read ({seen})")
+        record: dict[str, object] = {"where": where, "verdict": verdict.verdict,
+                                     "reason": verdict.reason}
+        self.reconciliations.append(record)
+        self.ev.event("reconcile_verdict", **record)
+        self._capture(surface, f"reconcile{len(self.reconciliations)}")
+        return verdict, outputs
+
+    def _settle(self, surface: WebSurface, where: str, step: Step, why: str) -> NoReturn:
+        """An irreversible action was sent and nothing confirmed it: ask, never repeat."""
+        if step.reconcile is None:
+            raise self._escalate("reconciliation_required",
+                                 f"{why}; whether it took effect is unknown", where, step=step)
+        attempted = datetime.fromtimestamp(self.intent_at[where], UTC)
+        verdict, outputs = self._reconcile(surface, where, step, attempted)
+        if verdict.verdict == "completed":
+            assert outputs is not None
+            self._intent_advance(where, "reconciled", "completed")
+            raise _Adopted(where, outputs)
+        if verdict.verdict == "not_completed":
+            self._intent_advance(where, "reconciled", "not_completed")
+            raise self._fail("irreversible_step_not_completed",
+                             f"{why}, and the application shows it did not happen: "
+                             f"{verdict.reason}", where, step=step)
+        raise self._escalate("reconciliation_unknown", f"{why}; {verdict.reason}", where,
+                             step=step)
+
+    def _reconcile_leftovers(self, surface: WebSurface) -> dict[str, str] | None:
+        """Settle what an earlier run left unresolved, before this run executes anything."""
+        if not self.leftovers:
+            return None
+        assert self.intents is not None
+        for intent in self.leftovers:
+            step = self._step_at(intent.step)
+            assert step is not None
+            attempted = datetime.fromtimestamp(intent.at, UTC)
+            verdict, outputs = self._reconcile(surface, intent.step, step, attempted)
+            if verdict.verdict == "unknown":
+                raise self._escalate(
+                    "reconciliation_unknown",
+                    f"run {intent.run_id} left {intent.step} {intent.state}: {verdict.reason}",
+                    intent.step, step=step,
+                )
+            resolution: Resolution = (
+                "completed" if verdict.verdict == "completed" else "not_completed"
+            )
+            self.intents.advance(intent.id, "reconciled", by="replay", resolution=resolution)
+            self.ev.event("intent", where=intent.step, intent_id=intent.id, state="reconciled",
+                          resolution=resolution)
+            if outputs is not None:
+                return self._adopt(intent.step, outputs)
+        self._enter(surface)  # none of it happened: run the flow from its start
+        return None
+
+    def _settle_after_handoff(
+        self, surface: WebSurface, detail: FailureDetail
+    ) -> tuple[dict[str, str] | None, FailureDetail | None] | None:
+        """A person had control at an irreversible step: find out what they did, by probe.
+
+        The return ladder would trust whatever screen they left; for a step that commits,
+        only the authoritative record counts. None when the step is not irreversible.
+        """
+        where = detail.step or ""
+        step = self._step_at(where)
+        if step is None or step.risk != "irreversible" or step.reconcile is None:
+            return None
+        if where in self.intent_at:
+            attempted = datetime.fromtimestamp(self.intent_at[where], UTC)
+        else:
+            assert self.handoff_started_at is not None
+            attempted = self.handoff_started_at
+        verdict, outputs = self._reconcile(surface, where, step, attempted)
+        if verdict.verdict == "completed":
+            assert outputs is not None
+            if where in self.open_intents:
+                self._intent_advance(where, "reconciled", "completed")
+            return self._adopt(where, outputs), None
+        if verdict.verdict == "not_completed" and where in self.open_intents:
+            self._intent_advance(where, "reconciled", "not_completed")
+        code = ("not_completed_after_handoff" if verdict.verdict == "not_completed"
+                else "reconciliation_unknown")
+        return None, self._detail(code, verdict.reason, where, step=step)
+
+    def _adopt(self, where: str, outputs: dict[str, str]) -> dict[str, str]:
+        """Return an adopted operation's outputs - only when nothing was left to do after it."""
+        found = _STEP_INDEX.fullmatch(where)
+        if found is None or int(found.group(1)) != len(self.cap.steps) - 1:
+            raise self._escalate(
+                "reconciled_mid_flow",
+                "the operation was adopted, but steps remain after it; continuing past an "
+                "adopted irreversible step is not supported", where,
+            )
+        self.adopted = True
+        self.ev.event("adopted", where=where, outputs=sorted(outputs))
+        return outputs
+
+    def _capture_step(self, surface: WebSurface, where: str) -> None:
+        self.step_captures += 1
+        shot, snap = self._capture(surface, f"step{self.step_captures:02d}")
+        self.ev.event("step_captured", where=where, screenshot=shot, snapshot=snap)
+
     # --------------------------------------------------------------- helpers
 
-    def _observe(self, surface: WebSurface, where: str) -> UISnapshot:
+    def _observe(
+        self, surface: WebSurface, where: str, expected: str | None = None
+    ) -> UISnapshot:
         snap = surface.observe()
         for outcome in self.cap.outcomes:
             if self._holds(outcome.signature, snap):
@@ -729,6 +1022,7 @@ class _Run:
                     f"recognised {outcome.name!r}",
                     where,
                     snap=snap,
+                    expected=expected,
                     observed=(outcome.signature,),
                 )
         return snap

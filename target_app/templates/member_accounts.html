@@ -8,13 +8,15 @@
     <th align="left">Type</th>
     <th align="left">Balance</th>
     <th align="left">Status</th>
+    <th align="left">Opened</th>
   </tr>
-  {% for a in member.accounts %}
+  {% for a in rows %}
   <tr>
     <td>{{ a.account_id }}</td>
     <td>{{ a.kind }}</td>
     <td>{{ a.balance }}</td>
     <td>{{ a.status }}</td>
+    <td>{{ a.opened }}</td>
   </tr>
   {% endfor %}
 </table>

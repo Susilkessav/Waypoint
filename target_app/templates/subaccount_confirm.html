@@ -1,0 +1,23 @@
+<html>
+<head><title>Sub-Account Opened</title></head>
+<body bgcolor="#FFFFFF" style="font-family: Verdana, Arial, sans-serif; font-size: 11px;">
+<table cellpadding="0" cellspacing="0" border="0" width="100%">
+  <tr><td bgcolor="#DDDDD0" height="22">&nbsp;<b>Sub-Account Opened</b></td></tr>
+</table>
+<br>
+<!-- The only evidence the operation happened. It names the member, the type and the
+     time, because a reconciliation may adopt it only after binding all three
+     (PLAN.md R-REC-2). -->
+<table cellpadding="5" cellspacing="0" border="0">
+  <tr><td>Confirmation</td>
+      <td id="ctl00_MainContent_lblConfirmation">{{ opened.confirmation }}</td></tr>
+  <tr><td>Member ID</td><td id="ctl00_MainContent_lblMemberId">{{ opened.member_id }}</td></tr>
+  <tr><td>Account</td><td id="ctl00_MainContent_lblAccount">{{ opened.account_id }}</td></tr>
+  <tr><td>Account type</td><td id="ctl00_MainContent_lblType">{{ opened.kind }}</td></tr>
+  <tr><td>Opening balance</td><td id="ctl00_MainContent_lblBalance">{{ opened.balance }}</td></tr>
+  <tr><td>Opened</td><td id="ctl00_MainContent_lblOpened">{{ opened.opened }}</td></tr>
+</table>
+<br>
+<a href="/console/member?member_id={{ opened.member_id }}">Back to member</a>
+</body>
+</html>

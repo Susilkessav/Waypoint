@@ -5,11 +5,12 @@
 > not yet validated against running code), or **OPEN**. Nothing here is written as though
 > it has been proven until it has. Target length for submission: 1–3 pages.
 
-**Implementation checkpoint (A7):** A1–A7 are implemented: the fixture, browser surface,
-perception/redaction, locator ladder, policy, secret broker, artifact approval, replay,
-discovery/compiler, and live operator handoff with leases, write-ahead intents and a human
-action log. One genuine Claude Haiku 4.5 discovery run is recorded in `evidence/`. The
-automatic reconciliation probe (§5, "Not repeating work") is milestone B.
+**Implementation checkpoint (B):** Milestones A and B are implemented: the fixture with every
+chaos injection, browser surface, perception/redaction, locators, policy with the risk
+backstop, artifact approval, replay with declared recovery and typed outcomes, discovery and
+compiler, live handoff, and three-way reconciliation of irreversible steps. Two genuine Claude
+Haiku 4.5 discovery runs are recorded in `evidence/` - one read-only, one irreversible.
+Tenant B and the catalog (C) are not built.
 
 ---
 
@@ -116,6 +117,14 @@ that, the discovered artifact returns `$4,281.19 / active` for one member and
 model never saw: it never searched for a member who does not exist, so `member_not_found` is
 absent, and that input escalates rather than returning an outcome.
 
+**What the second live run found.** Discovering `open_sub_account` reached Confirm, asked
+for approval exactly once, and could not return the new account ID - on every retry. The
+model chose the right cell; no semantic locator for it existed. An anchored cell locator took
+"the cells of the label's row", and in a two-cell label/value row that includes the label, so
+it was never unique - on the one page shape every confirmation screen uses. Value cells are
+now the label's siblings, and the draft compiled with a single open gate: the reconcile block
+that, by design, only a reviewer writes (`scripts/review_capabilities.py`).
+
 ## 3. Determinism & error handling
 
 **Status: DECIDED.**
@@ -141,7 +150,12 @@ matter:
 named expected result, exit 0), `failure`, `escalated`. Global recognizers run before every step,
 because a session can expire at any step and encoding that per-step is unmaintainable. Recovery
 is declarative and bounded — `on → do → max` — so a reviewer reads the entire recovery behaviour
-in six lines.
+in six lines. Built: a notice is dismissed, a lapsed session re-entered from the entry point,
+and the safe prefix replayed - *unless* an irreversible action has already been sent, in which
+case replaying could repeat it and the run escalates instead. The recognizers live in a shared
+library but are inlined into each artifact, so they version with it. A renamed control is not
+guessed at: its positional fallback asserts the name it was recorded with, and the run
+escalates.
 
 ---
 
@@ -169,7 +183,7 @@ loss of the top tier.
 
 ## 5. Escalation & handoff
 
-**Status: DECIDED; implemented in A7, except reconciliation (B).**
+**Status: DECIDED; implemented (A7, B3, B6).**
 
 **Who is in control.** A lease with a holder, an owner token and a monotonic generation counter.
 The surface checks the caller's token and generation inside `act()` itself, so a stale
@@ -200,9 +214,16 @@ hold across process death too. It is written in the surface's `before_dispatch` 
 policy and any approval, immediately before the click - so a refused action leaves no record
 to reconcile. An action that was sent but did not complete cleanly is never retried, and any
 intent left unresolved stops the next run of that same operation *before a browser starts*.
-Resolving one is an attested act: `waypoint intervene reconcile <id> --outcome
-completed|not-completed` records who decided and what they found. The automatic probe that
-would answer the question without a human is B.
+Resolving one by hand is an attested act (`waypoint intervene reconcile`), recording who
+decided and what they found; normally the artifact's probe answers first. It navigates to a
+read-only screen showing the authoritative record - this member's accounts grid - and binds
+what it finds to the inputs (member, account type) and to *time*: creation times are dates,
+so they are redacted from every snapshot, and the engine reads them through the same raw
+channel outputs use, compares them with when the attempt was made, and keeps only the
+verdict. Completed adopts the account ID from the grid; not-completed fails the run; unknown
+escalates. The same probe settles a crashed run's leftover before anything executes, and
+settles a step a person handled during a handoff - demo command 8 ends with the engine
+proving the person's Confirm landed, not clicking it again.
 
 **What the human's actions produce.** A redacted log of control transfers, navigations, clicks,
 field changes and submissions. Navigation-only logging was rejected because the target app's
@@ -275,11 +296,13 @@ bounded, not eliminated, and is one reason irreversible steps require a human.
 | Human log → auto artifact patch | Designed, not built | Recording the human is planned core scope; auto-compiling it into a patch is the extra |
 | Confidence / success-rate gating | Not built | Plain draft→approved is what the catalog needs; statistical gating would be a third stretch goal |
 | Tier-5 visual locators | Recorded as diagnostics, never resolved against | Present because desktop and canvas surfaces will need them |
-| Process-death browser reattachment | Intent records written and enforced; the automatic probe is B; reconnection out of scope | The intent record forces reconciliation after a crash |
+| Process-death browser reattachment | Intents and the reconcile probe settle what a crashed run left; reconnecting to its browser is out of scope | A fresh run can find out; it need not resume the old one |
+| Adoption mid-flow | An operation adopted by reconciliation must be the last step; otherwise the run escalates | Continuing past an adopted irreversible step would need state the probe does not read |
+| Probe precision | A probe reads one record per type; two recent same-type accounts make adoption ambiguous, and it escalates | The honest answer to ambiguous evidence is Unknown |
 | Credential vault | Env vars behind a `SecretBroker` | A vault drops into the same interface |
 | Queues, workers, multi-tenant plumbing | Not built | Explicitly not rewarded |
 
-**Next milestone:** B adds a second capability with an irreversible step, the reconciliation
-probe that reads the intent records, bounded recovery, the remaining chaos injections and
-handoff hardening. After core delivery, assisted single-step fallback and
-human-log-to-artifact patches could turn interventions into reviewed capability improvements.
+**Next milestone:** C (conditional) adds tenant B - one artifact, one override block,
+per-variant approval - and the capability catalog; D curates evidence and records the demo.
+Beyond that, assisted single-step fallback and human-log-to-artifact patches could turn
+interventions into reviewed capability improvements.

@@ -33,21 +33,32 @@ CREDENTIALS = {"MERIDIAN_USER": "operator1", "MERIDIAN_PASS": "changeme"}
 ALL_STATES = ("dispatching", "dispatched", "observed", "reconciled")
 
 
-def flag_capability(*, unattended: bool, flagged_text: str = "FLAGGED") -> Capability:
-    """lookup_member_balance's first three steps, then "Mark for Review" (irreversible)."""
+def flag_capability(*, unattended: bool, flagged_text: str = "FLAGGED",
+                    reconcile: bool = True) -> Capability:
+    """lookup_member_balance's first three steps, then "Mark for Review" (irreversible).
+
+    The review flag lives in the browser session, so a probe can settle it within a run
+    but never across runs - cross-run reconciliation is the sub-account fixture's job.
+    ``reconcile=False`` is the attended artifact that declares no probe at all.
+    """
     body = json.loads(LOOKUP.read_text())
     sigs = body["signatures"]
-    this_member = sigs["member_detail_loaded"]["match"]["all"][1]
+    # Frame-agnostic: the same checks run inside the frameset and on the probe's
+    # top-level page, where there is no "content" frame.
+    this_member = json.loads(json.dumps(sigs["member_detail_loaded"]["match"]["all"][1]))
+    this_member["element_exists"]["frame"] = None
 
     def review_flag(text: str) -> dict[str, Any]:
         return {"description": f"THIS member's review flag reads {text}.", "match": {"all": [
             this_member,
             {"element_exists": {"role": "LayoutTableCell", "name": text,
-                                "anchor": "Review flag", "frame": ["main", "content"]}},
+                                "anchor": "Review flag"}},
         ]}}
 
     sigs["member_flagged"] = review_flag(flagged_text)
     sigs["member_not_flagged"] = review_flag("none")
+    sigs["this_member_profile"] = {"description": "THIS member's profile.",
+                                   "match": {"all": [this_member]}}
     body.update(
         capability_id="flag_member_for_review", name="Flag a member for review",
         description="R-REC-4 fixture: one irreversible step.",
@@ -61,8 +72,13 @@ def flag_capability(*, unattended: bool, flagged_text: str = "FLAGGED") -> Capab
             "tier": 1, "kind": "role_name", "frame_path": ["main", "content"],
             "role": "link", "name": "Mark for Review"}]},
         "checkpoint": {"signature": "member_flagged"}, "timeout_ms": 1500,
-        "reconcile": {"completed_when": "member_flagged",
-                      "not_completed_when": "member_not_flagged", "identity": ["member_id"]},
+        "reconcile": {
+            "probe": [{"intent": "Look at this member's profile", "action": "navigate",
+                       "url_template": "/console/member?member_id={member_id}",
+                       "checkpoint": {"signature": "this_member_profile"}}],
+            "completed_when": "member_flagged", "not_completed_when": "member_not_flagged",
+            "identity": ["member_id"],
+        } if reconcile else None,
     }]
     body["policy"]["unattended"] = unattended
     return approve(Capability.model_validate(body), approver="test")
@@ -106,14 +122,16 @@ def test_unattended_it_escalates_before_anything_is_written(live_server, tmp_pat
 
 def test_an_unconfirmed_effect_blocks_the_operation_until_reconciled(live_server, tmp_path
                                                                      ) -> None:
-    unconfirmable = flag_capability(unattended=False, flagged_text="FLAGGED-NEVER-SHOWN")
+    unconfirmable = flag_capability(unattended=False, flagged_text="FLAGGED-NEVER-SHOWN",
+                                    reconcile=False)
     first = run(unconfirmable, live_server, tmp_path)
-    assert first.failure is not None and first.failure.code == "checkpoint_not_met"
+    # No probe declared: sent, unconfirmed, and nothing can find out - escalate, never retry.
+    assert first.failure is not None and first.failure.code == "reconciliation_required"
     [intent] = intents(tmp_path).list(ALL_STATES)
     assert intent.state == "dispatched"
     assert first.telemetry["unresolved_intents"] == [intent.id]
 
-    good = flag_capability(unattended=False)
+    good = flag_capability(unattended=False, reconcile=False)
     blocked = run(good, live_server, tmp_path)
     assert blocked.status == "escalated" and blocked.failure is not None
     assert blocked.failure.code == "reconciliation_required"
@@ -136,3 +154,17 @@ def test_an_unconfirmed_effect_blocks_the_operation_until_reconciled(live_server
 
     again = run(good, live_server, tmp_path)
     assert again.status == "success", again.failure
+
+
+def test_a_probe_that_cannot_decide_escalates_and_keeps_the_intent_open(live_server, tmp_path
+                                                                         ) -> None:
+    """Within one run the probe sees the flag - but not the text the checkpoint wanted, and
+    not the "none" that would prove absence. Neither holds: Unknown, never a retry."""
+    result = run(flag_capability(unattended=False, flagged_text="FLAGGED-NEVER-SHOWN"),
+                 live_server, tmp_path)
+    assert result.status == "escalated" and result.failure is not None
+    assert result.failure.code == "reconciliation_unknown"
+    assert "neither condition" in result.failure.message
+    [intent] = intents(tmp_path).list(ALL_STATES)
+    assert intent.state == "dispatched", "unknown leaves the operation unresolved"
+    assert [r["verdict"] for r in result.telemetry["reconciliations"]] == ["unknown"]

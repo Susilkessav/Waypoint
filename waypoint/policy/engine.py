@@ -62,6 +62,9 @@ class RunContext:
     unattended: bool = True
     state_known: bool = False
     declared_risk: Risk = "safe"
+    declared_by_artifact: bool = False
+    """True in replay, where ``declared_risk`` is a reviewed claim the page must live up
+    to (R-RISK-7). In discovery nothing has been declared yet, so it is only a floor."""
 
 
 @dataclass(frozen=True)
@@ -90,9 +93,14 @@ class Block:
 class RequireApproval:
     reason: str
     risk: Risk
+    approvable: bool = True
+    """False when no inline approval may clear it: the artifact itself must be reviewed."""
 
 
 Verdict: TypeAlias = Allow | Block | RequireApproval
+
+APPROVAL_RISKS: frozenset[Risk] = frozenset({"irreversible", "unknown"})
+"""Risks that need a human before they execute, attended or not."""
 
 
 class PolicyEngine:
@@ -190,13 +198,23 @@ class PolicyEngine:
         key = (action.kind, facts.target_id or facts.target_url or facts.current_url, action.value)
         if key == self._previous and self._repeats >= limits.loop_breaker - 1:
             return Block("loop_breaker")
-        risk = max(
-            (self.classify(action, facts), context.declared_risk), key=lambda r: RISK_RANK[r]
-        )
+        computed = self.classify(action, facts)
+        if (
+            context.declared_by_artifact
+            and computed in APPROVAL_RISKS
+            and RISK_RANK[computed] > RISK_RANK[context.declared_risk]
+        ):
+            # R-RISK-7: the page now does more than the reviewed artifact says - a renamed
+            # control, a moved route. A drifted page must not run under a stale label, and
+            # approving it inline would approve the drift, so nobody may. Only a computed
+            # risk that changes the handling counts: typing a password computes
+            # secret_write, which is handled exactly as a declared "safe" would be.
+            return RequireApproval("risk_exceeds_declared", computed, approvable=False)
+        risk = max((computed, context.declared_risk), key=lambda r: RISK_RANK[r])
         if not context.state_known:
             if self.config.unknown_state_policy == "block" or risk != "safe":
                 return RequireApproval("unknown_state", risk)
-        if risk in ("irreversible", "unknown"):
+        if risk in APPROVAL_RISKS:
             return RequireApproval("risky_action", risk)
         return Allow(risk)
 
