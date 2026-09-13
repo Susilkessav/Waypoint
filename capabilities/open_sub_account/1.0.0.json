@@ -2270,49 +2270,28 @@
           "member_id",
           "account_type"
         ],
-        "recency": {
-          "cells": {
+        "records": {
+          "rows": {
             "role": "cell",
             "name": null,
-            "name_ref": null,
+            "name_ref": "$inputs.account_type",
             "name_contains": null,
-            "anchor": "Opened",
-            "anchor_ref": "$inputs.account_type",
+            "anchor": "Type",
+            "anchor_ref": null,
             "value_ref": null,
             "filled": null,
             "frame": null
           },
+          "created": "Opened",
+          "fields": {
+            "Balance": "$inputs.initial_deposit"
+          },
+          "outputs": {
+            "account_id": "Account"
+          },
           "skew_s": 120
         },
-        "extract": {
-          "account_id": {
-            "recorded_tier": 3,
-            "candidates": [
-              {
-                "tier": 3,
-                "kind": "anchored",
-                "frame_path": [
-                  "main",
-                  "iframe#ctl00_MainContent_ifrAccounts"
-                ],
-                "role": "cell",
-                "name": null,
-                "label": null,
-                "anchor": {
-                  "role": "cell",
-                  "text": null,
-                  "text_ref": "$inputs.account_type",
-                  "exact": true
-                },
-                "column": "Account",
-                "path": null,
-                "identity": null,
-                "bbox": null
-              }
-            ],
-            "diagnostics": []
-          }
-        }
+        "extract": {}
       },
       "unreviewed_literal": false
     }

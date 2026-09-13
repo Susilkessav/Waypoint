@@ -110,3 +110,19 @@ def fresh_app(live_server: str) -> str:
     with urllib.request.urlopen(request, timeout=10):
         pass
     return live_server
+
+
+@pytest.fixture(autouse=True)
+def _server_state_is_per_test(request: pytest.FixtureRequest) -> None:
+    """Every test that touches the live server starts with no sub-accounts.
+
+    Server-side state is the point of the fixture - a later run must see an earlier
+    commit - so without this, a test that opens accounts silently changes what the next
+    test's grids contain, and results depend on file order.
+    """
+    if "live_server" not in request.fixturenames:
+        return
+    base = request.getfixturevalue("live_server")
+    reset = urllib.request.Request(f"{base}/_fixture/reset", data=b"", method="POST")
+    with urllib.request.urlopen(reset, timeout=10):
+        pass

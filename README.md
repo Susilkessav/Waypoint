@@ -72,7 +72,7 @@ uv run waypoint version       # installed CLI smoke check
 fails rather than silently re-resolving if the lock is stale. Dependencies cannot drift
 without a change to this repository. Use `make lock` to update them deliberately.
 
-Verification: `make test` - **380 passed**; `make lint` - Ruff and mypy clean
+Verification: `make test` - **417 passed**; `make lint` - Ruff and mypy clean
 (44 source files). Every test runs without an API key; the one live model run is recorded
 as evidence rather than repeated in the suite.
 

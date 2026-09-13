@@ -54,9 +54,14 @@ class Intent:
     inputs_hash: str
     nonce: str
     state: IntentState
-    at: float
+    attempted_at: float
+    """When the action was about to be sent (or handed to a person). Written once: it is
+    what reconciliation dates records against, so no transition may move it."""
+    updated_at: float | None = None
     resolved_by: str | None = None
     resolution: Resolution | None = None
+    attempted_at_trusted: bool = True
+    """False for rows migrated from an older state file, whose time may be a transition's."""
 
 
 def inputs_hash(capability_id: str, inputs: Mapping[str, str]) -> str:
@@ -71,14 +76,16 @@ class IntentStore:
 
     def begin(self, *, run_id: str, capability_id: str, version: str, step: str,
               inputs_digest: str) -> Intent:
+        now = self.store.clock()
         intent = Intent(uuid.uuid4().hex[:12], run_id, capability_id, version, step,
-                        inputs_digest, uuid.uuid4().hex, "dispatching", self.store.clock())
+                        inputs_digest, uuid.uuid4().hex, "dispatching", now, now)
         with self.store.transaction() as db:
             db.execute(
                 "INSERT INTO intents (id, run_id, capability_id, version, step, inputs_hash, "
-                "nonce, state, at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                (intent.id, intent.run_id, intent.capability_id, intent.version,
-                 intent.step, intent.inputs_hash, intent.nonce, intent.state, intent.at))
+                "nonce, state, attempted_at, attempted_at_trusted, updated_at) "
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?)",
+                (intent.id, intent.run_id, intent.capability_id, intent.version, intent.step,
+                 intent.inputs_hash, intent.nonce, intent.state, now, now))
         return intent
 
     def advance(self, intent_id: str, to: IntentState, *, by: str | None = None,
@@ -91,8 +98,11 @@ class IntentStore:
                 raise IntentError(f"no intent {intent_id!r}")
             if to not in _FORWARD[row["state"]]:
                 raise IntentError(f"intent {intent_id} is {row['state']}; it cannot become {to}")
-            db.execute("UPDATE intents SET state = ?, at = ?, resolved_by = ?, resolution = ? "
-                       "WHERE id = ?", (to, self.store.clock(), by, resolution, intent_id))
+            # attempted_at is deliberately absent: a slow transition must not make a committed
+            # operation look as if it was attempted after its own record was created.
+            db.execute("UPDATE intents SET state = ?, updated_at = ?, resolved_by = ?, "
+                       "resolution = ? WHERE id = ?",
+                       (to, self.store.clock(), by, resolution, intent_id))
 
     def get(self, intent_id: str) -> Intent:
         with self.store.connect() as db:
@@ -104,7 +114,8 @@ class IntentStore:
     def list(self, states: Sequence[IntentState] = UNRESOLVED) -> builtins.list[Intent]:
         marks = ", ".join("?" for _ in states)
         with self.store.connect() as db:
-            rows = db.execute(f"SELECT * FROM intents WHERE state IN ({marks}) ORDER BY at",
+            rows = db.execute(f"SELECT * FROM intents WHERE state IN ({marks}) "
+                              "ORDER BY attempted_at",
                               tuple(states)).fetchall()
         return [_intent(r) for r in rows]
 
@@ -112,10 +123,13 @@ class IntentStore:
         with self.store.connect() as db:
             rows = db.execute(
                 "SELECT * FROM intents WHERE capability_id = ? AND inputs_hash = ? "
-                "AND state IN (?, ?) ORDER BY at", (capability_id, inputs_digest, *UNRESOLVED),
+                "AND state IN (?, ?) ORDER BY attempted_at",
+                (capability_id, inputs_digest, *UNRESOLVED),
             ).fetchall()
         return [_intent(r) for r in rows]
 
 
 def _intent(row: sqlite3.Row) -> Intent:
-    return Intent(**dict(row))
+    data = dict(row)
+    data["attempted_at_trusted"] = bool(data["attempted_at_trusted"])
+    return Intent(**data)

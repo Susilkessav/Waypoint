@@ -539,8 +539,9 @@ def intervene_intents(
     now = time.time()
     for it in rows:
         how = f"  {it.resolution} by {it.resolved_by}" if it.resolved_by else ""
+        how += "" if it.attempted_at_trusted else "  (attempt time untrusted: migrated)"
         typer.echo(f"{it.id}  {it.state:<11}  {it.capability_id}@{it.version}  {it.step}  "
-                   f"run {it.run_id}  {int(now - it.at)}s ago{how}")
+                   f"run {it.run_id}  attempted {int(now - it.attempted_at)}s ago{how}")
 
 
 @intervene_app.command("reconcile")

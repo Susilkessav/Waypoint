@@ -16,6 +16,7 @@ import time
 from collections.abc import Callable
 from functools import wraps
 from typing import Any, TypeVar, cast
+from urllib.parse import urlencode
 
 from flask import (
     Flask,
@@ -274,9 +275,22 @@ def create_app() -> Flask:
             # Nothing is committed: the page belongs to another member, days ago.
             return render_template("subaccount_confirm.html", opened=subaccounts.stale())
         opened = subaccounts.record(member_id, kind, cents)
+        if chaos.resubmits_once():
+            return redirect(request.full_path, code=307)
         if chaos.drops_response_after_commit():
             return render_template("dropped.html"), 502
         return render_template("subaccount_confirm.html", opened=opened)
+
+    @app.get("/console/subaccount/express")
+    @_requires_login
+    def subaccount_express() -> Any:
+        """A harmless-looking route whose server answers with a redirect into the commit.
+
+        Nothing about the request names a mutation; the redirect hop does. A guard that
+        classifies only the URL an action targets would let this commit unapproved.
+        """
+        query = urlencode(request.args.to_dict())
+        return redirect(f"{url_for('subaccount_confirm')}?{query}")
 
     @app.get("/console/subaccount/delete")
     @_requires_login

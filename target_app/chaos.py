@@ -44,6 +44,7 @@ SUPPORTED = frozenset(
         "drift",  # the submit control is renamed                   -> tier degradation
         "commit_then_drop",  # committed, response lost             -> tests R-REC-3
         "stale_confirmation",  # an older, unrelated confirmation   -> tests R-REC-2
+        "resubmit",  # commit, then 307 back to itself, once        -> one approval, one request
     }
 )
 
@@ -153,6 +154,11 @@ def drops_response_after_commit() -> bool:
     """The commit lands and the answer never arrives - indistinguishable, from outside,
     from a request that never arrived at all. That is the whole point (R-REC-3)."""
     return is_active("commit_then_drop")
+
+
+def resubmits_once() -> bool:
+    """After committing, answer 307 to the same URL: the browser sends the commit again."""
+    return _fires_once("resubmit")
 
 
 def serves_stale_confirmation() -> bool:

@@ -119,27 +119,43 @@ class Retry(_Model):
     backoff_ms: int = Field(default=500, ge=0, le=10_000)
 
 
-class Recency(_Model):
-    """Binds a completed record to *this* operation's time, not an older identical one.
+class Records(_Model):
+    """Which on-screen records could be *this* operation, judged row by row (R-REC-2).
 
-    Creation times are dates, so perception redacts them from every snapshot. The
-    engine reads them through the raw layer - the channel outputs use - compares each
-    with when the operation was attempted, and keeps only the verdict (R-REC-2).
+    A screen signature can establish that this member has an account of this type; only a
+    record's own values can establish that it is the one this operation made. Those values -
+    balances, dates - are redacted from every snapshot, so the engine reads them through the
+    raw layer, one row at a time, compares them, and keeps only the verdict.
     """
 
-    cells: ElementPredicate
-    """Selects the probe screen's cells holding when each matching record was created."""
+    rows: ElementPredicate
+    """One cell per candidate record, e.g. the Type cell of each row showing the input type."""
+    created: str = Field(min_length=1)
+    """Column holding when the record was created. No readable time means Unknown."""
+    fields: dict[str, str] = {}
+    """Column -> ``$inputs.<name>`` every candidate must show, e.g. the opening deposit."""
+    outputs: dict[str, str] = {}
+    """Output name -> column, read from the one record that is adopted."""
     skew_s: int = Field(default=120, ge=0, le=3600)
-    """Clock difference tolerated between the application and this machine."""
+    """A record showing these inputs created this close *before* the attempt could be either
+    operation, so it makes the verdict Unknown rather than extending the adoption window."""
+
+    @model_validator(mode="after")
+    def _input_refs(self) -> Self:
+        for column, ref in self.fields.items():
+            if not _INPUT_REF.match(ref):
+                raise ValueError(f"records.fields[{column!r}] must be $inputs.<name>")
+        return self
 
 
 class Reconcile(_Model):
     """Three-way answer to "did this irreversible step already happen?" (R-REC-1..5).
 
     ``probe`` navigates to a read-only screen that shows the authoritative state. On it,
-    ``completed_when`` is positive evidence the operation happened *for these inputs*;
-    ``not_completed_when`` is positive evidence it did not - never mere absence. Neither
-    holding is Unknown, and Unknown escalates.
+    ``completed_when`` is evidence that records of this kind exist *for these inputs*;
+    ``not_completed_when`` is positive evidence none do - never mere absence. Neither
+    holding is Unknown, and Unknown escalates. ``records`` then decides, row by row, whether
+    one of them is this operation.
     """
 
     probe: tuple[Step, ...] = Field(min_length=1)
@@ -148,9 +164,9 @@ class Reconcile(_Model):
     identity: tuple[str, ...]
     """Inputs ``completed_when`` must assert, so that someone else's record can never be
     adopted as ours (R-REC-2)."""
-    recency: Recency | None = None
+    records: Records | None = None
     extract: dict[str, LocatorBundle] = {}
-    """Where each output is read on the probe screen when the operation is adopted."""
+    """Where an output is read on the probe screen, for outputs no record column supplies."""
 
     @model_validator(mode="after")
     def _probe_is_read_only(self) -> Self:
@@ -355,9 +371,12 @@ class Capability(_Model):
             if step.reconcile is not None:
                 for name in step.reconcile.identity:
                     yield f"{where}.reconcile.identity", name
-                if step.reconcile.recency is not None:
-                    for name in step.reconcile.recency.cells.refs():
-                        yield f"{where}.reconcile.recency.cells", name
+                if step.reconcile.records is not None:
+                    records = step.reconcile.records
+                    for name in records.rows.refs():
+                        yield f"{where}.reconcile.records.rows", name
+                    for ref in records.fields.values():
+                        yield f"{where}.reconcile.records.fields", ref.removeprefix("$inputs.")
         for where, bundle in self.bundles():
             for candidate in (*bundle.candidates, *(d.candidate for d in bundle.diagnostics)):
                 for target in _text_targets(candidate):
@@ -433,10 +452,22 @@ def _reconcile_problems(cap: Capability, where: str, step: Step) -> list[str]:
         problems.append(f"{where}: irreversible step lacks a compliant reconcile (R-REC): "
                         "not_completed_when asserts nothing on screen - absence is not "
                         "evidence (R-REC-3)")
-    missing = sorted(set(cap.outputs.properties) - set(r.extract))
+    adoptable = set(r.extract) | set(r.records.outputs if r.records else ())
+    missing = sorted(set(cap.outputs.properties) - adoptable)
     if missing:
         problems.append(f"{where}: irreversible step lacks a compliant reconcile (R-REC): "
                         f"an adopted run could not return {missing}")
+    if cap.outputs.properties and r.records is None:
+        problems.append(f"{where}: irreversible step lacks a compliant reconcile (R-REC): "
+                        "adopting outputs needs records - a screen cannot say which record "
+                        "is this operation's (R-REC-2)")
+    checked = set(r.identity) | {
+        ref.removeprefix("$inputs.") for ref in (r.records.fields.values() if r.records else ())}
+    unchecked = sorted(set(cap.inputs.properties) - checked)
+    if unchecked:
+        problems.append(f"{where}: irreversible step lacks a compliant reconcile (R-REC): "
+                        f"it never checks {unchecked}, so an operation differing only there "
+                        "would be adopted as this one (R-REC-2)")
     return problems
 
 

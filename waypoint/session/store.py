@@ -62,13 +62,37 @@ CREATE TABLE IF NOT EXISTS intents (
     nonce         TEXT NOT NULL,
     state         TEXT NOT NULL CHECK (state IN
                       ('dispatching', 'dispatched', 'observed', 'reconciled')),
-    at            REAL NOT NULL,
+    attempted_at  REAL NOT NULL,
+    attempted_at_trusted INTEGER NOT NULL DEFAULT 0,
+    updated_at    REAL NOT NULL,
     resolved_by   TEXT,
     resolution    TEXT CHECK (resolution IS NULL OR resolution IN
                       ('completed', 'not_completed', 'confirmed_after_handoff'))
 );
 CREATE INDEX IF NOT EXISTS intents_by_operation ON intents (capability_id, inputs_hash, state);
 """
+
+
+def _migrate(db: sqlite3.Connection) -> None:
+    """Bring an older state file up to this schema, in place.
+
+    Intents used to keep one ``at`` column that every transition overwrote, so the time of
+    the attempt - what reconciliation compares records against - was lost as soon as the
+    intent moved on. It is now ``attempted_at``, written once, beside ``updated_at``.
+
+    A migrated row's ``at`` may be any transition's time, so it is kept but marked untrusted
+    (``attempted_at_trusted = 0``, the column default): reconciling such an intent may rely
+    only on evidence that does not depend on when the attempt was made.
+    """
+    columns = {row["name"] for row in db.execute("PRAGMA table_info(intents)")}
+    if "at" in columns and "attempted_at" not in columns:
+        db.execute("ALTER TABLE intents RENAME COLUMN at TO attempted_at")
+    if "updated_at" not in columns:
+        db.execute("ALTER TABLE intents ADD COLUMN updated_at REAL")
+        db.execute("UPDATE intents SET updated_at = attempted_at WHERE updated_at IS NULL")
+    if "attempted_at_trusted" not in columns:
+        db.execute("ALTER TABLE intents ADD COLUMN attempted_at_trusted INTEGER NOT NULL "
+                   "DEFAULT 0")
 
 
 class StateStore:
@@ -78,6 +102,7 @@ class StateStore:
         self.path.parent.mkdir(parents=True, exist_ok=True)
         with self.connect() as db:
             db.executescript(SCHEMA)
+            _migrate(db)
 
     @contextmanager
     def connect(self) -> Iterator[sqlite3.Connection]:

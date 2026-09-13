@@ -216,14 +216,20 @@ to reconcile. An action that was sent but did not complete cleanly is never retr
 intent left unresolved stops the next run of that same operation *before a browser starts*.
 Resolving one by hand is an attested act (`waypoint intervene reconcile`), recording who
 decided and what they found; normally the artifact's probe answers first. It navigates to a
-read-only screen showing the authoritative record - this member's accounts grid - and binds
-what it finds to the inputs (member, account type) and to *time*: creation times are dates,
-so they are redacted from every snapshot, and the engine reads them through the same raw
-channel outputs use, compares them with when the attempt was made, and keeps only the
-verdict. Completed adopts the account ID from the grid; not-completed fails the run; unknown
-escalates. The same probe settles a crashed run's leftover before anything executes, and
-settles a step a person handled during a handoff - demo command 8 ends with the engine
-proving the person's Confirm landed, not clicking it again.
+read-only screen showing the authoritative record - this member's accounts grid - and judges
+it *record by record*. A review showed why screen-level matching is not enough: an earlier
+$100 Money Market account matched a failed $250 request on member, type and a time window,
+and was adopted. A record is now this operation only if it shows every operation input (the
+deposit included - an input the reconcile never checks blocks approval), was created at or
+after the immutable attempt time, and is the only one that does. A displayed time is an
+interval at the precision the application shows - "12:00:00" could be before an attempt at
+12:00:00.700 - so a record that cannot be placed wholly after the attempt, a blank date, an
+unreadable value, two candidates, or an attempt time migrated from an older state file are
+all Unknown. Balances and dates are redacted from snapshots, so the engine reads each row
+through the raw channel outputs use and keeps only the verdict. The same probe settles a
+crashed run's leftover, and a step a person handled during a handoff - whose intent is
+written *before* control is handed over, so a run that dies while the person confirms still
+leaves the next run something to reconcile.
 
 **What the human's actions produce.** A redacted log of control transfers, navigations, clicks,
 field changes and submissions. Navigation-only logging was rejected because the target app's
@@ -243,7 +249,12 @@ than into its callers, so the model cannot route around it. Off-allowlist naviga
 unconditionally.
 
 The A4 implementation checks actual form actions (including submitter overrides), Enter
-inside child frames, mutating GET routes, unknown controls and document redirects. Its
+inside child frames, mutating GET routes, unknown controls and document redirects. Every
+document request is checked, not only an action's own target: while the agent drives, a
+request that would mutate must be the exact request its action was classified and approved
+for - and that authorization is spent the moment the request is sent, so neither a
+redirect into a commit nor a 307 that repeats one runs twice under one approval. Row reads
+for reconciliation pass every cell through the classified snapshot; secrets never leave. Its
 per-minute, per-run and repeated-action limits are deterministic. Attended approval is a
 trusted callback; unattended calls return `approval_required`. State recognition and durable
 escalation are not implemented by this callback. Browser tests verify blocked actions do
@@ -298,7 +309,7 @@ bounded, not eliminated, and is one reason irreversible steps require a human.
 | Tier-5 visual locators | Recorded as diagnostics, never resolved against | Present because desktop and canvas surfaces will need them |
 | Process-death browser reattachment | Intents and the reconcile probe settle what a crashed run left; reconnecting to its browser is out of scope | A fresh run can find out; it need not resume the old one |
 | Adoption mid-flow | An operation adopted by reconciliation must be the last step; otherwise the run escalates | Continuing past an adopted irreversible step would need state the probe does not read |
-| Probe precision | A probe reads one record per type; two recent same-type accounts make adoption ambiguous, and it escalates | The honest answer to ambiguous evidence is Unknown |
+| Probe precision | No operation nonce: identity is member, type, deposit, creation time and uniqueness. Two identical requests made in the same moment are Unknown, and escalate | The application offers nothing more specific to bind to; ambiguous evidence is Unknown |
 | Credential vault | Env vars behind a `SecretBroker` | A vault drops into the same interface |
 | Queues, workers, multi-tenant plumbing | Not built | Explicitly not rewarded |
 

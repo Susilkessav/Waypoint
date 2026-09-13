@@ -138,12 +138,8 @@ class PolicyEngine:
         if action.kind in ("read", "assert", "wait_for", "finish"):
             return "safe"
         risk: Risk = "safe"
-        if facts.target_url:
-            raw_path = urlsplit(facts.target_url).path or "/"
-            route = f"{facts.method.upper()} {unquote(raw_path)}"
-            mutating = any(fnmatch.fnmatchcase(route, p) for p in self.config.mutating_routes)
-            if mutating and not self._reviewed_readonly(facts.method, raw_path):
-                risk = "irreversible"
+        if facts.target_url and self.mutates(facts.method, facts.target_url):
+            risk = "irreversible"
         if action.kind in ("click", "dismiss") or (
             action.kind == "key" and action.value in ("Enter", "Space", " ")
         ):
@@ -157,6 +153,17 @@ class PolicyEngine:
         if action.kind in ("type", "select") and facts.secret_field:
             risk = max((risk, "secret_write"), key=lambda r: RISK_RANK[r])
         return risk
+
+    def mutates(self, method: str, url: str) -> bool:
+        """Whether a request to this route changes state (R-RISK-3), reviewed exemptions applied.
+
+        Used for an action's own target, and by the surface for every document request the
+        browser then makes - redirect hops included.
+        """
+        raw_path = urlsplit(url).path or "/"
+        route = f"{method.upper()} {unquote(raw_path)}"
+        mutating = any(fnmatch.fnmatchcase(route, p) for p in self.config.mutating_routes)
+        return mutating and not self._reviewed_readonly(method, raw_path)
 
     def _reviewed_readonly(self, method: str, path: str) -> bool:
         """A reviewed read-only route, matched only on the literal, canonical raw path.

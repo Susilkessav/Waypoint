@@ -368,7 +368,7 @@ def test_every_documented_injection_is_implemented() -> None:
 
     assert SUPPORTED == {
         "ambiguous", "row_missing", "reorder", "wrong_member", "slow", "500", "interstitial",
-        "session", "validation", "drift", "commit_then_drop", "stale_confirmation",
+        "session", "validation", "drift", "commit_then_drop", "stale_confirmation", "resubmit",
     }
 
 
@@ -413,3 +413,11 @@ def test_the_fixture_reset_is_off_the_route_allowlist() -> None:
     policy = PolicyEngine(PolicyConfig.for_origin("http://127.0.0.1:8080"))
     assert not policy.allowed_url("http://127.0.0.1:8080/_fixture/reset")
     assert policy.allowed_url("http://127.0.0.1:8080/console/member")
+
+
+def test_inject_resubmit_makes_a_following_client_commit_twice(console: Console) -> None:
+    """The hazard itself: a client that follows the 307 sends the commit a second time."""
+    console.inject("resubmit")
+    status, _ = console.confirm()
+    assert status == 200
+    assert re.findall(r"SA-12345-\d\d", console.accounts()) == ["SA-12345-01", "SA-12345-02"]

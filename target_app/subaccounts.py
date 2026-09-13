@@ -89,7 +89,7 @@ def opened_for(member_id: str) -> list[SubAccount]:
 
 def record(member_id: str, kind: str, deposit_cents: int) -> SubAccount:
     """Commit one sub-account. Called only from the confirm route - the mutation."""
-    now = datetime.now(UTC).replace(microsecond=0)
+    now = datetime.now(UTC)
     serial = uuid.uuid4().hex[:4].upper()
     with _LOCK:
         count = sum(1 for s in _STORE if s.member_id == member_id)
@@ -98,7 +98,7 @@ def record(member_id: str, kind: str, deposit_cents: int) -> SubAccount:
             member_id=member_id,
             kind=kind,
             balance_cents=deposit_cents,
-            opened_at=now.isoformat(),
+            opened_at=now.isoformat(timespec="milliseconds"),
             confirmation=f"CN-{member_id}-{serial}",
         )
         _STORE.append(opened)

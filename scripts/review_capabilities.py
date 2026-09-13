@@ -18,8 +18,9 @@ evidence/runs/showcase-discovery-open-sub-account/:
 3. Resume points are cut to the one state-complete screen - this member's record. The
    compiler proposes one wherever a check names the member; a half-filled form does too.
 4. The irreversible Confirm gets its reconcile block (the gate discovery left open): a
-   read-only probe of the member's accounts grid, identity bound to member and type,
-   recency bound to when the attempt was made, and where to read the account ID from.
+   read-only probe of the member's accounts grid; identity bound to member and type on
+   screen; and, row by row, the record that is this operation - showing this deposit,
+   created after the attempt, and the only one that does - with its account ID.
 5. Outcomes and recovery from the shared recognizers.
 
 lookup_member_balance 1.2.0 is the hand-written 1.0.0 plus the same outcomes and
@@ -133,14 +134,14 @@ def open_sub_account() -> Capability:
         "completed_when": "subaccount_present_for_inputs",
         "not_completed_when": "no_subaccount_for_inputs",
         "identity": ["member_id", "account_type"],
-        "recency": {"cells": {"role": "cell", "anchor": "Opened",
-                              "anchor_ref": "$inputs.account_type"}},
-        "extract": {"account_id": {"recorded_tier": 3, "candidates": [{
-            "tier": 3, "kind": "anchored",
-            "frame_path": ["main", "iframe#ctl00_MainContent_ifrAccounts"],
-            "role": "cell", "column": "Account",
-            "anchor": {"role": "cell", "text_ref": "$inputs.account_type"},
-        }]}},
+        # An earlier account for the same member and type is another operation. Only the
+        # row's own deposit and creation time say which record this one made.
+        "records": {
+            "rows": {"role": "cell", "anchor": "Type", "name_ref": "$inputs.account_type"},
+            "created": "Opened",
+            "fields": {"Balance": "$inputs.initial_deposit"},
+            "outputs": {"account_id": "Account"},
+        },
     }
     body["steps"] = steps
     body["signatures"].update(library(

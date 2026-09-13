@@ -93,9 +93,9 @@ class App:
                                 timeout=10).read().decode()
         return re.findall(rf"SA-{member_id}-\d\d", html)
 
-    def open_one_behind_the_engines_back(self) -> None:
+    def open_one_behind_the_engines_back(self, cents: int = 25000) -> None:
         self.opener.open(f"{self.base}/console/subaccount/confirm?member_id=12345"
-                         "&type=Money%20Market&cents=25000", timeout=10).read()
+                         f"&type=Money%20Market&cents={cents}", timeout=10).read()
 
 
 def intents(tmp_path: Path) -> IntentStore:
@@ -192,8 +192,8 @@ def test_r_risk_7_a_page_riskier_than_declared_is_never_approved_inline(fresh_ap
     assert App(fresh_app).sub_accounts() == []
 
 
-def handoff_run(app: str, tmp_path: Path, person: Callable[[Any], None]) -> tuple[
-        ReplayResult, list[Intervention]]:
+def handoff_run(app: str, tmp_path: Path, person: Callable[[Any], None], *,
+                abort: bool = False) -> tuple[ReplayResult, list[Intervention]]:
     store = InterventionStore(StateStore(tmp_path / "state.db"))
     opened: list[Intervention] = []
 
@@ -203,7 +203,10 @@ def handoff_run(app: str, tmp_path: Path, person: Callable[[Any], None]) -> tupl
 
     def act(surface: Any, iv: Intervention) -> None:
         person(surface)
-        store.give_back(iv.id)
+        if abort:  # the run ends before control ever comes back
+            store.abort(iv.id)
+        else:
+            store.give_back(iv.id)
 
     result = run(artifact(unattended=True), app, tmp_path, handoff=True, lease_poll_ms=100,
                  wait_timeout_s=30, max_handoffs=1, notify=take, while_human=act)
@@ -223,7 +226,9 @@ def test_demo_8_the_engine_reconciles_what_a_person_confirmed(fresh_app, tmp_pat
     assert result.telemetry["adopted"] is True and result.outputs == {"account_id": "SA-12345-01"}
     assert [r["verdict"] for r in result.telemetry["reconciliations"]] == ["completed"]
     assert App(fresh_app).sub_accounts() == ["SA-12345-01"], "the engine did not click again"
-    assert intents(tmp_path).list(ALL) == [], "the engine itself never dispatched anything"
+    [intent] = intents(tmp_path).list(ALL)
+    assert (intent.state, intent.resolution) == ("reconciled", "completed"), \
+        "written before the handover, settled by the probe"
 
 
 def test_returning_without_confirming_is_not_completed_and_escalates(fresh_app, tmp_path
@@ -232,3 +237,74 @@ def test_returning_without_confirming_is_not_completed_and_escalates(fresh_app, 
     assert result.status == "escalated" and result.failure is not None
     assert result.failure.code == "not_completed_after_handoff"
     assert App(fresh_app).sub_accounts() == []
+    [intent] = intents(tmp_path).list(ALL)
+    assert (intent.state, intent.resolution) == ("reconciled", "not_completed")
+
+
+def test_an_earlier_account_for_the_same_member_and_type_is_not_adopted(fresh_app, tmp_path
+                                                                         ) -> None:
+    """Review finding P1: a $100 Money Market account exists; a crashed run's $250 request
+    never committed. Member, type and a time window all match the $100 account - the
+    deposit does not, so it is not this operation, and the $250 account is opened once."""
+    app = App(fresh_app)
+    app.open_one_behind_the_engines_back(cents=10000)
+    left = left_by_a_crashed_run(tmp_path)
+    asked: list[str] = []
+    result = run(artifact(), fresh_app, tmp_path, asked=asked)
+    assert result.status == "success", result.failure
+    assert result.outputs == {"account_id": "SA-12345-02"}, "not the $100 account"
+    assert not result.telemetry["adopted"] and asked == ["irreversible"]
+    assert intents(tmp_path).get(left.id).resolution == "not_completed"
+    assert app.sub_accounts() == ["SA-12345-01", "SA-12345-02"]
+
+
+def test_a_person_confirms_and_the_run_dies_before_control_returns(fresh_app, tmp_path
+                                                                    ) -> None:
+    """Review finding P1: the handover itself is written down. Without that, the next run
+    found nothing to reconcile and opened a second account."""
+    result, [iv] = handoff_run(fresh_app, tmp_path, confirm_by_hand, abort=True)
+    assert result.status == "escalated" and result.failure is not None
+    assert result.failure.code == "aborted_by_operator"
+    [left] = intents(tmp_path).list(ALL)
+    assert left.state == "dispatching", "the handed-over step stays open for the next run"
+
+    asked: list[str] = []
+    again = run(artifact(unattended=True), fresh_app, tmp_path, asked=asked)
+    assert again.status == "success", again.failure
+    assert again.telemetry["adopted"] is True and again.outputs == {"account_id": "SA-12345-01"}
+    assert asked == [], "nothing was sent again"
+    assert App(fresh_app).sub_accounts() == ["SA-12345-01"]
+    assert intents(tmp_path).get(left.id).resolution == "completed"
+
+
+def test_a_commit_the_server_repeats_is_sent_once_and_reconciled(fresh_app, tmp_path) -> None:
+    """Review finding P1, end to end: the repeat is refused, and the refusal - an
+    irreversible action with no clean answer - goes to reconciliation, which adopts."""
+    asked: list[str] = []
+    result = run(artifact(), fresh_app, tmp_path, inject="resubmit", asked=asked)
+    assert result.status == "success", result.failure
+    assert result.telemetry["adopted"] is True and result.outputs == {"account_id": "SA-12345-01"}
+    assert [r["verdict"] for r in result.telemetry["reconciliations"]] == ["completed"]
+    assert asked == ["irreversible"] and App(fresh_app).sub_accounts() == ["SA-12345-01"]
+
+
+def test_a_migrated_intent_is_not_reconciled_by_its_untrusted_time(fresh_app, tmp_path) -> None:
+    """Review finding P2, end to end: an intent from an older state file sits beside a
+    committed account. Its time cannot say whose account that is - Unknown, not a retry."""
+    import sqlite3
+
+    with sqlite3.connect(tmp_path / "state.db") as db:
+        db.execute("CREATE TABLE intents (id TEXT PRIMARY KEY, run_id TEXT NOT NULL, "
+                   "capability_id TEXT NOT NULL, version TEXT NOT NULL, step TEXT NOT NULL, "
+                   "inputs_hash TEXT NOT NULL, nonce TEXT NOT NULL, state TEXT NOT NULL, "
+                   "at REAL NOT NULL, resolved_by TEXT, resolution TEXT)")
+        db.execute("INSERT INTO intents VALUES ('legacy1', 'old-run', 'open_sub_account', "
+                   "'1.0.0', ?, ?, 'n', 'dispatched', 0, NULL, NULL)",
+                   (CONFIRM, inputs_hash("open_sub_account", INPUTS)))
+    App(fresh_app).open_one_behind_the_engines_back()
+    asked: list[str] = []
+    result = run(artifact(), fresh_app, tmp_path, asked=asked)
+    assert result.status == "escalated" and result.failure is not None
+    assert result.failure.code == "reconciliation_unknown"
+    assert asked == [] and App(fresh_app).sub_accounts() == ["SA-12345-01"]
+    assert intents(tmp_path).get("legacy1").state == "dispatched"

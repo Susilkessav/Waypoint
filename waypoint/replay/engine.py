@@ -50,12 +50,12 @@ from typing import NoReturn
 from urllib.parse import quote, urlsplit
 
 from waypoint.artifact.approval import approval_status
-from waypoint.artifact.schema import Capability, Step, content_hash
+from waypoint.artifact.schema import Capability, Reconcile, Step, content_hash
 from waypoint.evidence import EvidenceWriter
 from waypoint.policy.engine import PolicyConfig, PolicyEngine, RequireApproval, RunContext
 from waypoint.policy.redactor import Redactor, Sink
 from waypoint.policy.secrets import SecretBroker
-from waypoint.replay.reconcile import Reconciliation, decide, parse_time
+from waypoint.replay.reconcile import Reconciliation, Record, decide
 from waypoint.replay.result import FailureDetail, ReplayResult, Status
 from waypoint.replay.resume import LadderResult, Outcome, Resume, Success, describe, return_ladder
 from waypoint.session.escalation import Intervention, InterventionStore
@@ -351,6 +351,7 @@ class _Run:
                 if not self._can_hand_off(stop):
                     raise
                 assert stop.detail is not None
+                self._record_handover(stop.detail)
                 ladder = self._handoff(surface, stop.detail, index)
                 handled = self._settle_after_handoff(surface, stop.detail)
                 if handled is not None:
@@ -437,15 +438,30 @@ class _Run:
                 ))
         self.leftovers = left
 
-    def _intent_begin(self, where: str) -> None:
+    def _intent_begin(self, where: str, *, handed_over: bool = False) -> None:
         assert self.intents is not None
         intent = self.intents.begin(run_id=self.run_id, capability_id=self.cap.capability_id,
                                     version=self.cap.version, step=where,
                                     inputs_digest=self.digest)
         self.open_intents[where] = intent.id
-        self.intent_at[where] = intent.at
+        self.intent_at[where] = intent.attempted_at
         self.sent_irreversible = True
-        self.ev.event("intent", where=where, intent_id=intent.id, state="dispatching")
+        self.ev.event("intent", where=where, intent_id=intent.id, state="dispatching",
+                      handed_over=handed_over or None)
+
+    def _record_handover(self, detail: FailureDetail) -> None:
+        """Before a person gets control at an irreversible step, write its intent (R-REC-4).
+
+        They may well perform the mutation themselves. If this run then dies before control
+        comes back - a crash, an abort, a lapsed lease - an intent is what makes the next run
+        find out whether it happened instead of doing it a second time.
+        """
+        where = detail.step or ""
+        step = self._step_at(where)
+        if (self.intents is None or step is None or step.risk != "irreversible"
+                or where in self.open_intents):
+            return
+        self._intent_begin(where, handed_over=True)
 
     def _intent_advance(self, where: str, to: IntentState,
                         resolution: Resolution = "confirmed_after_handoff") -> None:
@@ -536,6 +552,7 @@ class _Run:
         assert self.token is not None
         released = self.leases.release(self.token)
         self.token = None  # anything still holding the old grant is now stale (R-PROC-4)
+        surface.human_in_control = True  # their navigation is theirs, recorded, not policed
         recorder.active = True  # record from the moment control is released
         self.ev.event("lease", holder="NONE", generation=released.generation)
         if self.opt.notify is not None:
@@ -545,8 +562,10 @@ class _Run:
         except _Stop:
             recorder.drain()  # keep what the person did before the run ended
             recorder.active = False
+            surface.human_in_control = False
             raise
         self.token = self.leases.acquire(self.run_id, "AGENT", self.owner, self.opt.lease_ttl_s)
+        surface.human_in_control = False
         recorder.stop(self.token.generation)
         self.interventions.close(iv.id, "resolved")
         self.ev.event("lease", holder="AGENT", generation=self.token.generation)
@@ -791,11 +810,26 @@ class _Run:
             snap=snap,
         )
 
+    def _adopted_outputs(self, surface: WebSurface, r: Reconcile,
+                         record: Record | None) -> dict[str, str]:
+        """Outputs of an adopted operation: from its own record, else from the probe screen."""
+        out: dict[str, str] = {}
+        if r.records is not None and record is not None:
+            for name, column in r.records.outputs.items():
+                out[name] = self._checked_output(name, record.values.get(column),
+                                                 f"outputs.{name}")
+        rest = {n: b for n, b in r.extract.items() if n not in out}
+        if rest:
+            out.update(self._extract(surface, rest))
+        return out
+
     def _extract(
         self, surface: WebSurface, source: Mapping[str, LocatorBundle] | None = None
     ) -> dict[str, str]:
         out: dict[str, str] = {}
         for name, spec in self.cap.outputs.properties.items():
+            if source is not None and name not in source:
+                continue
             where = f"outputs.{name}"
             bundle = spec.extraction if source is None else source[name]
             res = surface.resolve(bundle, self.inputs)
@@ -804,16 +838,20 @@ class _Run:
             if not isinstance(res, Found):
                 raise self._fail("extraction_failed", f"output {name!r} not found", where)
             self.tiers[res.tier] += 1
-            value = (surface.extract_raw(res.ref) or "").strip()
-            if not value:
-                raise self._fail("extraction_failed", f"output {name!r} is empty", where)
-            if spec.enum and value not in spec.enum:
-                raise self._fail("output_invalid", f"output {name!r} is not one of the enum", where)
-            if spec.format == "money" and not MONEY.match(value):
-                raise self._fail("output_invalid", f"output {name!r} is not money", where)
-            out[name] = value
+            out[name] = self._checked_output(name, surface.extract_raw(res.ref), where)
         self.ev.event("outputs_extracted", names=sorted(out))
         return out
+
+    def _checked_output(self, name: str, raw: str | None, where: str) -> str:
+        spec = self.cap.outputs.properties[name]
+        value = (raw or "").strip()
+        if not value:
+            raise self._fail("extraction_failed", f"output {name!r} is empty", where)
+        if spec.enum and value not in spec.enum:
+            raise self._fail("output_invalid", f"output {name!r} is not one of the enum", where)
+        if spec.format == "money" and not MONEY.match(value):
+            raise self._fail("output_invalid", f"output {name!r} is not money", where)
+        return value
 
     # ------------------------------------------------------- recovery (R-OUT-3)
 
@@ -873,13 +911,14 @@ class _Run:
         return self.cap.steps[i] if i < len(self.cap.steps) else None
 
     def _reconcile(
-        self, surface: WebSurface, where: str, step: Step, attempted_at: datetime
+        self, surface: WebSurface, where: str, step: Step, attempted_at: datetime | None
     ) -> tuple[Reconciliation, dict[str, str] | None]:
         """Visit the probe screen and reach the three-way verdict. Never acts."""
         r = step.reconcile
         assert r is not None
         self.ev.event("reconcile_started", where=where,
-                      attempted_at=attempted_at.isoformat(timespec="seconds"))
+                      attempted_at=attempted_at.isoformat(timespec="milliseconds")
+                      if attempted_at else "untrusted")
         outputs: dict[str, str] | None = None
         try:
             for k, probe in enumerate(r.probe):
@@ -890,16 +929,19 @@ class _Run:
             verdict = Reconciliation("unknown", f"the probe could not reach its screen ({seen})")
         else:
             snap = surface.observe()
-            times = None
-            if r.recency is not None:
-                # Creation times are redacted from every snapshot; they are read raw, compared,
-                # and dropped - only the verdict leaves this method.
-                cells = [e for e in snap.elements if r.recency.cells.matches(e, self.rendered)]
-                times = [parse_time(surface.extract_raw(e.ref) or "") for e in cells]
-            verdict = decide(r, self.cap.signatures, snap, self.rendered, times, attempted_at)
+            records = None
+            if r.records is not None:
+                # Balances and creation dates are redacted from every snapshot; they are read
+                # raw, row by row, compared, and dropped - only the verdict leaves this method.
+                spec = r.records
+                columns = [spec.created, *spec.fields, *spec.outputs.values()]
+                records = [Record(surface.row_raw(e.ref, columns))
+                           for e in snap.elements if spec.rows.matches(e, self.rendered)]
+            verdict = decide(r, self.cap.signatures, snap, self.rendered, records, self.inputs,
+                             attempted_at)
             if verdict.verdict == "completed":
                 try:
-                    outputs = self._extract(surface, r.extract)
+                    outputs = self._adopted_outputs(surface, r, verdict.record)
                 except _Stop as stop:
                     seen = stop.detail.message if stop.detail else stop.status
                     verdict = Reconciliation(
@@ -938,7 +980,8 @@ class _Run:
         for intent in self.leftovers:
             step = self._step_at(intent.step)
             assert step is not None
-            attempted = datetime.fromtimestamp(intent.at, UTC)
+            attempted = (datetime.fromtimestamp(intent.attempted_at, UTC)
+                         if intent.attempted_at_trusted else None)
             verdict, outputs = self._reconcile(surface, intent.step, step, attempted)
             if verdict.verdict == "unknown":
                 raise self._escalate(
