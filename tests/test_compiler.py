@@ -156,3 +156,29 @@ def test_identity_is_added_when_the_model_forgets_which_record() -> None:
     cap = report.capability
     assert cap.signatures[cap.steps[0].checkpoint.signature].refs() == {"member_id"}
     assert any("identity" in n for n in report.notes)
+
+
+@pytest.mark.parametrize("written", ["\n2039$inputs.member_id\n203a",
+                                     "\\u2039$inputs.member_id\\u203a", "$inputs.member_id"])
+def test_a_placeholder_written_without_proper_marks_still_asserts_identity(written: str) -> None:
+    """The live open_sub_account run wrote its Confirm expectation with a broken escape,
+    and a correct check compiled as unverified - an open gate nobody could close."""
+    nominated = expect(("cell", written, "Member ID"))
+    report = compile_transcript(transcript([step(0, SEARCH, RESULTS, nominated=nominated)]))
+    checkpoint = report.capability.steps[0].checkpoint
+    assert not checkpoint.unverified
+    signature = report.capability.signatures[checkpoint.signature].model_dump_json()
+    assert '"name_ref":"$inputs.member_id"' in signature
+
+
+def test_a_redacted_value_beside_a_label_keeps_the_label() -> None:
+    """ "The value beside Balance" is about the step; the value itself is one record's."""
+    nominated = expect(("cell", "‹redacted:9 chars›", "Balance"))
+    report = compile_transcript(transcript(
+        [step(0, RESULTS, DETAIL, nominated=nominated)], final=DETAIL,
+        success=expect(("LayoutTableCell", "Member Profile", ""))))
+    checkpoint = report.capability.steps[0].checkpoint
+    signature = report.capability.signatures[checkpoint.signature].model_dump_json()
+    assert not checkpoint.unverified
+    assert '"anchor":"Balance"' in signature and "redacted" not in signature
+    assert any("without its redacted value" in n for n in report.notes)

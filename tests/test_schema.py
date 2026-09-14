@@ -60,7 +60,11 @@ class TestTheHandWrittenArtifact:
             assert "member_id" in cap.signatures[step.checkpoint.signature].refs(), step.intent
 
     def test_locate_finds_the_highest_release(self) -> None:
-        assert locate(REPO / "capabilities", "lookup_member_balance") == ARTIFACT
+        """Which version is the release is a reviewer's decision; locate follows it."""
+        found = locate(REPO / "capabilities", "lookup_member_balance")
+        assert approval_status(load(found)).approved
+        approved = [p for p in found.parent.glob("*.json") if approval_status(load(p)).approved]
+        assert found == max(approved, key=lambda p: tuple(int(x) for x in p.stem.split(".")))
 
 
 class TestStructuralRules:

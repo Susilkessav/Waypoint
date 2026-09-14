@@ -1,319 +1,172 @@
 # Waypoint — Design Report
 
-> **Status: in progress.** Decisions are recorded here as they are made and validated.
-> Each section is marked **DECIDED** (settled, rationale final), **PENDING** (choice made,
-> not yet validated against running code), or **OPEN**. Nothing here is written as though
-> it has been proven until it has. Target length for submission: 1–3 pages.
-
-**Implementation checkpoint (B):** Milestones A and B are implemented: the fixture with every
-chaos injection, browser surface, perception/redaction, locators, policy with the risk
-backstop, artifact approval, replay with declared recovery and typed outcomes, discovery and
-compiler, live handoff, and three-way reconciliation of irreversible steps. Two genuine Claude
-Haiku 4.5 discovery runs are recorded in `evidence/` - one read-only, one irreversible.
-Tenant B and the catalog (C) are not built.
-
----
+Waypoint lets a model explore a legacy back-office UI once, compiles what it did into a typed,
+versioned capability, replays that capability with no model in the loop, and hands the live
+session to a person when it meets a state it will not act on. Built and tested: discovery with
+two genuine Claude Haiku 4.5 runs, compilation and approval, deterministic replay with recovery
+and typed outcomes, live handoff, and three-way reconciliation of irreversible steps. Not built:
+tenant variants and the capability catalog (§4, §7).
 
 ## 1. Architecture
 
-**Status: DECIDED.**
+Four ports — `Surface`, `PolicyEngine`, `EvidenceSink`, `LeaseStore` — are the boundaries that
+would survive a split into services. Building those services now would be premature.
 
-Single logical system, four ports: `Surface`, `PolicyEngine`, `EvidenceSink`, `LeaseStore`.
-Those boundaries — not the file layout — are what would survive being split into services.
-Building the services now would be premature, and the brief says so.
+**One spine, two drivers.** Discovery and replay share the surface adapter, policy engine,
+state recognizers and evidence format. Only the chooser of the next action differs: the model,
+or the artifact. A recognition bug is a bug in both paths and is fixed once.
 
-The load-bearing idea is that **discovery and replay share one spine**: same surface adapter,
-same policy engine, same recognizers, same evidence format. The only difference is who picks
-the next action — the model, or the artifact. A bug in state recognition is therefore a bug
-in both paths, and is fixed once.
+**Process model.** `waypoint replay` (or `discover`) owns the browser for the whole run and is
+the only caller of `act()`. `waypoint intervene`, the operator CLI, touches only SQLite: leases,
+interventions, intent records. A person drives the real headed window, so "take control" moves
+a lease and nothing more. A paused run polls for the lease rather than exiting. That beats a
+single process, because the operator must act while the run is blocked, and a daemon, which is
+scaling infrastructure the brief rules out.
 
-**Process model.** Three processes, with one owner of the browser:
-
-- `waypoint replay` / `discover` owns the browser for the life of the run and is the only
-  process that ever calls `act()`.
-- `waypoint intervene` (the CLI operator) only reads and writes SQLite: leases, interventions,
-  intent records. It never touches the browser.
-- The human drives the real headed window directly, so there is no remote-control channel
-  to build — "take control" flips lease state, nothing more.
-
-While paused, the replay process polls the lease row and does not exit. This was chosen over
-a single-process design because the operator must be able to act while a run is blocked, and
-over a daemon design because a daemon is the scaling infrastructure the brief tells us not to build.
-
-**Perception mechanism — decided by a time-boxed spike.** The Chromium accessibility
-tree via CDP `Accessibility.getFullAXTree`, bridged to Playwright by resolving
-`backendDOMNodeId` and stamping a `data-wp-ref` attribute. Measured against the hostile
-fixture: the tree must be fetched **per frame** (one call saw none of the eight `View`
-links inside the frameset); every node maps to a frame path, nested iframe included;
-stamping and clicking works inside child frames; a cross-frame snapshot takes ~10 ms and
-stamping 85 nodes ~75 ms; row anchors and column headers come from the tree alone. Two
-findings changed the design: Chromium exposed the header-less tab strip as data-table
-`cell`s, so data-ness is decided by header cells rather than role; and a frame's `load`
-event can resolve against the document being replaced, so the surface waits for request
-quiescence and reports unfinished work explicitly. Application checkpoints and goal
-postconditions remain A5 work. References expire at each observation, and browser errors
-are redacted before return. The DOM-walk fallback was not needed — and the `Surface` port would have
-hidden the choice either way, which is the argument for having it.
-
----
+**Perception, decided by a spike.** The Chromium accessibility tree over CDP, fetched per
+frame and bridged to Playwright by stamping a reference attribute on each node. Against the
+hostile fixture, a single tree call saw none of the eight `View` links inside its frameset;
+per-frame snapshots took about 10 ms and gave row anchors and column headers directly. The
+`Surface` port would have hidden a DOM-walk fallback had one been needed.
 
 ## 2. Artifact schema
 
-**Status: DECIDED.**
+The artifact is a contract, not a recording:
 
-The artifact is a contract, not a recording. Six decisions:
+- **No literals.** Values are `$inputs.x` or `$secrets.x`, and a whole-document scan rejects
+  sensitive-looking strings anywhere, because locator names and URL templates can leak too.
+- **A checkpoint on every step, asserting identity** — *which* member, not merely a member
+  profile. Postconditions are separate from checkpoints; business outcomes such as "no such
+  member" are declared, typed return values that exit 0.
+- **Self-contained.** Every signature is inlined. A shared library could silently change how
+  an approved version runs.
+- **Approval binds to a content hash** recomputed at every replay. Its gates are recomputed
+  too: weak or unverified checkpoints, unreviewed literals, positional locators without an
+  identity proof, outputs located by their own value, and irreversible steps without a
+  compliant reconcile block.
 
-1. **No literals in steps.** Every value is `$inputs.x` or `$secrets.x`. Regulated data cannot
-   leak into an artifact if the artifact structurally cannot hold it. Enforced beyond
-   `value_ref` by a whole-document scan at emit time, because `url_template`, locator names
-   and checkpoint predicates are equally capable of carrying a member ID.
-2. **A checkpoint on every step, asserting identity.** Replay asserts state rather than
-   assuming a click worked. A checkpoint for a member-scoped screen must assert *which*
-   member — "correct screen, wrong member" is a failure mode, not an accepted state.
-3. **`postconditions` distinct from step checkpoints.** A step checkpoint says the action
-   landed; the postcondition says the capability achieved its goal. Conflating them yields a
-   replay that executes every step and returns nothing useful.
-4. **`outcomes` is first-class.** "No such member" is a declared, typed, terminal return value
-   the caller switches on — not an exception. The brief's own glossary names conflating these
-   as the most common mistake in this problem.
-5. **Artifacts are self-contained.** Every signature the artifact references is inlined into it.
-   An earlier draft compiled signatures into a shared mutable library, which meant editing that
-   library could change how an already-approved v1.0.0 executed without changing its version.
-   Reproducibility beats DRY: a contract that points at mutable external state is not a contract.
-6. **Approval binds to content, per variant.** `approval_hash` covers the artifact *with a given
-   tenant's overrides applied*; replay recomputes it and refuses to run as approved on a mismatch.
-   Approving the base does not approve tenant B, because overrides change execution.
-
----
-
-**Compilation.** A discovery transcript is evidence; the artifact is a contract, and a
-reviewer should never need the transcript to approve it. The compiler has three declared
-sources and infers nothing else: inputs from the launch bindings, outputs from the model's
-`finish` call, goal success from `finish.success`. Every checkpoint the model nominates is
-verified against the recorded screens - true after the action, false somewhere else, about
-on-screen content - and a check that merely proves "a page loaded" is marked weak, which
-blocks approval. Where the screen shows which record it is about, the compiler adds that
-identity check even if the model forgot to. What fails compilation outright: an unfinished
-run, a step without a unique verified locator, an output located by its own value, and any
-sensitive-looking literal in the result.
-
-**What the live model run changed.** The first genuine Haiku 4.5 run compiled to nothing.
-It declared success on "a cell called `\tstatus`", which was on no screen, and pointed the
-`account_status` output at a member-profile cell no stable locator could identify. Both were
-found after the run, when the page was gone and nobody could fix them. So discovery now
-verifies what it can while the page is still open: every expectation is checked against the
-screen its action produced, a `finish` is put through the compiler's own checks, and what
-fails goes back to the model - with `recheck`, a tool that touches nothing and only restates
-an expectation, kept solely if it is true. That took the run from five unverifiable
-checkpoints to none.
-
-One class of error survives that, and it is the instructive one. The model's success
-condition was "the status is active" - true for the member it had just read, false for a
-dormant one. No amount of checking against *this* screen can catch it, because everything a
-discovery run sees is one record. The compiler refuses it structurally instead: a checkpoint
-may not assert the value of an output, since an output is by definition per-record. With
-that, the discovered artifact returns `$4,281.19 / active` for one member and
-`$912.04 / dormant` for another. What it honestly cannot do is declare business outcomes the
-model never saw: it never searched for a member who does not exist, so `member_not_found` is
-absent, and that input escalates rather than returning an outcome.
-
-**What the second live run found.** Discovering `open_sub_account` reached Confirm, asked
-for approval exactly once, and could not return the new account ID - on every retry. The
-model chose the right cell; no semantic locator for it existed. An anchored cell locator took
-"the cells of the label's row", and in a two-cell label/value row that includes the label, so
-it was never unique - on the one page shape every confirmation screen uses. Value cells are
-now the label's siblings, and the draft compiled with a single open gate: the reconcile block
-that, by design, only a reviewer writes (`scripts/review_capabilities.py`).
+**Compilation** has three declared sources — launch bindings, the model's `finish` outputs and
+its success condition — and verifies every nominated checkpoint: true after the action, false
+elsewhere, about on-screen content. The live runs shaped it. The first Haiku run compiled to
+nothing, having named elements that were on no screen; discovery now checks each expectation
+against the screen its action produced, and puts `finish` through the compiler while the page
+is still open, with a no-op `recheck` tool for corrections. The model's success condition "the
+status is active" held for one member only, so the compiler refuses any checkpoint asserting an
+output's own value. The second run exposed a locator bug: values in label/value rows — every
+confirmation page — never had a unique locator.
 
 ## 3. Determinism & error handling
 
-**Status: DECIDED.**
+**Locators.** A candidate enters a target's ladder only if it uniquely identified the recorded
+element at record time, so with eight identical `View` links the name-only tier never enters.
+Ambiguity is a verdict of the whole ladder, never a coin flip. A positional candidate is usable
+only with an identity proof — "the row containing this member's ID" — because a departed
+member's row position now belongs to someone else. A renamed control is not guessed at; the run
+escalates. Resolving below the recorded tier is logged, and the per-capability tier histogram is
+the drift detector, with no drift infrastructure built.
 
-Determinism comes from two mechanisms, not from avoiding timing.
+**Four statuses.** `success`; `business_outcome`, a successful run returning a named expected
+result; `failure`; `escalated`. Declared outcomes and global recognizers are checked before
+every step, since a session can expire anywhere. Recovery is declarative and bounded —
+`on → do → max` — with three verbs: dismiss a notice, wait, or re-authenticate and replay the
+safe prefix. Re-authentication refuses once an irreversible action has been sent, because
+replaying could repeat it.
 
-**Locator resolution.** Each target carries an ordered ladder of candidates. The rules that
-matter:
-
-- A candidate enters the ladder only if it uniquely identified the recorded target *at record
-  time*. With eight identically-named `View` links, tier 1 is therefore never in the ladder at
-  all — ambiguity is resolved by compilation, not by escalation at runtime.
-- Ambiguity is a verdict of the whole ladder, never a coin flip.
-- **Positional candidates require an identity assertion.** An nth-child path is only usable as
-  *position plus proof*. If a member has left the results table, their old row position now
-  belongs to someone else, and a positional locator would open the wrong person's record. The
-  assertion — "the row containing this member's ID" — is checked against whatever the position
-  selected, and a failure means no match rather than a wrong match.
-- Degradation is a signal, not a failure: resolving below the recorded tier is recorded, and the
-  per-capability tier histogram across runs *is* the drift detector, with no drift infrastructure built.
-
-**Error taxonomy.** Four statuses: `success`, `business_outcome` (a successful run returning a
-named expected result, exit 0), `failure`, `escalated`. Global recognizers run before every step,
-because a session can expire at any step and encoding that per-step is unmaintainable. Recovery
-is declarative and bounded — `on → do → max` — so a reviewer reads the entire recovery behaviour
-in six lines. Built: a notice is dismissed, a lapsed session re-entered from the entry point,
-and the safe prefix replayed - *unless* an irreversible action has already been sent, in which
-case replaying could repeat it and the run escalates instead. The recognizers live in a shared
-library but are inlined into each artifact, so they version with it. A renamed control is not
-guessed at: its positional fallback asserts the name it was recorded with, and the run
-escalates.
-
----
+**Evidence per run.** A screenshot and sanitized snapshot after every confirmed step, an event
+log, the artifact copy, and on failure the expected signature beside the signatures actually
+observed — enough to debug without a transcript.
 
 ## 4. Heterogeneity & multi-tenant
 
-**Status: DECIDED, validation PENDING (Milestone C is conditional).**
-
-**Across surfaces.** Perception is the accessibility tree, chosen because it is the one
-representation present on every surface that matters: Chromium exposes it, Windows exposes UIA,
-macOS exposes AXAPI, Linux exposes AT-SPI. Roles and accessible names are the same nouns
-everywhere. Locator bundles are surface-agnostic JSON, never Playwright selectors — the web
-adapter compiles them one way and a desktop adapter would compile the same JSON another. What
-differs between surfaces is the *bridge from a perceived node to an actionable handle*; on
-desktop that bridge is simpler, because a UIA element is directly actionable.
+**Across surfaces.** The accessibility tree is the one representation every relevant surface
+exposes — Chromium, UIA on Windows, AXAPI on macOS, AT-SPI on Linux — with the same nouns:
+roles, accessible names, relations. Locator bundles are surface-agnostic JSON rather than
+Playwright selectors; the web adapter compiles them one way and a desktop adapter would compile
+the same JSON another. `DesktopSurface` is a stub that maps each port method to its UIA/AXAPI
+equivalent. What differs is only the bridge from a perceived node to an actionable handle.
 
 **Across tenants.** Hundreds of institutions run the same vendor product, configured and branded
-differently. The answer is a sparse per-tenant override patch over a shared base artifact —
-including the route allowlist, so a tenant served from a different prefix carries that in its
-override rather than forcing a permissive base. Tenants matching the base run the base
-unchanged; tenants that have drifted carry a few lines, not a re-recording. Drift is detected
-by the same tier histogram described in §3: a vendor upgrade that renames a control shows up as
-loss of the top tier.
+differently. The design is a sparse override patch per tenant over one base artifact — including
+the route allowlist, so a tenant on a different prefix does not force a permissive base — with
+approval per variant, because overrides change execution. Tenants matching the base run it
+unchanged; drifted tenants carry a few lines rather than a re-recording, and drift shows up in
+the tier histogram.
 
----
+**Built so far:** artifacts carry `overrides`, and approval status and hashes are keyed by
+variant. Applying overrides, and a second-tenant fixture to prove it, are not built; hashing a
+non-base variant raises rather than approving something that was never applied.
 
 ## 5. Escalation & handoff
 
-**Status: DECIDED; implemented (A7, B3, B6).**
+**Who is in control.** A lease with a holder, owner token and monotonic generation, checked
+inside `act()`. A stale grant cannot act after a handoff; while a person holds control, the run
+holds no token at all.
 
-**Who is in control.** A lease with a holder, an owner token and a monotonic generation counter.
-The surface checks the caller's token and generation inside `act()` itself, so a stale
-coroutine resuming after a handoff cannot act — a controller label alone would not prevent
-that. While the operator holds control, the run holds no token at all.
+**Handing over.** Never mid-action: the session quiesces first, and an irreversible action that
+cannot be awaited ends the run as `escalated / indeterminate`. Before a person gets control at
+an irreversible step, its intent is recorded, so a run that dies while they confirm still leaves
+the next run something to check.
 
-**Handing over.** Never mid-action: the in-flight action completes or aborts, the session
-quiesces, pre-handoff state is captured, and only then does the lease transfer. If an
-*irreversible* action cannot be awaited, the run ends as `escalated / indeterminate` and a human
-must reconcile. The system refuses to decide, on purpose.
+**Coming back.** A ladder with no default branch: a declared outcome, the postcondition, the
+escalated step's checkpoint, then only explicitly declared resume points — otherwise escalate
+again. Resume points must be state-complete, because a generic "form visible" check matches an
+empty form and would skip the steps that fill it.
 
-**Coming back.** An ordered ladder with **no default branch**: terminal outcomes, then the
-capability postcondition, then the current step's checkpoint, then explicitly declared **resume
-points** — and otherwise escalate again. Resume points are a small, deliberate set whose
-checkpoints are state-complete: correct member, expected field values, prerequisites satisfied.
-An earlier draft resumed at the highest satisfied future checkpoint, which is unsafe: a generic
-"form visible" checkpoint matches an *empty* form, so the engine would have skipped the steps
-that fill it and confirmed a blank submission. A run allows two handoffs; an operator who
-never takes control, or whose lease lapses, ends it escalated rather than resumed.
+**Not repeating work.** An irreversible step is never repeated to learn whether it worked. An
+intent is written immediately before dispatch, with an immutable attempt time, and an unresolved
+intent makes the next run reconcile before it executes anything. A read-only probe then judges
+each record: it counts as this operation only if it shows every operation input, was created
+wholly after the attempt at the precision the application displays, and is the only one that
+does. Anything less is Unknown, and Unknown escalates. A review found why records, not screens:
+an earlier $100 account matched a failed $250 request on member, type and time, and was adopted.
+An input the reconcile block never checks now blocks approval. In the demo, a person confirms
+by hand during a handoff, and the engine proves it from the accounts grid instead of clicking
+again.
 
-**Not repeating work.** Before executing or re-executing an irreversible step, reconciliation
-asks a three-way question — completed, definitely not completed, or unknown. `Completed` requires
-a confirmation bound to *this* member and *this* operation, so a stale confirmation page cannot
-be adopted. **Absence of a confirmation is `Unknown`, never `NotCompleted`**, because a server
-that committed and then lost the response looks identical to one that never received the request.
-`Unknown` escalates. A write-ahead intent record, flushed before dispatch, is what makes this
-hold across process death too. It is written in the surface's `before_dispatch` hook - after
-policy and any approval, immediately before the click - so a refused action leaves no record
-to reconcile. An action that was sent but did not complete cleanly is never retried, and any
-intent left unresolved stops the next run of that same operation *before a browser starts*.
-Resolving one by hand is an attested act (`waypoint intervene reconcile`), recording who
-decided and what they found; normally the artifact's probe answers first. It navigates to a
-read-only screen showing the authoritative record - this member's accounts grid - and judges
-it *record by record*. A review showed why screen-level matching is not enough: an earlier
-$100 Money Market account matched a failed $250 request on member, type and a time window,
-and was adopted. A record is now this operation only if it shows every operation input (the
-deposit included - an input the reconcile never checks blocks approval), was created at or
-after the immutable attempt time, and is the only one that does. A displayed time is an
-interval at the precision the application shows - "12:00:00" could be before an attempt at
-12:00:00.700 - so a record that cannot be placed wholly after the attempt, a blank date, an
-unreadable value, two candidates, or an attempt time migrated from an older state file are
-all Unknown. Balances and dates are redacted from snapshots, so the engine reads each row
-through the raw channel outputs use and keeps only the verdict. The same probe settles a
-crashed run's leftover, and a step a person handled during a handoff - whose intent is
-written *before* control is handed over, so a run that dies while the person confirms still
-leaves the next run something to reconcile.
-
-**What the human's actions produce.** A redacted log of control transfers, navigations, clicks,
-field changes and submissions. Navigation-only logging was rejected because the target app's
-controls are postback links that never change the URL — the exact case where it would silently
-record nothing. The recording callbacks never call back into the browser driver: they queue,
-and the run's own thread writes the log. The first version resolved frame paths inside the
-callback and deadlocked the driver's event dispatch.
-
----
+**What the person does is logged**, redacted: clicks, field changes (length only), submits and
+navigations. Navigation alone would record nothing on a console whose tabs are postbacks.
 
 ## 6. Safety
 
-**Status: DECIDED.**
+**Policy is a code path below every caller.** `check()` runs inside `Surface.act()`, so neither
+the model nor the engine can route around it. Off-allowlist navigation is blocked outright.
 
-**Policy is a code path, not a prompt.** `check()` is wired into `Surface.act()` itself rather
-than into its callers, so the model cannot route around it. Off-allowlist navigation is blocked
-unconditionally.
+**Risk is classified by effect, not by name.** The fixture contains a GET that mutates, an Enter
+key that submits a form, and a destructive control with no accessible name. Classification
+therefore uses the resolved route and form action, treats an empty name as `unknown`, and allows
+only safe actions in an unrecognized state. Irreversible or unknown, unattended, escalates.
+Declared risk is a reviewed claim: a page that computes higher escalates and cannot be approved
+inline. Every document request is checked while the agent drives, redirect hops included: a
+mutating request must be the one its action was approved for, and that authorization is spent
+when the request is sent, so a redirect into a commit or a 307 that repeats one is refused.
+WebForms consoles POST for everything, so a short reviewed list of read-only routes avoids
+making every lookup need a human. A false positive costs a ping; a false negative moves money.
 
-The A4 implementation checks actual form actions (including submitter overrides), Enter
-inside child frames, mutating GET routes, unknown controls and document redirects. Every
-document request is checked, not only an action's own target: while the agent drives, a
-request that would mutate must be the exact request its action was classified and approved
-for - and that authorization is spent the moment the request is sent, so neither a
-redirect into a commit nor a 307 that repeats one runs twice under one approval. Row reads
-for reconciliation pass every cell through the classified snapshot; secrets never leave. Its
-per-minute, per-run and repeated-action limits are deterministic. Attended approval is a
-trusted callback; unattended calls return `approval_required`. State recognition and durable
-escalation are not implemented by this callback. Browser tests verify blocked actions do
-not reach their destinations, stale refs do not select another row, and screenshot masks
-contain black pixels over classified data.
+**Sensitive data is classified at perception time**, so redaction works in the very first
+discovery run, before any schema exists. Raw values stay in a private in-memory snapshot that is
+never serialized. The model, logs and evidence see sanitized values; outputs go only to the
+caller; reconciliation reads each table cell through the same classification, and secrets never
+leave. Unlabeled data defaults to `internal` and is redacted. A test matrix scans every sink —
+prompts, events, transcripts, snapshots, the human action log, artifacts, state — and fails if a
+sink was never written.
 
-**Risk classification is effect-based.** Matching button names alone misses an Enter key that
-submits a form, an unlabeled destructive control, and a GET that mutates — all three of which
-exist in the target fixture deliberately. So classification also considers the resolved target
-*route*, treats an empty accessible name as `unknown` rather than safe, and permits only safe
-actions when the current state matches no known signature. At replay the artifact's declared risk
-is a baseline and the runtime classifier still runs: **a declaration can never downgrade an
-observed risk.** Irreversible or unknown, unattended, means escalate. A false positive costs a
-human a ping; a false negative moves money. Legacy WebForms consoles POST for
-everything - sign-on, search, switching a tab - so a blanket "POST is a mutation" rule makes
-every read-only flow need a human. The answer is a short, reviewed list of read-only routes
-per application, matched only on exact canonical paths, with control names still checked on
-top; the residual risk is a mutating postback whose control carries no irreversible verb.
-
-**Sensitive data.** Classification happens at *perception time*, before anything leaves the
-surface — which is what makes redaction possible during the very first discovery run, when no
-schema exists yet. Raw values live in a private in-memory snapshot that is never serialized;
-sanitized observations go to the model, the logs and the evidence, while extraction reads the
-raw layer and returns values only to the caller. The caller is entitled to the balance; the log
-file isn't. Default classification is `internal`, and `internal` is redacted in prompts and on
-disk — an earlier draft defaulted to `internal` but redacted only `pii`, which would have leaked
-an unlabeled person's name. The default applies to *data* — field values and cells of
-headered tables — not to UI chrome; applied to every label it would redact the very
-"View" and "No records found" text that discovery navigates by. Extraction locators key on stable labels and relationships, never on
-the value being extracted, which would neither generalize nor survive redaction.
-
-**The honest limit.** A closed action set means page content cannot become a *novel* operation —
-there is no free-form command string to inject into. That is a containment boundary, not an
-injection-proof barrier. What actually bounds a hostile page is the allowlist, risk
-classification with unattended approval, and a secret broker the model never sees through. The
-residual risk — a page steering the agent toward an action that is already permitted — is
-bounded, not eliminated, and is one reason irreversible steps require a human.
-
----
+**The honest limit.** A closed action set is containment, not injection-proofing: a hostile page
+can still steer the agent toward an action that is already permitted. That residual risk is one
+reason irreversible steps need a human.
 
 ## 7. Cuts
 
-**Status: DECIDED.**
-
 | Cut | State | Why |
 |---|---|---|
-| Desktop surface | Port defined; stub raises `NotImplementedError` with per-method UIA/AXAPI mappings | The seam is the deliverable |
-| Operator web console | CLI instead; same tables a web UI would use | The brief permits a mocked operator UI; the control-transfer model is what's graded |
-| Assisted LLM fallback on replay failure | Designed, not built | Would be bounded to one step, policy-checked, recorded as a proposed patch requiring approval — never open-ended |
-| Human log → auto artifact patch | Designed, not built | Recording the human is planned core scope; auto-compiling it into a patch is the extra |
-| Confidence / success-rate gating | Not built | Plain draft→approved is what the catalog needs; statistical gating would be a third stretch goal |
-| Tier-5 visual locators | Recorded as diagnostics, never resolved against | Present because desktop and canvas surfaces will need them |
-| Process-death browser reattachment | Intents and the reconcile probe settle what a crashed run left; reconnecting to its browser is out of scope | A fresh run can find out; it need not resume the old one |
-| Adoption mid-flow | An operation adopted by reconciliation must be the last step; otherwise the run escalates | Continuing past an adopted irreversible step would need state the probe does not read |
-| Probe precision | No operation nonce: identity is member, type, deposit, creation time and uniqueness. Two identical requests made in the same moment are Unknown, and escalate | The application offers nothing more specific to bind to; ambiguous evidence is Unknown |
-| Credential vault | Env vars behind a `SecretBroker` | A vault drops into the same interface |
-| Queues, workers, multi-tenant plumbing | Not built | Explicitly not rewarded |
+| Tenant variants, capability catalog | Schema fields exist; override application and catalog not built | The single-tenant path covers every core requirement |
+| Desktop surface | Port defined; stub maps methods to UIA/AXAPI | The seam is the deliverable |
+| Operator web console | CLI over the same tables a page would use | The control-transfer model is what matters |
+| Assisted LLM fallback on replay failure | Designed, not built | Would be one bounded, policy-checked step, proposed as a patch |
+| Human log → artifact patch | Log built; auto-patch not | Turning interventions into reviewed improvements is the next step |
+| Browser reattachment after a crash | Not built | Intents and the probe let a fresh run find out what happened |
+| Adoption mid-flow | An adopted operation must be the last step | Continuing past it needs state the probe does not read |
+| Timestamp precision | With no operation reference to bind to, two identical requests in the same displayed moment are Unknown | Ambiguous evidence escalates |
+| Credential vault | Environment variables behind `SecretBroker` | A vault drops into the same interface |
 
-**Next milestone:** C (conditional) adds tenant B - one artifact, one override block,
-per-variant approval - and the capability catalog; D curates evidence and records the demo.
-Beyond that, assisted single-step fallback and human-log-to-artifact patches could turn
-interventions into reviewed capability improvements.
+**Next:** tenant B with one override block and per-variant approval, then the catalog; after
+that, assisted single-step fallback and human-log-to-artifact patches.

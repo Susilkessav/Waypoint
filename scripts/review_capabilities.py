@@ -41,7 +41,7 @@ from waypoint.artifact.schema import Capability, approval_gates  # noqa: E402
 from waypoint.signatures.library import inline, load_library  # noqa: E402
 
 LIBRARY = load_library()
-DRAFT = REPO / "evidence" / "runs" / "showcase-discovery-open-sub-account" / "draft-1.0.0.json"
+DRAFT = REPO / "evidence" / "runs" / "showcase-discovery-open-sub-account" / "artifact.json"
 LOOKUP = REPO / "capabilities" / "lookup_member_balance" / "1.0.0.json"
 ACCOUNT_TYPES = ["Savings", "Checking", "Money Market"]
 SIGN_ON = ("authenticated", "login_form_visible", "user_id_filled", "password_filled")

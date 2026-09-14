@@ -44,6 +44,15 @@ FALLBACK_BETA = "server-side-fallback-2026-07-01"
 FALLBACK_MODELS = frozenset({"claude-opus-5", "claude-fable-5-1"})
 """Models documented to use server-side refusal fallbacks."""
 MAX_TOKENS = 16000
+REQUEST_TIMEOUT_S = 60.0
+"""Per request. A decision takes seconds; the SDK's default of ten minutes, retried, let one
+stalled response freeze a live discovery run for over half an hour."""
+MAX_RETRIES = 2
+
+
+def default_client() -> anthropic.Anthropic:
+    """A client that fails fast on a stalled connection instead of waiting it out."""
+    return anthropic.Anthropic(timeout=REQUEST_TIMEOUT_S, max_retries=MAX_RETRIES)
 
 
 class ClaudeDecider:
@@ -53,7 +62,7 @@ class ClaudeDecider:
         model: str = MODEL,
         max_invalid: int = 2,
     ) -> None:
-        self.client = client or anthropic.Anthropic()
+        self.client = client or default_client()
         self.model = model
         self.max_invalid = max_invalid
         self.messages: list[dict[str, Any]] = []

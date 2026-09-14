@@ -39,6 +39,11 @@ from waypoint.surface.locators import LocatorBundle
 from waypoint.surface.ports import UISnapshot
 
 _PLACEHOLDER = re.compile(r"^‹\$inputs\.([a-z][a-z0-9_]*)›$")
+# How a model actually writes the marks around a placeholder or redaction: the real
+# characters, a literal escape, or a JSON escape that lost its "u" (the live open_sub_account
+# run wrote "\n2039$inputs.member_id\n203a" - a correct expectation that never matched).
+_MANGLED = re.compile(r"^(?:‹|\\u2039|\\n2039|\n2039)(.+?)(?:›|\\u203a|\\n203a|\n203a)$", re.S)
+_BARE_INPUT = re.compile(r"^\$inputs\.[a-z][a-z0-9_]*$")
 _REDACTED = re.compile(r"‹redacted(?::\d+ chars)?›|‹secret›")
 _ACTIONS = {"click": "click", "type": "type", "select": "select", "key": "key"}
 _RISKS = {"safe", "secret_write", "unknown", "irreversible"}
@@ -78,6 +83,14 @@ def compile_transcript(
     return _Compiler(t).run(version, name, description, now or datetime.now(UTC))
 
 
+def _repaired(text: str) -> str:
+    """A placeholder or redaction marker as the model meant it; anything else unchanged."""
+    mangled = _MANGLED.match(text)
+    if mangled is not None:
+        return f"‹{mangled.group(1).strip()}›"
+    return f"‹{text}›" if _BARE_INPUT.match(text) else text
+
+
 def nominated_predicates(
     expect: dict[str, Any], post: UISnapshot | None, rendered: Mapping[str, str],
     notes: list[str] | None = None, where: str = "", values: frozenset[str] = frozenset(),
@@ -91,14 +104,20 @@ def nominated_predicates(
     preds: list[Predicate] = []
     for e in expect.get("elements") or []:
         role = e.get("role") or None
-        name, anchor = e.get("name") or "", e.get("anchor") or ""
-        if _REDACTED.search(name) or _REDACTED.search(anchor):
+        name, anchor = _repaired(e.get("name") or ""), _repaired(e.get("anchor") or "")
+        if _REDACTED.search(anchor) or (_REDACTED.search(name) and not anchor):
             if notes is not None:
                 notes.append(
                     f"{where}: dropped an expectation on redacted data - "
                     "it would identify one record, not the step"
                 )
             continue
+        if _REDACTED.search(name):
+            # "The value beside Account" is about the step; the value itself is one record's.
+            if notes is not None:
+                notes.append(f"{where}: kept an expectation beside {anchor!r} without its "
+                             "redacted value")
+            name = ""
         if name and name in values:
             if notes is not None:
                 notes.append(

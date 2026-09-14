@@ -1,0 +1,362 @@
+{
+  "url": "http://127.0.0.1:55524/console?inject=‹redacted›",
+  "title": "Meridian Servicing Console",
+  "elements": [
+    {
+      "ref": "fd633320d418g42-e1",
+      "role": "LayoutTableCell",
+      "name": "Servicing",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "nav"
+      ],
+      "bbox": [
+        8,
+        8,
+        164,
+        27
+      ],
+      "anchors": [],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    },
+    {
+      "ref": "fd633320d418g42-e2",
+      "role": "link",
+      "name": "Member Search",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "nav"
+      ],
+      "bbox": [
+        12,
+        39,
+        126,
+        19
+      ],
+      "anchors": [],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    },
+    {
+      "ref": "fd633320d418g42-e3",
+      "role": "LayoutTableCell",
+      "name": "Transactions",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "nav"
+      ],
+      "bbox": [
+        8,
+        62,
+        164,
+        27
+      ],
+      "anchors": [],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    },
+    {
+      "ref": "fd633320d418g42-e4",
+      "role": "LayoutTableCell",
+      "name": "Reports",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "nav"
+      ],
+      "bbox": [
+        8,
+        89,
+        164,
+        27
+      ],
+      "anchors": [],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    },
+    {
+      "ref": "fd633320d418g42-e5",
+      "role": "link",
+      "name": "Sign Off",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "nav"
+      ],
+      "bbox": [
+        12,
+        147,
+        65,
+        19
+      ],
+      "anchors": [],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    },
+    {
+      "ref": "fd633320d418g42-e6",
+      "role": "LayoutTableCell",
+      "name": "Review Sub-Account",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "content"
+      ],
+      "bbox": [
+        189,
+        8,
+        1083,
+        22
+      ],
+      "anchors": [],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    },
+    {
+      "ref": "fd633320d418g42-e7",
+      "role": "StaticText",
+      "name": "Please review. Opening the sub-account cannot be undone from this console.",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "content"
+      ],
+      "bbox": [
+        189,
+        8,
+        1083,
+        704
+      ],
+      "anchors": [],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    },
+    {
+      "ref": "fd633320d418g42-e8",
+      "role": "LayoutTableCell",
+      "name": "Member ID",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "content"
+      ],
+      "bbox": [
+        189,
+        69,
+        120,
+        29
+      ],
+      "anchors": [
+        "‹$inputs.member_id›"
+      ],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    },
+    {
+      "ref": "fd633320d418g42-e9",
+      "role": "LayoutTableCell",
+      "name": "‹$inputs.member_id›",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "content"
+      ],
+      "bbox": [
+        309,
+        69,
+        123,
+        29
+      ],
+      "anchors": [
+        "Member ID"
+      ],
+      "sensitivity": "public",
+      "name_sensitivity": "internal"
+    },
+    {
+      "ref": "fd633320d418g42-e10",
+      "role": "LayoutTableCell",
+      "name": "Account type",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "content"
+      ],
+      "bbox": [
+        189,
+        98,
+        120,
+        29
+      ],
+      "anchors": [
+        "‹redacted:12 chars›"
+      ],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    },
+    {
+      "ref": "fd633320d418g42-e11",
+      "role": "LayoutTableCell",
+      "name": "‹redacted:12 chars›",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "content"
+      ],
+      "bbox": [
+        309,
+        98,
+        123,
+        29
+      ],
+      "anchors": [
+        "Account type"
+      ],
+      "sensitivity": "public",
+      "name_sensitivity": "internal"
+    },
+    {
+      "ref": "fd633320d418g42-e12",
+      "role": "LayoutTableCell",
+      "name": "Initial deposit",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "content"
+      ],
+      "bbox": [
+        189,
+        127,
+        120,
+        29
+      ],
+      "anchors": [
+        "$‹$inputs.initial_deposit›"
+      ],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    },
+    {
+      "ref": "fd633320d418g42-e13",
+      "role": "LayoutTableCell",
+      "name": "$‹$inputs.initial_deposit›",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "content"
+      ],
+      "bbox": [
+        309,
+        127,
+        123,
+        29
+      ],
+      "anchors": [
+        "Initial deposit"
+      ],
+      "sensitivity": "public",
+      "name_sensitivity": "pii"
+    },
+    {
+      "ref": "fd633320d418g42-e14",
+      "role": "link",
+      "name": "Confirm",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "content"
+      ],
+      "bbox": [
+        189,
+        172,
+        44,
+        13
+      ],
+      "anchors": [],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    },
+    {
+      "ref": "fd633320d418g42-e15",
+      "role": "link",
+      "name": "Amend",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "content"
+      ],
+      "bbox": [
+        244,
+        172,
+        39,
+        13
+      ],
+      "anchors": [],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    },
+    {
+      "ref": "fd633320d418g42-e16",
+      "role": "link",
+      "name": "",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "content"
+      ],
+      "bbox": [
+        294,
+        172,
+        14,
+        13
+      ],
+      "anchors": [],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    }
+  ],
+  "text_digest": "Servicing | Member Search | Transactions | Reports | Sign Off | Review Sub-Account | Please review. Opening the sub-account cannot be undone from this console. | Member ID | ‹$inputs.member_id› | Account type | ‹redacted:12 chars› | Initial deposit | $‹$inputs.initial_deposit› | Confirm | Amend",
+  "hash": "9353015ab561c92b",
+  "frame_urls": [
+    [
+      [
+        "main"
+      ],
+      "http://127.0.0.1:55524/console?inject=‹redacted›"
+    ],
+    [
+      [
+        "main",
+        "nav"
+      ],
+      "http://127.0.0.1:55524/console/nav"
+    ],
+    [
+      [
+        "main",
+        "content"
+      ],
+      "http://127.0.0.1:55524/console/subaccount/review"
+    ]
+  ]
+}

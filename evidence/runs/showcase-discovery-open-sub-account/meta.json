@@ -1,0 +1,25 @@
+{
+  "run_id": "20260914T010847Z-ae786c",
+  "kind": "discovery",
+  "capability_id": "open_sub_account",
+  "goal": "Open a $inputs.account_type sub-account for member $inputs.member_id with an initial deposit of $inputs.initial_deposit",
+  "entry": "http://127.0.0.1:8767/console",
+  "model": "claude-haiku-4-5",
+  "inputs": [
+    {
+      "name": "member_id",
+      "type": "string",
+      "sensitivity": "internal"
+    },
+    {
+      "name": "account_type",
+      "type": "string",
+      "sensitivity": "public"
+    },
+    {
+      "name": "initial_deposit",
+      "type": "money",
+      "sensitivity": "internal"
+    }
+  ]
+}

@@ -2,7 +2,7 @@
   {
     "reason": "risky_action",
     "risk": "irreversible",
-    "intent": "Confirm and create the sub-account",
+    "intent": "Click Confirm to create the sub-account with the specified details",
     "approved": true
   }
 ]

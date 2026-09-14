@@ -3,13 +3,12 @@
 from __future__ import annotations
 
 import os
-import shutil
 import subprocess
 import sys
 from pathlib import Path
 
 from waypoint.artifact.approval import approval_status, approve
-from waypoint.artifact.schema import load, locate
+from waypoint.artifact.schema import Provenance, load, locate
 from waypoint.session.escalation import InterventionStore
 from waypoint.session.store import StateStore
 
@@ -17,16 +16,27 @@ REPO = Path(__file__).resolve().parents[1]
 EXE = str(Path(sys.executable).parent / "waypoint")
 
 
+def draft(relative: str) -> str:
+    """A committed artifact as an unapproved draft - whatever its approval in the repo is.
+
+    Approval is a person's decision and changes over time; a test must set up the state it
+    is about rather than inherit it.
+    """
+    cap = load(REPO / "capabilities" / relative)
+    return cap.model_copy(update={"provenance": Provenance()}).to_json()
+
+
 def capabilities(tmp_path: Path) -> Path:
-    """An approved release plus the reviewed drafts beside it."""
+    """An approved release plus drafts beside it."""
     root = tmp_path / "capabilities"
     lookup = root / "lookup_member_balance"
+    (root / "open_sub_account").mkdir(parents=True)
     lookup.mkdir(parents=True)
     released = approve(load(REPO / "capabilities/lookup_member_balance/1.0.0.json"),
                        approver="test")
     (lookup / "1.0.0.json").write_text(released.to_json())
-    shutil.copy(REPO / "capabilities/lookup_member_balance/1.2.0.json", lookup / "1.2.0.json")
-    shutil.copytree(REPO / "capabilities/open_sub_account", root / "open_sub_account")
+    (lookup / "1.2.0.json").write_text(draft("lookup_member_balance/1.2.0.json"))
+    (root / "open_sub_account" / "1.0.0.json").write_text(draft("open_sub_account/1.0.0.json"))
     return root
 
 

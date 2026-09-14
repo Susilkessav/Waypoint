@@ -1,8 +1,8 @@
 {
-  "run_id": "20260911T234929Z-2fb14e",
+  "run_id": "20260913T183235Z-ca2020",
   "capability_id": "lookup_member_balance",
   "goal": "Look up member $inputs.member_id and read their current savings balance",
-  "entry": "http://127.0.0.1:8080/console",
+  "entry": "http://127.0.0.1:8767/console",
   "model": "claude-haiku-4-5",
   "bindings": [
     {
@@ -29,11 +29,11 @@
     {
       "turn": 0,
       "pre": {
-        "url": "http://127.0.0.1:8080/",
+        "url": "http://127.0.0.1:8767/",
         "title": "Meridian Servicing Console - Sign On",
         "elements": [
           {
-            "ref": "29f7e45997e4g1-e1",
+            "ref": "09658fa102a7g1-e1",
             "role": "LayoutTableCell",
             "name": "Meridian Servicing Console",
             "value": null,
@@ -52,7 +52,7 @@
             "name_sensitivity": "public"
           },
           {
-            "ref": "29f7e45997e4g1-e2",
+            "ref": "09658fa102a7g1-e2",
             "role": "cell",
             "name": "Operator Sign On",
             "value": null,
@@ -71,7 +71,7 @@
             "name_sensitivity": "public"
           },
           {
-            "ref": "29f7e45997e4g1-e3",
+            "ref": "09658fa102a7g1-e3",
             "role": "cell",
             "name": "User ID",
             "value": null,
@@ -90,7 +90,7 @@
             "name_sensitivity": "public"
           },
           {
-            "ref": "29f7e45997e4g1-e4",
+            "ref": "09658fa102a7g1-e4",
             "role": "textbox",
             "name": "",
             "value": "",
@@ -111,7 +111,7 @@
             "name_sensitivity": "public"
           },
           {
-            "ref": "29f7e45997e4g1-e5",
+            "ref": "09658fa102a7g1-e5",
             "role": "cell",
             "name": "Password",
             "value": null,
@@ -130,7 +130,7 @@
             "name_sensitivity": "public"
           },
           {
-            "ref": "29f7e45997e4g1-e6",
+            "ref": "09658fa102a7g1-e6",
             "role": "textbox",
             "name": "",
             "value": "",
@@ -151,7 +151,7 @@
             "name_sensitivity": "public"
           },
           {
-            "ref": "29f7e45997e4g1-e7",
+            "ref": "09658fa102a7g1-e7",
             "role": "button",
             "name": "Sign On",
             "value": null,
@@ -177,13 +177,13 @@
             [
               "main"
             ],
-            "http://127.0.0.1:8080/"
+            "http://127.0.0.1:8767/"
           ]
         ]
       },
       "decision": {
         "kind": "type",
-        "intent": "Enter the user ID for signing into Meridian Servicing Console",
+        "intent": "Enter the username for authentication",
         "element": "e4",
         "value": "$secrets.meridian_user",
         "key": null,
@@ -205,7 +205,7 @@
       "value_ref": "$secrets.meridian_user",
       "value_provenance": "credential reference",
       "target": {
-        "ref": "29f7e45997e4g1-e4",
+        "ref": "09658fa102a7g1-e4",
         "role": "textbox",
         "name": "",
         "value": "",
@@ -376,11 +376,11 @@
     {
       "turn": 1,
       "pre": {
-        "url": "http://127.0.0.1:8080/",
+        "url": "http://127.0.0.1:8767/",
         "title": "Meridian Servicing Console - Sign On",
         "elements": [
           {
-            "ref": "29f7e45997e4g2-e1",
+            "ref": "09658fa102a7g2-e1",
             "role": "LayoutTableCell",
             "name": "Meridian Servicing Console",
             "value": null,
@@ -399,7 +399,7 @@
             "name_sensitivity": "public"
           },
           {
-            "ref": "29f7e45997e4g2-e2",
+            "ref": "09658fa102a7g2-e2",
             "role": "cell",
             "name": "Operator Sign On",
             "value": null,
@@ -418,7 +418,7 @@
             "name_sensitivity": "public"
           },
           {
-            "ref": "29f7e45997e4g2-e3",
+            "ref": "09658fa102a7g2-e3",
             "role": "cell",
             "name": "User ID",
             "value": null,
@@ -437,7 +437,7 @@
             "name_sensitivity": "public"
           },
           {
-            "ref": "29f7e45997e4g2-e4",
+            "ref": "09658fa102a7g2-e4",
             "role": "textbox",
             "name": "",
             "value": "‹secret›",
@@ -458,7 +458,7 @@
             "name_sensitivity": "public"
           },
           {
-            "ref": "29f7e45997e4g2-e5",
+            "ref": "09658fa102a7g2-e5",
             "role": "StaticText",
             "name": "‹secret›",
             "value": null,
@@ -474,7 +474,7 @@
             "name_sensitivity": "secret"
           },
           {
-            "ref": "29f7e45997e4g2-e6",
+            "ref": "09658fa102a7g2-e6",
             "role": "cell",
             "name": "Password",
             "value": null,
@@ -493,7 +493,7 @@
             "name_sensitivity": "public"
           },
           {
-            "ref": "29f7e45997e4g2-e7",
+            "ref": "09658fa102a7g2-e7",
             "role": "textbox",
             "name": "",
             "value": "",
@@ -514,7 +514,7 @@
             "name_sensitivity": "public"
           },
           {
-            "ref": "29f7e45997e4g2-e8",
+            "ref": "09658fa102a7g2-e8",
             "role": "button",
             "name": "Sign On",
             "value": null,
@@ -540,13 +540,13 @@
             [
               "main"
             ],
-            "http://127.0.0.1:8080/"
+            "http://127.0.0.1:8767/"
           ]
         ]
       },
       "decision": {
         "kind": "type",
-        "intent": "Enter the password for signing into Meridian Servicing Console",
+        "intent": "Enter the password for authentication",
         "element": "e7",
         "value": "$secrets.meridian_password",
         "key": null,
@@ -568,7 +568,7 @@
       "value_ref": "$secrets.meridian_password",
       "value_provenance": "credential reference",
       "target": {
-        "ref": "29f7e45997e4g2-e7",
+        "ref": "09658fa102a7g2-e7",
         "role": "textbox",
         "name": "",
         "value": "",
@@ -739,11 +739,11 @@
     {
       "turn": 2,
       "pre": {
-        "url": "http://127.0.0.1:8080/",
+        "url": "http://127.0.0.1:8767/",
         "title": "Meridian Servicing Console - Sign On",
         "elements": [
           {
-            "ref": "29f7e45997e4g3-e1",
+            "ref": "09658fa102a7g3-e1",
             "role": "LayoutTableCell",
             "name": "Meridian Servicing Console",
             "value": null,
@@ -762,7 +762,7 @@
             "name_sensitivity": "public"
           },
           {
-            "ref": "29f7e45997e4g3-e2",
+            "ref": "09658fa102a7g3-e2",
             "role": "cell",
             "name": "Operator Sign On",
             "value": null,
@@ -781,7 +781,7 @@
             "name_sensitivity": "public"
           },
           {
-            "ref": "29f7e45997e4g3-e3",
+            "ref": "09658fa102a7g3-e3",
             "role": "cell",
             "name": "User ID",
             "value": null,
@@ -800,7 +800,7 @@
             "name_sensitivity": "public"
           },
           {
-            "ref": "29f7e45997e4g3-e4",
+            "ref": "09658fa102a7g3-e4",
             "role": "textbox",
             "name": "",
             "value": "‹secret›",
@@ -821,7 +821,7 @@
             "name_sensitivity": "public"
           },
           {
-            "ref": "29f7e45997e4g3-e5",
+            "ref": "09658fa102a7g3-e5",
             "role": "StaticText",
             "name": "‹secret›",
             "value": null,
@@ -837,7 +837,7 @@
             "name_sensitivity": "secret"
           },
           {
-            "ref": "29f7e45997e4g3-e6",
+            "ref": "09658fa102a7g3-e6",
             "role": "cell",
             "name": "Password",
             "value": null,
@@ -856,7 +856,7 @@
             "name_sensitivity": "public"
           },
           {
-            "ref": "29f7e45997e4g3-e7",
+            "ref": "09658fa102a7g3-e7",
             "role": "textbox",
             "name": "",
             "value": "‹secret›",
@@ -877,7 +877,7 @@
             "name_sensitivity": "public"
           },
           {
-            "ref": "29f7e45997e4g3-e8",
+            "ref": "09658fa102a7g3-e8",
             "role": "StaticText",
             "name": "‹secret›",
             "value": null,
@@ -893,7 +893,7 @@
             "name_sensitivity": "secret"
           },
           {
-            "ref": "29f7e45997e4g3-e9",
+            "ref": "09658fa102a7g3-e9",
             "role": "button",
             "name": "Sign On",
             "value": null,
@@ -919,13 +919,13 @@
             [
               "main"
             ],
-            "http://127.0.0.1:8080/"
+            "http://127.0.0.1:8767/"
           ]
         ]
       },
       "decision": {
         "kind": "click",
-        "intent": "Click Sign On to authenticate and access the Meridian system",
+        "intent": "Click Sign On to authenticate with the provided credentials",
         "element": "e9",
         "value": null,
         "key": null,
@@ -947,7 +947,7 @@
       "value_ref": null,
       "value_provenance": null,
       "target": {
-        "ref": "29f7e45997e4g3-e9",
+        "ref": "09658fa102a7g3-e9",
         "role": "button",
         "name": "Sign On",
         "value": null,
@@ -1053,11 +1053,11 @@
     {
       "turn": 4,
       "pre": {
-        "url": "http://127.0.0.1:8080/console",
+        "url": "http://127.0.0.1:8767/console",
         "title": "Meridian Servicing Console",
         "elements": [
           {
-            "ref": "29f7e45997e4g5-e1",
+            "ref": "09658fa102a7g5-e1",
             "role": "LayoutTableCell",
             "name": "Servicing",
             "value": null,
@@ -1077,7 +1077,7 @@
             "name_sensitivity": "public"
           },
           {
-            "ref": "29f7e45997e4g5-e2",
+            "ref": "09658fa102a7g5-e2",
             "role": "link",
             "name": "Member Search",
             "value": null,
@@ -1097,7 +1097,7 @@
             "name_sensitivity": "public"
           },
           {
-            "ref": "29f7e45997e4g5-e3",
+            "ref": "09658fa102a7g5-e3",
             "role": "LayoutTableCell",
             "name": "Transactions",
             "value": null,
@@ -1117,7 +1117,7 @@
             "name_sensitivity": "public"
           },
           {
-            "ref": "29f7e45997e4g5-e4",
+            "ref": "09658fa102a7g5-e4",
             "role": "LayoutTableCell",
             "name": "Reports",
             "value": null,
@@ -1137,7 +1137,7 @@
             "name_sensitivity": "public"
           },
           {
-            "ref": "29f7e45997e4g5-e5",
+            "ref": "09658fa102a7g5-e5",
             "role": "link",
             "name": "Sign Off",
             "value": null,
@@ -1157,7 +1157,7 @@
             "name_sensitivity": "public"
           },
           {
-            "ref": "29f7e45997e4g5-e6",
+            "ref": "09658fa102a7g5-e6",
             "role": "LayoutTableCell",
             "name": "Member Search",
             "value": null,
@@ -1177,7 +1177,7 @@
             "name_sensitivity": "public"
           },
           {
-            "ref": "29f7e45997e4g5-e7",
+            "ref": "09658fa102a7g5-e7",
             "role": "LayoutTableCell",
             "name": "Member ID",
             "value": null,
@@ -1197,7 +1197,7 @@
             "name_sensitivity": "public"
           },
           {
-            "ref": "29f7e45997e4g5-e8",
+            "ref": "09658fa102a7g5-e8",
             "role": "textbox",
             "name": "",
             "value": "",
@@ -1219,7 +1219,7 @@
             "name_sensitivity": "public"
           },
           {
-            "ref": "29f7e45997e4g5-e9",
+            "ref": "09658fa102a7g5-e9",
             "role": "button",
             "name": "Search",
             "value": null,
@@ -1246,27 +1246,27 @@
             [
               "main"
             ],
-            "http://127.0.0.1:8080/console"
+            "http://127.0.0.1:8767/console"
           ],
           [
             [
               "main",
               "nav"
             ],
-            "http://127.0.0.1:8080/console/nav"
+            "http://127.0.0.1:8767/console/nav"
           ],
           [
             [
               "main",
               "content"
             ],
-            "http://127.0.0.1:8080/console/content"
+            "http://127.0.0.1:8767/console/content"
           ]
         ]
       },
       "decision": {
         "kind": "type",
-        "intent": "Enter the member ID to search for the member's account information",
+        "intent": "Enter the member ID to search for the member's account",
         "element": "e8",
         "value": "$inputs.member_id",
         "key": null,
@@ -1288,7 +1288,7 @@
       "value_ref": "$inputs.member_id",
       "value_provenance": "input reference",
       "target": {
-        "ref": "29f7e45997e4g5-e8",
+        "ref": "09658fa102a7g5-e8",
         "role": "textbox",
         "name": "",
         "value": "",
@@ -1462,11 +1462,11 @@
     {
       "turn": 5,
       "pre": {
-        "url": "http://127.0.0.1:8080/console",
+        "url": "http://127.0.0.1:8767/console",
         "title": "Meridian Servicing Console",
         "elements": [
           {
-            "ref": "29f7e45997e4g6-e1",
+            "ref": "09658fa102a7g6-e1",
             "role": "LayoutTableCell",
             "name": "Servicing",
             "value": null,
@@ -1486,7 +1486,7 @@
             "name_sensitivity": "public"
           },
           {
-            "ref": "29f7e45997e4g6-e2",
+            "ref": "09658fa102a7g6-e2",
             "role": "link",
             "name": "Member Search",
             "value": null,
@@ -1506,7 +1506,7 @@
             "name_sensitivity": "public"
           },
           {
-            "ref": "29f7e45997e4g6-e3",
+            "ref": "09658fa102a7g6-e3",
             "role": "LayoutTableCell",
             "name": "Transactions",
             "value": null,
@@ -1526,7 +1526,7 @@
             "name_sensitivity": "public"
           },
           {
-            "ref": "29f7e45997e4g6-e4",
+            "ref": "09658fa102a7g6-e4",
             "role": "LayoutTableCell",
             "name": "Reports",
             "value": null,
@@ -1546,7 +1546,7 @@
             "name_sensitivity": "public"
           },
           {
-            "ref": "29f7e45997e4g6-e5",
+            "ref": "09658fa102a7g6-e5",
             "role": "link",
             "name": "Sign Off",
             "value": null,
@@ -1566,7 +1566,7 @@
             "name_sensitivity": "public"
           },
           {
-            "ref": "29f7e45997e4g6-e6",
+            "ref": "09658fa102a7g6-e6",
             "role": "LayoutTableCell",
             "name": "Member Search",
             "value": null,
@@ -1586,7 +1586,7 @@
             "name_sensitivity": "public"
           },
           {
-            "ref": "29f7e45997e4g6-e7",
+            "ref": "09658fa102a7g6-e7",
             "role": "LayoutTableCell",
             "name": "Member ID",
             "value": null,
@@ -1606,7 +1606,7 @@
             "name_sensitivity": "public"
           },
           {
-            "ref": "29f7e45997e4g6-e8",
+            "ref": "09658fa102a7g6-e8",
             "role": "textbox",
             "name": "",
             "value": "‹$inputs.member_id›",
@@ -1628,7 +1628,7 @@
             "name_sensitivity": "public"
           },
           {
-            "ref": "29f7e45997e4g6-e9",
+            "ref": "09658fa102a7g6-e9",
             "role": "StaticText",
             "name": "‹$inputs.member_id›",
             "value": null,
@@ -1645,7 +1645,7 @@
             "name_sensitivity": "internal"
           },
           {
-            "ref": "29f7e45997e4g6-e10",
+            "ref": "09658fa102a7g6-e10",
             "role": "button",
             "name": "Search",
             "value": null,
@@ -1672,21 +1672,21 @@
             [
               "main"
             ],
-            "http://127.0.0.1:8080/console"
+            "http://127.0.0.1:8767/console"
           ],
           [
             [
               "main",
               "nav"
             ],
-            "http://127.0.0.1:8080/console/nav"
+            "http://127.0.0.1:8767/console/nav"
           ],
           [
             [
               "main",
               "content"
             ],
-            "http://127.0.0.1:8080/console/content"
+            "http://127.0.0.1:8767/console/content"
           ]
         ]
       },
@@ -1699,9 +1699,9 @@
         "expect": {
           "elements": [
             {
-              "role": "LayoutTableCell",
-              "name": "Member Search Results",
-              "anchor": ""
+              "role": "cell",
+              "name": "‹$inputs.member_id›",
+              "anchor": "Member ID"
             }
           ],
           "text": ""
@@ -1714,7 +1714,7 @@
       "value_ref": null,
       "value_provenance": null,
       "target": {
-        "ref": "29f7e45997e4g6-e10",
+        "ref": "09658fa102a7g6-e10",
         "role": "button",
         "name": "Search",
         "value": null,
@@ -1824,11 +1824,11 @@
     {
       "turn": 7,
       "pre": {
-        "url": "http://127.0.0.1:8080/console",
+        "url": "http://127.0.0.1:8767/console",
         "title": "Meridian Servicing Console",
         "elements": [
           {
-            "ref": "29f7e45997e4g8-e1",
+            "ref": "09658fa102a7g8-e1",
             "role": "LayoutTableCell",
             "name": "Servicing",
             "value": null,
@@ -1848,7 +1848,7 @@
             "name_sensitivity": "public"
           },
           {
-            "ref": "29f7e45997e4g8-e2",
+            "ref": "09658fa102a7g8-e2",
             "role": "link",
             "name": "Member Search",
             "value": null,
@@ -1868,7 +1868,7 @@
             "name_sensitivity": "public"
           },
           {
-            "ref": "29f7e45997e4g8-e3",
+            "ref": "09658fa102a7g8-e3",
             "role": "LayoutTableCell",
             "name": "Transactions",
             "value": null,
@@ -1888,7 +1888,7 @@
             "name_sensitivity": "public"
           },
           {
-            "ref": "29f7e45997e4g8-e4",
+            "ref": "09658fa102a7g8-e4",
             "role": "LayoutTableCell",
             "name": "Reports",
             "value": null,
@@ -1908,7 +1908,7 @@
             "name_sensitivity": "public"
           },
           {
-            "ref": "29f7e45997e4g8-e5",
+            "ref": "09658fa102a7g8-e5",
             "role": "link",
             "name": "Sign Off",
             "value": null,
@@ -1928,7 +1928,7 @@
             "name_sensitivity": "public"
           },
           {
-            "ref": "29f7e45997e4g8-e6",
+            "ref": "09658fa102a7g8-e6",
             "role": "LayoutTableCell",
             "name": "Member Search Results",
             "value": null,
@@ -1948,7 +1948,7 @@
             "name_sensitivity": "public"
           },
           {
-            "ref": "29f7e45997e4g8-e7",
+            "ref": "09658fa102a7g8-e7",
             "role": "columnheader",
             "name": "Member ID",
             "value": null,
@@ -1973,7 +1973,7 @@
             "name_sensitivity": "public"
           },
           {
-            "ref": "29f7e45997e4g8-e8",
+            "ref": "09658fa102a7g8-e8",
             "role": "columnheader",
             "name": "Name",
             "value": null,
@@ -1998,7 +1998,7 @@
             "name_sensitivity": "public"
           },
           {
-            "ref": "29f7e45997e4g8-e9",
+            "ref": "09658fa102a7g8-e9",
             "role": "columnheader",
             "name": "Branch",
             "value": null,
@@ -2023,7 +2023,7 @@
             "name_sensitivity": "public"
           },
           {
-            "ref": "29f7e45997e4g8-e10",
+            "ref": "09658fa102a7g8-e10",
             "role": "columnheader",
             "name": "Status",
             "value": null,
@@ -2048,7 +2048,7 @@
             "name_sensitivity": "public"
           },
           {
-            "ref": "29f7e45997e4g8-e11",
+            "ref": "09658fa102a7g8-e11",
             "role": "columnheader",
             "name": "Joined",
             "value": null,
@@ -2073,7 +2073,7 @@
             "name_sensitivity": "public"
           },
           {
-            "ref": "29f7e45997e4g8-e12",
+            "ref": "09658fa102a7g8-e12",
             "role": "cell",
             "name": "‹redacted:5 chars›",
             "value": null,
@@ -2099,7 +2099,7 @@
             "name_sensitivity": "internal"
           },
           {
-            "ref": "29f7e45997e4g8-e13",
+            "ref": "09658fa102a7g8-e13",
             "role": "cell",
             "name": "‹redacted:12 chars›",
             "value": null,
@@ -2125,7 +2125,7 @@
             "name_sensitivity": "pii"
           },
           {
-            "ref": "29f7e45997e4g8-e14",
+            "ref": "09658fa102a7g8-e14",
             "role": "cell",
             "name": "BR-014",
             "value": null,
@@ -2151,7 +2151,7 @@
             "name_sensitivity": "public"
           },
           {
-            "ref": "29f7e45997e4g8-e15",
+            "ref": "09658fa102a7g8-e15",
             "role": "cell",
             "name": "active",
             "value": null,
@@ -2177,7 +2177,7 @@
             "name_sensitivity": "public"
           },
           {
-            "ref": "29f7e45997e4g8-e16",
+            "ref": "09658fa102a7g8-e16",
             "role": "cell",
             "name": "‹redacted:10 chars›",
             "value": null,
@@ -2203,7 +2203,7 @@
             "name_sensitivity": "pii"
           },
           {
-            "ref": "29f7e45997e4g8-e17",
+            "ref": "09658fa102a7g8-e17",
             "role": "link",
             "name": "View",
             "value": null,
@@ -2229,7 +2229,7 @@
             "name_sensitivity": "public"
           },
           {
-            "ref": "29f7e45997e4g8-e18",
+            "ref": "09658fa102a7g8-e18",
             "role": "cell",
             "name": "‹$inputs.member_id›",
             "value": null,
@@ -2255,7 +2255,7 @@
             "name_sensitivity": "internal"
           },
           {
-            "ref": "29f7e45997e4g8-e19",
+            "ref": "09658fa102a7g8-e19",
             "role": "cell",
             "name": "‹redacted:17 chars›",
             "value": null,
@@ -2281,7 +2281,7 @@
             "name_sensitivity": "pii"
           },
           {
-            "ref": "29f7e45997e4g8-e20",
+            "ref": "09658fa102a7g8-e20",
             "role": "cell",
             "name": "BR-014",
             "value": null,
@@ -2307,7 +2307,7 @@
             "name_sensitivity": "public"
           },
           {
-            "ref": "29f7e45997e4g8-e21",
+            "ref": "09658fa102a7g8-e21",
             "role": "cell",
             "name": "active",
             "value": null,
@@ -2333,7 +2333,7 @@
             "name_sensitivity": "public"
           },
           {
-            "ref": "29f7e45997e4g8-e22",
+            "ref": "09658fa102a7g8-e22",
             "role": "cell",
             "name": "‹redacted:10 chars›",
             "value": null,
@@ -2359,7 +2359,7 @@
             "name_sensitivity": "pii"
           },
           {
-            "ref": "29f7e45997e4g8-e23",
+            "ref": "09658fa102a7g8-e23",
             "role": "link",
             "name": "View",
             "value": null,
@@ -2385,7 +2385,7 @@
             "name_sensitivity": "public"
           },
           {
-            "ref": "29f7e45997e4g8-e24",
+            "ref": "09658fa102a7g8-e24",
             "role": "cell",
             "name": "‹redacted:5 chars›",
             "value": null,
@@ -2411,7 +2411,7 @@
             "name_sensitivity": "internal"
           },
           {
-            "ref": "29f7e45997e4g8-e25",
+            "ref": "09658fa102a7g8-e25",
             "role": "cell",
             "name": "‹redacted:12 chars›",
             "value": null,
@@ -2437,7 +2437,7 @@
             "name_sensitivity": "pii"
           },
           {
-            "ref": "29f7e45997e4g8-e26",
+            "ref": "09658fa102a7g8-e26",
             "role": "cell",
             "name": "BR-014",
             "value": null,
@@ -2463,7 +2463,7 @@
             "name_sensitivity": "public"
           },
           {
-            "ref": "29f7e45997e4g8-e27",
+            "ref": "09658fa102a7g8-e27",
             "role": "cell",
             "name": "active",
             "value": null,
@@ -2489,7 +2489,7 @@
             "name_sensitivity": "public"
           },
           {
-            "ref": "29f7e45997e4g8-e28",
+            "ref": "09658fa102a7g8-e28",
             "role": "cell",
             "name": "‹redacted:10 chars›",
             "value": null,
@@ -2515,7 +2515,7 @@
             "name_sensitivity": "pii"
           },
           {
-            "ref": "29f7e45997e4g8-e29",
+            "ref": "09658fa102a7g8-e29",
             "role": "link",
             "name": "View",
             "value": null,
@@ -2541,7 +2541,7 @@
             "name_sensitivity": "public"
           },
           {
-            "ref": "29f7e45997e4g8-e30",
+            "ref": "09658fa102a7g8-e30",
             "role": "cell",
             "name": "‹redacted:5 chars›",
             "value": null,
@@ -2567,7 +2567,7 @@
             "name_sensitivity": "internal"
           },
           {
-            "ref": "29f7e45997e4g8-e31",
+            "ref": "09658fa102a7g8-e31",
             "role": "cell",
             "name": "‹redacted:17 chars›",
             "value": null,
@@ -2593,7 +2593,7 @@
             "name_sensitivity": "pii"
           },
           {
-            "ref": "29f7e45997e4g8-e32",
+            "ref": "09658fa102a7g8-e32",
             "role": "cell",
             "name": "BR-014",
             "value": null,
@@ -2619,7 +2619,7 @@
             "name_sensitivity": "public"
           },
           {
-            "ref": "29f7e45997e4g8-e33",
+            "ref": "09658fa102a7g8-e33",
             "role": "cell",
             "name": "frozen",
             "value": null,
@@ -2645,7 +2645,7 @@
             "name_sensitivity": "public"
           },
           {
-            "ref": "29f7e45997e4g8-e34",
+            "ref": "09658fa102a7g8-e34",
             "role": "cell",
             "name": "‹redacted:10 chars›",
             "value": null,
@@ -2671,7 +2671,7 @@
             "name_sensitivity": "pii"
           },
           {
-            "ref": "29f7e45997e4g8-e35",
+            "ref": "09658fa102a7g8-e35",
             "role": "link",
             "name": "View",
             "value": null,
@@ -2697,7 +2697,7 @@
             "name_sensitivity": "public"
           },
           {
-            "ref": "29f7e45997e4g8-e36",
+            "ref": "09658fa102a7g8-e36",
             "role": "cell",
             "name": "‹redacted:5 chars›",
             "value": null,
@@ -2723,7 +2723,7 @@
             "name_sensitivity": "internal"
           },
           {
-            "ref": "29f7e45997e4g8-e37",
+            "ref": "09658fa102a7g8-e37",
             "role": "cell",
             "name": "‹redacted:13 chars›",
             "value": null,
@@ -2749,7 +2749,7 @@
             "name_sensitivity": "pii"
           },
           {
-            "ref": "29f7e45997e4g8-e38",
+            "ref": "09658fa102a7g8-e38",
             "role": "cell",
             "name": "BR-014",
             "value": null,
@@ -2775,7 +2775,7 @@
             "name_sensitivity": "public"
           },
           {
-            "ref": "29f7e45997e4g8-e39",
+            "ref": "09658fa102a7g8-e39",
             "role": "cell",
             "name": "active",
             "value": null,
@@ -2801,7 +2801,7 @@
             "name_sensitivity": "public"
           },
           {
-            "ref": "29f7e45997e4g8-e40",
+            "ref": "09658fa102a7g8-e40",
             "role": "cell",
             "name": "‹redacted:10 chars›",
             "value": null,
@@ -2827,7 +2827,7 @@
             "name_sensitivity": "pii"
           },
           {
-            "ref": "29f7e45997e4g8-e41",
+            "ref": "09658fa102a7g8-e41",
             "role": "link",
             "name": "View",
             "value": null,
@@ -2853,7 +2853,7 @@
             "name_sensitivity": "public"
           },
           {
-            "ref": "29f7e45997e4g8-e42",
+            "ref": "09658fa102a7g8-e42",
             "role": "cell",
             "name": "‹redacted:5 chars›",
             "value": null,
@@ -2879,7 +2879,7 @@
             "name_sensitivity": "internal"
           },
           {
-            "ref": "29f7e45997e4g8-e43",
+            "ref": "09658fa102a7g8-e43",
             "role": "cell",
             "name": "‹redacted:16 chars›",
             "value": null,
@@ -2905,7 +2905,7 @@
             "name_sensitivity": "pii"
           },
           {
-            "ref": "29f7e45997e4g8-e44",
+            "ref": "09658fa102a7g8-e44",
             "role": "cell",
             "name": "BR-014",
             "value": null,
@@ -2931,7 +2931,7 @@
             "name_sensitivity": "public"
           },
           {
-            "ref": "29f7e45997e4g8-e45",
+            "ref": "09658fa102a7g8-e45",
             "role": "cell",
             "name": "dormant",
             "value": null,
@@ -2957,7 +2957,7 @@
             "name_sensitivity": "public"
           },
           {
-            "ref": "29f7e45997e4g8-e46",
+            "ref": "09658fa102a7g8-e46",
             "role": "cell",
             "name": "‹redacted:10 chars›",
             "value": null,
@@ -2983,7 +2983,7 @@
             "name_sensitivity": "pii"
           },
           {
-            "ref": "29f7e45997e4g8-e47",
+            "ref": "09658fa102a7g8-e47",
             "role": "link",
             "name": "View",
             "value": null,
@@ -3009,7 +3009,7 @@
             "name_sensitivity": "public"
           },
           {
-            "ref": "29f7e45997e4g8-e48",
+            "ref": "09658fa102a7g8-e48",
             "role": "cell",
             "name": "‹redacted:5 chars›",
             "value": null,
@@ -3035,7 +3035,7 @@
             "name_sensitivity": "internal"
           },
           {
-            "ref": "29f7e45997e4g8-e49",
+            "ref": "09658fa102a7g8-e49",
             "role": "cell",
             "name": "‹redacted:13 chars›",
             "value": null,
@@ -3061,7 +3061,7 @@
             "name_sensitivity": "pii"
           },
           {
-            "ref": "29f7e45997e4g8-e50",
+            "ref": "09658fa102a7g8-e50",
             "role": "cell",
             "name": "BR-014",
             "value": null,
@@ -3087,7 +3087,7 @@
             "name_sensitivity": "public"
           },
           {
-            "ref": "29f7e45997e4g8-e51",
+            "ref": "09658fa102a7g8-e51",
             "role": "cell",
             "name": "active",
             "value": null,
@@ -3113,7 +3113,7 @@
             "name_sensitivity": "public"
           },
           {
-            "ref": "29f7e45997e4g8-e52",
+            "ref": "09658fa102a7g8-e52",
             "role": "cell",
             "name": "‹redacted:10 chars›",
             "value": null,
@@ -3139,7 +3139,7 @@
             "name_sensitivity": "pii"
           },
           {
-            "ref": "29f7e45997e4g8-e53",
+            "ref": "09658fa102a7g8-e53",
             "role": "link",
             "name": "View",
             "value": null,
@@ -3165,7 +3165,7 @@
             "name_sensitivity": "public"
           },
           {
-            "ref": "29f7e45997e4g8-e54",
+            "ref": "09658fa102a7g8-e54",
             "role": "cell",
             "name": "‹redacted:5 chars›",
             "value": null,
@@ -3191,7 +3191,7 @@
             "name_sensitivity": "internal"
           },
           {
-            "ref": "29f7e45997e4g8-e55",
+            "ref": "09658fa102a7g8-e55",
             "role": "cell",
             "name": "‹redacted:14 chars›",
             "value": null,
@@ -3217,7 +3217,7 @@
             "name_sensitivity": "pii"
           },
           {
-            "ref": "29f7e45997e4g8-e56",
+            "ref": "09658fa102a7g8-e56",
             "role": "cell",
             "name": "BR-014",
             "value": null,
@@ -3243,7 +3243,7 @@
             "name_sensitivity": "public"
           },
           {
-            "ref": "29f7e45997e4g8-e57",
+            "ref": "09658fa102a7g8-e57",
             "role": "cell",
             "name": "dormant",
             "value": null,
@@ -3269,7 +3269,7 @@
             "name_sensitivity": "public"
           },
           {
-            "ref": "29f7e45997e4g8-e58",
+            "ref": "09658fa102a7g8-e58",
             "role": "cell",
             "name": "‹redacted:10 chars›",
             "value": null,
@@ -3295,7 +3295,7 @@
             "name_sensitivity": "pii"
           },
           {
-            "ref": "29f7e45997e4g8-e59",
+            "ref": "09658fa102a7g8-e59",
             "role": "link",
             "name": "View",
             "value": null,
@@ -3321,7 +3321,7 @@
             "name_sensitivity": "public"
           },
           {
-            "ref": "29f7e45997e4g8-e60",
+            "ref": "09658fa102a7g8-e60",
             "role": "StaticText",
             "name": "8 record(s) in branch context.",
             "value": null,
@@ -3348,27 +3348,27 @@
             [
               "main"
             ],
-            "http://127.0.0.1:8080/console"
+            "http://127.0.0.1:8767/console"
           ],
           [
             [
               "main",
               "nav"
             ],
-            "http://127.0.0.1:8080/console/nav"
+            "http://127.0.0.1:8767/console/nav"
           ],
           [
             [
               "main",
               "content"
             ],
-            "http://127.0.0.1:8080/console/search"
+            "http://127.0.0.1:8767/console/search"
           ]
         ]
       },
       "decision": {
         "kind": "click",
-        "intent": "Click View to see the detailed account information for member ‹$inputs.member_id›",
+        "intent": "Click View to access the member's detailed account information",
         "element": "e23",
         "value": null,
         "key": null,
@@ -3376,8 +3376,8 @@
           "elements": [
             {
               "role": "LayoutTableCell",
-              "name": "Member Profile",
-              "anchor": ""
+              "name": "‹$inputs.member_id›",
+              "anchor": "Member ID"
             }
           ],
           "text": ""
@@ -3390,7 +3390,7 @@
       "value_ref": null,
       "value_provenance": null,
       "target": {
-        "ref": "29f7e45997e4g8-e23",
+        "ref": "09658fa102a7g8-e23",
         "role": "link",
         "name": "View",
         "value": null,
@@ -3647,16 +3647,16 @@
       "error": null,
       "navigated": true,
       "risk": "safe",
-      "post_hash": "7e9ec812f3ad99cf"
+      "post_hash": "b6d592984bc5e75e"
     },
     {
       "turn": 9,
       "pre": {
-        "url": "http://127.0.0.1:8080/console",
+        "url": "http://127.0.0.1:8767/console",
         "title": "Meridian Servicing Console",
         "elements": [
           {
-            "ref": "29f7e45997e4g10-e1",
+            "ref": "09658fa102a7g10-e1",
             "role": "LayoutTableCell",
             "name": "Servicing",
             "value": null,
@@ -3676,7 +3676,7 @@
             "name_sensitivity": "public"
           },
           {
-            "ref": "29f7e45997e4g10-e2",
+            "ref": "09658fa102a7g10-e2",
             "role": "link",
             "name": "Member Search",
             "value": null,
@@ -3696,7 +3696,7 @@
             "name_sensitivity": "public"
           },
           {
-            "ref": "29f7e45997e4g10-e3",
+            "ref": "09658fa102a7g10-e3",
             "role": "LayoutTableCell",
             "name": "Transactions",
             "value": null,
@@ -3716,7 +3716,7 @@
             "name_sensitivity": "public"
           },
           {
-            "ref": "29f7e45997e4g10-e4",
+            "ref": "09658fa102a7g10-e4",
             "role": "LayoutTableCell",
             "name": "Reports",
             "value": null,
@@ -3736,7 +3736,7 @@
             "name_sensitivity": "public"
           },
           {
-            "ref": "29f7e45997e4g10-e5",
+            "ref": "09658fa102a7g10-e5",
             "role": "link",
             "name": "Sign Off",
             "value": null,
@@ -3756,7 +3756,7 @@
             "name_sensitivity": "public"
           },
           {
-            "ref": "29f7e45997e4g10-e6",
+            "ref": "09658fa102a7g10-e6",
             "role": "LayoutTableCell",
             "name": "Member Profile",
             "value": null,
@@ -3776,7 +3776,7 @@
             "name_sensitivity": "public"
           },
           {
-            "ref": "29f7e45997e4g10-e7",
+            "ref": "09658fa102a7g10-e7",
             "role": "LayoutTableCell",
             "name": "Member ID",
             "value": null,
@@ -3798,7 +3798,7 @@
             "name_sensitivity": "public"
           },
           {
-            "ref": "29f7e45997e4g10-e8",
+            "ref": "09658fa102a7g10-e8",
             "role": "LayoutTableCell",
             "name": "‹$inputs.member_id›",
             "value": null,
@@ -3820,7 +3820,7 @@
             "name_sensitivity": "internal"
           },
           {
-            "ref": "29f7e45997e4g10-e9",
+            "ref": "09658fa102a7g10-e9",
             "role": "LayoutTableCell",
             "name": "Name",
             "value": null,
@@ -3842,7 +3842,7 @@
             "name_sensitivity": "public"
           },
           {
-            "ref": "29f7e45997e4g10-e10",
+            "ref": "09658fa102a7g10-e10",
             "role": "LayoutTableCell",
             "name": "‹redacted:17 chars›",
             "value": null,
@@ -3864,7 +3864,7 @@
             "name_sensitivity": "pii"
           },
           {
-            "ref": "29f7e45997e4g10-e11",
+            "ref": "09658fa102a7g10-e11",
             "role": "LayoutTableCell",
             "name": "Branch",
             "value": null,
@@ -3886,7 +3886,7 @@
             "name_sensitivity": "public"
           },
           {
-            "ref": "29f7e45997e4g10-e12",
+            "ref": "09658fa102a7g10-e12",
             "role": "LayoutTableCell",
             "name": "BR-014",
             "value": null,
@@ -3908,7 +3908,7 @@
             "name_sensitivity": "public"
           },
           {
-            "ref": "29f7e45997e4g10-e13",
+            "ref": "09658fa102a7g10-e13",
             "role": "LayoutTableCell",
             "name": "Status",
             "value": null,
@@ -3930,7 +3930,7 @@
             "name_sensitivity": "public"
           },
           {
-            "ref": "29f7e45997e4g10-e14",
+            "ref": "09658fa102a7g10-e14",
             "role": "LayoutTableCell",
             "name": "active",
             "value": null,
@@ -3952,7 +3952,7 @@
             "name_sensitivity": "public"
           },
           {
-            "ref": "29f7e45997e4g10-e15",
+            "ref": "09658fa102a7g10-e15",
             "role": "cell",
             "name": "Summary",
             "value": null,
@@ -3975,7 +3975,7 @@
             "name_sensitivity": "public"
           },
           {
-            "ref": "29f7e45997e4g10-e16",
+            "ref": "09658fa102a7g10-e16",
             "role": "cell",
             "name": "Accounts",
             "value": null,
@@ -3998,7 +3998,7 @@
             "name_sensitivity": "public"
           },
           {
-            "ref": "29f7e45997e4g10-e17",
+            "ref": "09658fa102a7g10-e17",
             "role": "cell",
             "name": "Notes",
             "value": null,
@@ -4021,7 +4021,7 @@
             "name_sensitivity": "public"
           },
           {
-            "ref": "29f7e45997e4g10-e18",
+            "ref": "09658fa102a7g10-e18",
             "role": "LayoutTableCell",
             "name": "Joined",
             "value": null,
@@ -4043,7 +4043,7 @@
             "name_sensitivity": "public"
           },
           {
-            "ref": "29f7e45997e4g10-e19",
+            "ref": "09658fa102a7g10-e19",
             "role": "LayoutTableCell",
             "name": "‹redacted›",
             "value": null,
@@ -4065,7 +4065,7 @@
             "name_sensitivity": "pii"
           },
           {
-            "ref": "29f7e45997e4g10-e20",
+            "ref": "09658fa102a7g10-e20",
             "role": "LayoutTableCell",
             "name": "Review flag",
             "value": null,
@@ -4087,7 +4087,7 @@
             "name_sensitivity": "public"
           },
           {
-            "ref": "29f7e45997e4g10-e21",
+            "ref": "09658fa102a7g10-e21",
             "role": "LayoutTableCell",
             "name": "none",
             "value": null,
@@ -4109,7 +4109,7 @@
             "name_sensitivity": "public"
           },
           {
-            "ref": "29f7e45997e4g10-e22",
+            "ref": "09658fa102a7g10-e22",
             "role": "link",
             "name": "Mark for Review",
             "value": null,
@@ -4129,9 +4129,9 @@
             "name_sensitivity": "public"
           },
           {
-            "ref": "29f7e45997e4g10-e23",
+            "ref": "09658fa102a7g10-e23",
             "role": "link",
-            "name": "",
+            "name": "Open sub-account",
             "value": null,
             "enabled": true,
             "frame_path": [
@@ -4141,6 +4141,26 @@
             "bbox": [
               345,
               284,
+              146,
+              19
+            ],
+            "anchors": [],
+            "sensitivity": "public",
+            "name_sensitivity": "public"
+          },
+          {
+            "ref": "09658fa102a7g10-e24",
+            "role": "link",
+            "name": "",
+            "value": null,
+            "enabled": true,
+            "frame_path": [
+              "main",
+              "content"
+            ],
+            "bbox": [
+              508,
+              284,
               14,
               19
             ],
@@ -4149,7 +4169,7 @@
             "name_sensitivity": "public"
           },
           {
-            "ref": "29f7e45997e4g10-e24",
+            "ref": "09658fa102a7g10-e25",
             "role": "link",
             "name": "Return to search",
             "value": null,
@@ -4169,34 +4189,34 @@
             "name_sensitivity": "public"
           }
         ],
-        "text_digest": "Servicing | Member Search | Transactions | Reports | Sign Off | Member Profile | Member ID | ‹$inputs.member_id› | Name | ‹redacted:17 chars› | Branch | BR-014 | Status | active | Summary | Accounts | Notes | Joined | ‹redacted› | Review flag | none | Mark for Review | Return to search",
-        "hash": "7e9ec812f3ad99cf",
+        "text_digest": "Servicing | Member Search | Transactions | Reports | Sign Off | Member Profile | Member ID | ‹$inputs.member_id› | Name | ‹redacted:17 chars› | Branch | BR-014 | Status | active | Summary | Accounts | Notes | Joined | ‹redacted› | Review flag | none | Mark for Review | Open sub-account | Return to search",
+        "hash": "b6d592984bc5e75e",
         "frame_urls": [
           [
             [
               "main"
             ],
-            "http://127.0.0.1:8080/console"
+            "http://127.0.0.1:8767/console"
           ],
           [
             [
               "main",
               "nav"
             ],
-            "http://127.0.0.1:8080/console/nav"
+            "http://127.0.0.1:8767/console/nav"
           ],
           [
             [
               "main",
               "content"
             ],
-            "http://127.0.0.1:8080/console/member?member_id=‹$inputs.member_id›"
+            "http://127.0.0.1:8767/console/member?member_id=‹$inputs.member_id›"
           ]
         ]
       },
       "decision": {
         "kind": "click",
-        "intent": "Click on Accounts tab to view the member's account details and savings balance",
+        "intent": "Click on Accounts tab to view the member's savings account and balance",
         "element": "e16",
         "value": null,
         "key": null,
@@ -4218,7 +4238,7 @@
       "value_ref": null,
       "value_provenance": null,
       "target": {
-        "ref": "29f7e45997e4g10-e16",
+        "ref": "09658fa102a7g10-e16",
         "role": "cell",
         "name": "Accounts",
         "value": null,
@@ -4349,7 +4369,7 @@
               "identity": null,
               "bbox": null
             },
-            "matches_at_record": 3,
+            "matches_at_record": 2,
             "reason": "not_unique_target_or_unverified_identity"
           },
           {
@@ -4374,7 +4394,7 @@
               "identity": null,
               "bbox": null
             },
-            "matches_at_record": 3,
+            "matches_at_record": 2,
             "reason": "not_unique_target_or_unverified_identity"
           },
           {
@@ -4418,16 +4438,1043 @@
       "error": null,
       "navigated": true,
       "risk": "safe",
-      "post_hash": "7b06f4d981592954"
+      "post_hash": "01b53b31c90e3bc8"
+    },
+    {
+      "turn": 10,
+      "pre": {
+        "url": "http://127.0.0.1:8767/console",
+        "title": "Meridian Servicing Console",
+        "elements": [
+          {
+            "ref": "09658fa102a7g11-e1",
+            "role": "LayoutTableCell",
+            "name": "Servicing",
+            "value": null,
+            "enabled": true,
+            "frame_path": [
+              "main",
+              "nav"
+            ],
+            "bbox": [
+              8,
+              8,
+              164,
+              27
+            ],
+            "anchors": [],
+            "sensitivity": "public",
+            "name_sensitivity": "public"
+          },
+          {
+            "ref": "09658fa102a7g11-e2",
+            "role": "link",
+            "name": "Member Search",
+            "value": null,
+            "enabled": true,
+            "frame_path": [
+              "main",
+              "nav"
+            ],
+            "bbox": [
+              12,
+              39,
+              126,
+              19
+            ],
+            "anchors": [],
+            "sensitivity": "public",
+            "name_sensitivity": "public"
+          },
+          {
+            "ref": "09658fa102a7g11-e3",
+            "role": "LayoutTableCell",
+            "name": "Transactions",
+            "value": null,
+            "enabled": true,
+            "frame_path": [
+              "main",
+              "nav"
+            ],
+            "bbox": [
+              8,
+              62,
+              164,
+              27
+            ],
+            "anchors": [],
+            "sensitivity": "public",
+            "name_sensitivity": "public"
+          },
+          {
+            "ref": "09658fa102a7g11-e4",
+            "role": "LayoutTableCell",
+            "name": "Reports",
+            "value": null,
+            "enabled": true,
+            "frame_path": [
+              "main",
+              "nav"
+            ],
+            "bbox": [
+              8,
+              89,
+              164,
+              27
+            ],
+            "anchors": [],
+            "sensitivity": "public",
+            "name_sensitivity": "public"
+          },
+          {
+            "ref": "09658fa102a7g11-e5",
+            "role": "link",
+            "name": "Sign Off",
+            "value": null,
+            "enabled": true,
+            "frame_path": [
+              "main",
+              "nav"
+            ],
+            "bbox": [
+              12,
+              147,
+              65,
+              19
+            ],
+            "anchors": [],
+            "sensitivity": "public",
+            "name_sensitivity": "public"
+          },
+          {
+            "ref": "09658fa102a7g11-e6",
+            "role": "LayoutTableCell",
+            "name": "Member Profile",
+            "value": null,
+            "enabled": true,
+            "frame_path": [
+              "main",
+              "content"
+            ],
+            "bbox": [
+              189,
+              8,
+              1083,
+              22
+            ],
+            "anchors": [],
+            "sensitivity": "public",
+            "name_sensitivity": "public"
+          },
+          {
+            "ref": "09658fa102a7g11-e7",
+            "role": "LayoutTableCell",
+            "name": "Member ID",
+            "value": null,
+            "enabled": true,
+            "frame_path": [
+              "main",
+              "content"
+            ],
+            "bbox": [
+              189,
+              43,
+              100,
+              29
+            ],
+            "anchors": [
+              "‹$inputs.member_id›"
+            ],
+            "sensitivity": "public",
+            "name_sensitivity": "public"
+          },
+          {
+            "ref": "09658fa102a7g11-e8",
+            "role": "LayoutTableCell",
+            "name": "‹$inputs.member_id›",
+            "value": null,
+            "enabled": true,
+            "frame_path": [
+              "main",
+              "content"
+            ],
+            "bbox": [
+              289,
+              43,
+              147,
+              29
+            ],
+            "anchors": [
+              "Member ID"
+            ],
+            "sensitivity": "public",
+            "name_sensitivity": "internal"
+          },
+          {
+            "ref": "09658fa102a7g11-e9",
+            "role": "LayoutTableCell",
+            "name": "Name",
+            "value": null,
+            "enabled": true,
+            "frame_path": [
+              "main",
+              "content"
+            ],
+            "bbox": [
+              189,
+              72,
+              100,
+              29
+            ],
+            "anchors": [
+              "‹redacted:17 chars›"
+            ],
+            "sensitivity": "public",
+            "name_sensitivity": "public"
+          },
+          {
+            "ref": "09658fa102a7g11-e10",
+            "role": "LayoutTableCell",
+            "name": "‹redacted:17 chars›",
+            "value": null,
+            "enabled": true,
+            "frame_path": [
+              "main",
+              "content"
+            ],
+            "bbox": [
+              289,
+              72,
+              147,
+              29
+            ],
+            "anchors": [
+              "Name"
+            ],
+            "sensitivity": "public",
+            "name_sensitivity": "pii"
+          },
+          {
+            "ref": "09658fa102a7g11-e11",
+            "role": "LayoutTableCell",
+            "name": "Branch",
+            "value": null,
+            "enabled": true,
+            "frame_path": [
+              "main",
+              "content"
+            ],
+            "bbox": [
+              189,
+              101,
+              100,
+              29
+            ],
+            "anchors": [
+              "BR-014"
+            ],
+            "sensitivity": "public",
+            "name_sensitivity": "public"
+          },
+          {
+            "ref": "09658fa102a7g11-e12",
+            "role": "LayoutTableCell",
+            "name": "BR-014",
+            "value": null,
+            "enabled": true,
+            "frame_path": [
+              "main",
+              "content"
+            ],
+            "bbox": [
+              289,
+              101,
+              147,
+              29
+            ],
+            "anchors": [
+              "Branch"
+            ],
+            "sensitivity": "public",
+            "name_sensitivity": "public"
+          },
+          {
+            "ref": "09658fa102a7g11-e13",
+            "role": "LayoutTableCell",
+            "name": "Status",
+            "value": null,
+            "enabled": true,
+            "frame_path": [
+              "main",
+              "content"
+            ],
+            "bbox": [
+              189,
+              130,
+              100,
+              29
+            ],
+            "anchors": [
+              "active"
+            ],
+            "sensitivity": "public",
+            "name_sensitivity": "public"
+          },
+          {
+            "ref": "09658fa102a7g11-e14",
+            "role": "LayoutTableCell",
+            "name": "active",
+            "value": null,
+            "enabled": true,
+            "frame_path": [
+              "main",
+              "content"
+            ],
+            "bbox": [
+              289,
+              130,
+              147,
+              29
+            ],
+            "anchors": [
+              "Status"
+            ],
+            "sensitivity": "public",
+            "name_sensitivity": "public"
+          },
+          {
+            "ref": "09658fa102a7g11-e15",
+            "role": "cell",
+            "name": "Summary",
+            "value": null,
+            "enabled": true,
+            "frame_path": [
+              "main",
+              "content"
+            ],
+            "bbox": [
+              189,
+              172,
+              104,
+              29
+            ],
+            "anchors": [
+              "Accounts",
+              "Notes"
+            ],
+            "sensitivity": "public",
+            "name_sensitivity": "public"
+          },
+          {
+            "ref": "09658fa102a7g11-e16",
+            "role": "cell",
+            "name": "Accounts",
+            "value": null,
+            "enabled": true,
+            "frame_path": [
+              "main",
+              "content"
+            ],
+            "bbox": [
+              293,
+              172,
+              98,
+              29
+            ],
+            "anchors": [
+              "Summary",
+              "Notes"
+            ],
+            "sensitivity": "public",
+            "name_sensitivity": "public"
+          },
+          {
+            "ref": "09658fa102a7g11-e17",
+            "role": "cell",
+            "name": "Notes",
+            "value": null,
+            "enabled": true,
+            "frame_path": [
+              "main",
+              "content"
+            ],
+            "bbox": [
+              391,
+              172,
+              72,
+              29
+            ],
+            "anchors": [
+              "Summary",
+              "Accounts"
+            ],
+            "sensitivity": "public",
+            "name_sensitivity": "public"
+          },
+          {
+            "ref": "09658fa102a7g11-e18",
+            "role": "link",
+            "name": "Return to search",
+            "value": null,
+            "enabled": true,
+            "frame_path": [
+              "main",
+              "content"
+            ],
+            "bbox": [
+              189,
+              414,
+              92,
+              13
+            ],
+            "anchors": [],
+            "sensitivity": "public",
+            "name_sensitivity": "public"
+          },
+          {
+            "ref": "09658fa102a7g11-e19",
+            "role": "columnheader",
+            "name": "Account",
+            "value": null,
+            "enabled": true,
+            "frame_path": [
+              "main",
+              "content",
+              "iframe#ctl00_MainContent_ifrAccounts"
+            ],
+            "bbox": [
+              208,
+              220,
+              279,
+              29
+            ],
+            "anchors": [
+              "Type",
+              "Balance",
+              "Status",
+              "Opened"
+            ],
+            "sensitivity": "public",
+            "name_sensitivity": "public"
+          },
+          {
+            "ref": "09658fa102a7g11-e20",
+            "role": "columnheader",
+            "name": "Type",
+            "value": null,
+            "enabled": true,
+            "frame_path": [
+              "main",
+              "content",
+              "iframe#ctl00_MainContent_ifrAccounts"
+            ],
+            "bbox": [
+              487,
+              220,
+              198,
+              29
+            ],
+            "anchors": [
+              "Account",
+              "Balance",
+              "Status",
+              "Opened"
+            ],
+            "sensitivity": "public",
+            "name_sensitivity": "public"
+          },
+          {
+            "ref": "09658fa102a7g11-e21",
+            "role": "columnheader",
+            "name": "Balance",
+            "value": null,
+            "enabled": true,
+            "frame_path": [
+              "main",
+              "content",
+              "iframe#ctl00_MainContent_ifrAccounts"
+            ],
+            "bbox": [
+              684,
+              220,
+              221,
+              29
+            ],
+            "anchors": [
+              "Account",
+              "Type",
+              "Status",
+              "Opened"
+            ],
+            "sensitivity": "public",
+            "name_sensitivity": "public"
+          },
+          {
+            "ref": "09658fa102a7g11-e22",
+            "role": "columnheader",
+            "name": "Status",
+            "value": null,
+            "enabled": true,
+            "frame_path": [
+              "main",
+              "content",
+              "iframe#ctl00_MainContent_ifrAccounts"
+            ],
+            "bbox": [
+              905,
+              220,
+              161,
+              29
+            ],
+            "anchors": [
+              "Account",
+              "Type",
+              "Balance",
+              "Opened"
+            ],
+            "sensitivity": "public",
+            "name_sensitivity": "public"
+          },
+          {
+            "ref": "09658fa102a7g11-e23",
+            "role": "columnheader",
+            "name": "Opened",
+            "value": null,
+            "enabled": true,
+            "frame_path": [
+              "main",
+              "content",
+              "iframe#ctl00_MainContent_ifrAccounts"
+            ],
+            "bbox": [
+              1066,
+              220,
+              187,
+              29
+            ],
+            "anchors": [
+              "Account",
+              "Type",
+              "Balance",
+              "Status"
+            ],
+            "sensitivity": "public",
+            "name_sensitivity": "public"
+          },
+          {
+            "ref": "09658fa102a7g11-e24",
+            "role": "cell",
+            "name": "‹redacted:11 chars›",
+            "value": null,
+            "enabled": true,
+            "frame_path": [
+              "main",
+              "content",
+              "iframe#ctl00_MainContent_ifrAccounts"
+            ],
+            "bbox": [
+              208,
+              249,
+              279,
+              29
+            ],
+            "anchors": [
+              "Account",
+              "Savings",
+              "‹redacted:9 chars›",
+              "active",
+              "‹redacted:1 chars›"
+            ],
+            "sensitivity": "public",
+            "name_sensitivity": "internal"
+          },
+          {
+            "ref": "09658fa102a7g11-e25",
+            "role": "cell",
+            "name": "Savings",
+            "value": null,
+            "enabled": true,
+            "frame_path": [
+              "main",
+              "content",
+              "iframe#ctl00_MainContent_ifrAccounts"
+            ],
+            "bbox": [
+              487,
+              249,
+              198,
+              29
+            ],
+            "anchors": [
+              "Type",
+              "‹redacted:11 chars›",
+              "‹redacted:9 chars›",
+              "active",
+              "‹redacted:1 chars›"
+            ],
+            "sensitivity": "public",
+            "name_sensitivity": "public"
+          },
+          {
+            "ref": "09658fa102a7g11-e26",
+            "role": "cell",
+            "name": "‹redacted:9 chars›",
+            "value": null,
+            "enabled": true,
+            "frame_path": [
+              "main",
+              "content",
+              "iframe#ctl00_MainContent_ifrAccounts"
+            ],
+            "bbox": [
+              684,
+              249,
+              221,
+              29
+            ],
+            "anchors": [
+              "Balance",
+              "‹redacted:11 chars›",
+              "Savings",
+              "active",
+              "‹redacted:1 chars›"
+            ],
+            "sensitivity": "public",
+            "name_sensitivity": "pii"
+          },
+          {
+            "ref": "09658fa102a7g11-e27",
+            "role": "cell",
+            "name": "active",
+            "value": null,
+            "enabled": true,
+            "frame_path": [
+              "main",
+              "content",
+              "iframe#ctl00_MainContent_ifrAccounts"
+            ],
+            "bbox": [
+              905,
+              249,
+              161,
+              29
+            ],
+            "anchors": [
+              "Status",
+              "‹redacted:11 chars›",
+              "Savings",
+              "‹redacted:9 chars›",
+              "‹redacted:1 chars›"
+            ],
+            "sensitivity": "public",
+            "name_sensitivity": "public"
+          },
+          {
+            "ref": "09658fa102a7g11-e28",
+            "role": "cell",
+            "name": "‹redacted:1 chars›",
+            "value": null,
+            "enabled": true,
+            "frame_path": [
+              "main",
+              "content",
+              "iframe#ctl00_MainContent_ifrAccounts"
+            ],
+            "bbox": [
+              1066,
+              249,
+              187,
+              29
+            ],
+            "anchors": [
+              "Opened",
+              "‹redacted:11 chars›",
+              "Savings",
+              "‹redacted:9 chars›",
+              "active"
+            ],
+            "sensitivity": "public",
+            "name_sensitivity": "internal"
+          },
+          {
+            "ref": "09658fa102a7g11-e29",
+            "role": "cell",
+            "name": "‹redacted:11 chars›",
+            "value": null,
+            "enabled": true,
+            "frame_path": [
+              "main",
+              "content",
+              "iframe#ctl00_MainContent_ifrAccounts"
+            ],
+            "bbox": [
+              208,
+              278,
+              279,
+              29
+            ],
+            "anchors": [
+              "Account",
+              "Checking",
+              "‹redacted:7 chars›",
+              "active",
+              "‹redacted:1 chars›"
+            ],
+            "sensitivity": "public",
+            "name_sensitivity": "internal"
+          },
+          {
+            "ref": "09658fa102a7g11-e30",
+            "role": "cell",
+            "name": "Checking",
+            "value": null,
+            "enabled": true,
+            "frame_path": [
+              "main",
+              "content",
+              "iframe#ctl00_MainContent_ifrAccounts"
+            ],
+            "bbox": [
+              487,
+              278,
+              198,
+              29
+            ],
+            "anchors": [
+              "Type",
+              "‹redacted:11 chars›",
+              "‹redacted:7 chars›",
+              "active",
+              "‹redacted:1 chars›"
+            ],
+            "sensitivity": "public",
+            "name_sensitivity": "public"
+          },
+          {
+            "ref": "09658fa102a7g11-e31",
+            "role": "cell",
+            "name": "‹redacted:7 chars›",
+            "value": null,
+            "enabled": true,
+            "frame_path": [
+              "main",
+              "content",
+              "iframe#ctl00_MainContent_ifrAccounts"
+            ],
+            "bbox": [
+              684,
+              278,
+              221,
+              29
+            ],
+            "anchors": [
+              "Balance",
+              "‹redacted:11 chars›",
+              "Checking",
+              "active",
+              "‹redacted:1 chars›"
+            ],
+            "sensitivity": "public",
+            "name_sensitivity": "pii"
+          },
+          {
+            "ref": "09658fa102a7g11-e32",
+            "role": "cell",
+            "name": "active",
+            "value": null,
+            "enabled": true,
+            "frame_path": [
+              "main",
+              "content",
+              "iframe#ctl00_MainContent_ifrAccounts"
+            ],
+            "bbox": [
+              905,
+              278,
+              161,
+              29
+            ],
+            "anchors": [
+              "Status",
+              "‹redacted:11 chars›",
+              "Checking",
+              "‹redacted:7 chars›",
+              "‹redacted:1 chars›"
+            ],
+            "sensitivity": "public",
+            "name_sensitivity": "public"
+          },
+          {
+            "ref": "09658fa102a7g11-e33",
+            "role": "cell",
+            "name": "‹redacted:1 chars›",
+            "value": null,
+            "enabled": true,
+            "frame_path": [
+              "main",
+              "content",
+              "iframe#ctl00_MainContent_ifrAccounts"
+            ],
+            "bbox": [
+              1066,
+              278,
+              187,
+              29
+            ],
+            "anchors": [
+              "Opened",
+              "‹redacted:11 chars›",
+              "Checking",
+              "‹redacted:7 chars›",
+              "active"
+            ],
+            "sensitivity": "public",
+            "name_sensitivity": "internal"
+          }
+        ],
+        "text_digest": "Servicing | Member Search | Transactions | Reports | Sign Off | Member Profile | Member ID | ‹$inputs.member_id› | Name | ‹redacted:17 chars› | Branch | BR-014 | Status | active | Summary | Accounts | Notes | Return to search | Account | Type | Balance | Opened | ‹redacted:11 chars› | Savings | ‹redacted:9 chars› | ‹redacted:1 chars› | Checking | ‹redacted:7 chars›",
+        "hash": "01b53b31c90e3bc8",
+        "frame_urls": [
+          [
+            [
+              "main"
+            ],
+            "http://127.0.0.1:8767/console"
+          ],
+          [
+            [
+              "main",
+              "nav"
+            ],
+            "http://127.0.0.1:8767/console/nav"
+          ],
+          [
+            [
+              "main",
+              "content"
+            ],
+            "http://127.0.0.1:8767/console/member"
+          ],
+          [
+            [
+              "main",
+              "content",
+              "iframe#ctl00_MainContent_ifrAccounts"
+            ],
+            "http://127.0.0.1:8767/console/member/accounts?member_id=‹$inputs.member_id›"
+          ]
+        ]
+      },
+      "decision": {
+        "kind": "click",
+        "intent": "Click on the savings account to view detailed information",
+        "element": "e24",
+        "value": null,
+        "key": null,
+        "expect": {
+          "elements": [
+            {
+              "role": "cell",
+              "name": "Savings",
+              "anchor": "Type"
+            }
+          ],
+          "text": ""
+        },
+        "outputs": {},
+        "summary": "",
+        "reason": ""
+      },
+      "action": "click",
+      "value_ref": null,
+      "value_provenance": null,
+      "target": {
+        "ref": "09658fa102a7g11-e24",
+        "role": "cell",
+        "name": "‹redacted:11 chars›",
+        "value": null,
+        "enabled": true,
+        "frame_path": [
+          "main",
+          "content",
+          "iframe#ctl00_MainContent_ifrAccounts"
+        ],
+        "bbox": [
+          208,
+          249,
+          279,
+          29
+        ],
+        "anchors": [
+          "Account",
+          "Savings",
+          "‹redacted:9 chars›",
+          "active",
+          "‹redacted:1 chars›"
+        ],
+        "sensitivity": "public",
+        "name_sensitivity": "internal"
+      },
+      "bundle": {
+        "recorded_tier": 3,
+        "candidates": [
+          {
+            "tier": 3,
+            "kind": "anchored",
+            "frame_path": [
+              "main",
+              "content",
+              "iframe#ctl00_MainContent_ifrAccounts"
+            ],
+            "role": "cell",
+            "name": null,
+            "label": null,
+            "anchor": {
+              "role": "cell",
+              "text": "Savings",
+              "text_ref": null,
+              "exact": true
+            },
+            "column": "Account",
+            "path": null,
+            "identity": null,
+            "bbox": null
+          }
+        ],
+        "diagnostics": [
+          {
+            "candidate": {
+              "tier": 3,
+              "kind": "anchored",
+              "frame_path": [
+                "main",
+                "content",
+                "iframe#ctl00_MainContent_ifrAccounts"
+              ],
+              "role": "cell",
+              "name": null,
+              "label": null,
+              "anchor": {
+                "role": "cell",
+                "text": "Account",
+                "text_ref": null,
+                "exact": true
+              },
+              "column": "Account",
+              "path": null,
+              "identity": null,
+              "bbox": null
+            },
+            "matches_at_record": 0,
+            "reason": "not_unique_target_or_unverified_identity"
+          },
+          {
+            "candidate": {
+              "tier": 3,
+              "kind": "anchored",
+              "frame_path": [
+                "main",
+                "content",
+                "iframe#ctl00_MainContent_ifrAccounts"
+              ],
+              "role": "cell",
+              "name": null,
+              "label": null,
+              "anchor": {
+                "role": "cell",
+                "text": "active",
+                "text_ref": null,
+                "exact": true
+              },
+              "column": "Account",
+              "path": null,
+              "identity": null,
+              "bbox": null
+            },
+            "matches_at_record": 2,
+            "reason": "not_unique_target_or_unverified_identity"
+          },
+          {
+            "candidate": {
+              "tier": 4,
+              "kind": "structural",
+              "frame_path": [
+                "main",
+                "content",
+                "iframe#ctl00_MainContent_ifrAccounts"
+              ],
+              "role": "cell",
+              "name": null,
+              "label": null,
+              "anchor": null,
+              "column": null,
+              "path": "html:nth-of-type(1) > body:nth-of-type(1) > table:nth-of-type(1) > tbody:nth-of-type(1) > tr:nth-of-type(2) > td:nth-of-type(1)",
+              "identity": {
+                "relation": "same_row",
+                "target": {
+                  "role": "cell",
+                  "text": "Account",
+                  "text_ref": null,
+                  "exact": true
+                }
+              },
+              "bbox": null
+            },
+            "matches_at_record": 1,
+            "reason": "not_unique_target_or_unverified_identity"
+          },
+          {
+            "candidate": {
+              "tier": 5,
+              "kind": "visual",
+              "frame_path": [
+                "main",
+                "content",
+                "iframe#ctl00_MainContent_ifrAccounts"
+              ],
+              "role": "cell",
+              "name": null,
+              "label": null,
+              "anchor": null,
+              "column": null,
+              "path": null,
+              "identity": {
+                "relation": "same_row",
+                "target": {
+                  "role": "cell",
+                  "text": "Account",
+                  "text_ref": null,
+                  "exact": true
+                }
+              },
+              "bbox": [
+                208,
+                249,
+                279,
+                29
+              ]
+            },
+            "matches_at_record": 0,
+            "reason": "not_unique_target_or_unverified_identity"
+          }
+        ]
+      },
+      "bundle_error": null,
+      "ok": true,
+      "error_code": null,
+      "error": null,
+      "navigated": false,
+      "risk": "safe",
+      "post_hash": "01b53b31c90e3bc8"
     }
   ],
   "finish": {
     "snapshot": {
-      "url": "http://127.0.0.1:8080/console",
+      "url": "http://127.0.0.1:8767/console",
       "title": "Meridian Servicing Console",
       "elements": [
         {
-          "ref": "29f7e45997e4g12-e1",
+          "ref": "09658fa102a7g13-e1",
           "role": "LayoutTableCell",
           "name": "Servicing",
           "value": null,
@@ -4447,7 +5494,7 @@
           "name_sensitivity": "public"
         },
         {
-          "ref": "29f7e45997e4g12-e2",
+          "ref": "09658fa102a7g13-e2",
           "role": "link",
           "name": "Member Search",
           "value": null,
@@ -4467,7 +5514,7 @@
           "name_sensitivity": "public"
         },
         {
-          "ref": "29f7e45997e4g12-e3",
+          "ref": "09658fa102a7g13-e3",
           "role": "LayoutTableCell",
           "name": "Transactions",
           "value": null,
@@ -4487,7 +5534,7 @@
           "name_sensitivity": "public"
         },
         {
-          "ref": "29f7e45997e4g12-e4",
+          "ref": "09658fa102a7g13-e4",
           "role": "LayoutTableCell",
           "name": "Reports",
           "value": null,
@@ -4507,7 +5554,7 @@
           "name_sensitivity": "public"
         },
         {
-          "ref": "29f7e45997e4g12-e5",
+          "ref": "09658fa102a7g13-e5",
           "role": "link",
           "name": "Sign Off",
           "value": null,
@@ -4527,7 +5574,7 @@
           "name_sensitivity": "public"
         },
         {
-          "ref": "29f7e45997e4g12-e6",
+          "ref": "09658fa102a7g13-e6",
           "role": "LayoutTableCell",
           "name": "Member Profile",
           "value": null,
@@ -4547,7 +5594,7 @@
           "name_sensitivity": "public"
         },
         {
-          "ref": "29f7e45997e4g12-e7",
+          "ref": "09658fa102a7g13-e7",
           "role": "LayoutTableCell",
           "name": "Member ID",
           "value": null,
@@ -4569,7 +5616,7 @@
           "name_sensitivity": "public"
         },
         {
-          "ref": "29f7e45997e4g12-e8",
+          "ref": "09658fa102a7g13-e8",
           "role": "LayoutTableCell",
           "name": "‹$inputs.member_id›",
           "value": null,
@@ -4591,7 +5638,7 @@
           "name_sensitivity": "internal"
         },
         {
-          "ref": "29f7e45997e4g12-e9",
+          "ref": "09658fa102a7g13-e9",
           "role": "LayoutTableCell",
           "name": "Name",
           "value": null,
@@ -4613,7 +5660,7 @@
           "name_sensitivity": "public"
         },
         {
-          "ref": "29f7e45997e4g12-e10",
+          "ref": "09658fa102a7g13-e10",
           "role": "LayoutTableCell",
           "name": "‹redacted:17 chars›",
           "value": null,
@@ -4635,7 +5682,7 @@
           "name_sensitivity": "pii"
         },
         {
-          "ref": "29f7e45997e4g12-e11",
+          "ref": "09658fa102a7g13-e11",
           "role": "LayoutTableCell",
           "name": "Branch",
           "value": null,
@@ -4657,7 +5704,7 @@
           "name_sensitivity": "public"
         },
         {
-          "ref": "29f7e45997e4g12-e12",
+          "ref": "09658fa102a7g13-e12",
           "role": "LayoutTableCell",
           "name": "BR-014",
           "value": null,
@@ -4679,7 +5726,7 @@
           "name_sensitivity": "public"
         },
         {
-          "ref": "29f7e45997e4g12-e13",
+          "ref": "09658fa102a7g13-e13",
           "role": "LayoutTableCell",
           "name": "Status",
           "value": null,
@@ -4701,7 +5748,7 @@
           "name_sensitivity": "public"
         },
         {
-          "ref": "29f7e45997e4g12-e14",
+          "ref": "09658fa102a7g13-e14",
           "role": "LayoutTableCell",
           "name": "active",
           "value": null,
@@ -4723,7 +5770,7 @@
           "name_sensitivity": "public"
         },
         {
-          "ref": "29f7e45997e4g12-e15",
+          "ref": "09658fa102a7g13-e15",
           "role": "cell",
           "name": "Summary",
           "value": null,
@@ -4746,7 +5793,7 @@
           "name_sensitivity": "public"
         },
         {
-          "ref": "29f7e45997e4g12-e16",
+          "ref": "09658fa102a7g13-e16",
           "role": "cell",
           "name": "Accounts",
           "value": null,
@@ -4769,7 +5816,7 @@
           "name_sensitivity": "public"
         },
         {
-          "ref": "29f7e45997e4g12-e17",
+          "ref": "09658fa102a7g13-e17",
           "role": "cell",
           "name": "Notes",
           "value": null,
@@ -4792,7 +5839,7 @@
           "name_sensitivity": "public"
         },
         {
-          "ref": "29f7e45997e4g12-e18",
+          "ref": "09658fa102a7g13-e18",
           "role": "link",
           "name": "Return to search",
           "value": null,
@@ -4812,7 +5859,7 @@
           "name_sensitivity": "public"
         },
         {
-          "ref": "29f7e45997e4g12-e19",
+          "ref": "09658fa102a7g13-e19",
           "role": "columnheader",
           "name": "Account",
           "value": null,
@@ -4825,19 +5872,20 @@
           "bbox": [
             208,
             220,
-            340,
+            279,
             29
           ],
           "anchors": [
             "Type",
             "Balance",
-            "Status"
+            "Status",
+            "Opened"
           ],
           "sensitivity": "public",
           "name_sensitivity": "public"
         },
         {
-          "ref": "29f7e45997e4g12-e20",
+          "ref": "09658fa102a7g13-e20",
           "role": "columnheader",
           "name": "Type",
           "value": null,
@@ -4848,21 +5896,22 @@
             "iframe#ctl00_MainContent_ifrAccounts"
           ],
           "bbox": [
-            548,
+            487,
             220,
-            241,
+            198,
             29
           ],
           "anchors": [
             "Account",
             "Balance",
-            "Status"
+            "Status",
+            "Opened"
           ],
           "sensitivity": "public",
           "name_sensitivity": "public"
         },
         {
-          "ref": "29f7e45997e4g12-e21",
+          "ref": "09658fa102a7g13-e21",
           "role": "columnheader",
           "name": "Balance",
           "value": null,
@@ -4873,21 +5922,22 @@
             "iframe#ctl00_MainContent_ifrAccounts"
           ],
           "bbox": [
-            788,
+            684,
             220,
-            269,
+            221,
             29
           ],
           "anchors": [
             "Account",
             "Type",
-            "Status"
+            "Status",
+            "Opened"
           ],
           "sensitivity": "public",
           "name_sensitivity": "public"
         },
         {
-          "ref": "29f7e45997e4g12-e22",
+          "ref": "09658fa102a7g13-e22",
           "role": "columnheader",
           "name": "Status",
           "value": null,
@@ -4898,21 +5948,48 @@
             "iframe#ctl00_MainContent_ifrAccounts"
           ],
           "bbox": [
-            1057,
+            905,
             220,
-            196,
+            161,
             29
           ],
           "anchors": [
             "Account",
             "Type",
-            "Balance"
+            "Balance",
+            "Opened"
           ],
           "sensitivity": "public",
           "name_sensitivity": "public"
         },
         {
-          "ref": "29f7e45997e4g12-e23",
+          "ref": "09658fa102a7g13-e23",
+          "role": "columnheader",
+          "name": "Opened",
+          "value": null,
+          "enabled": true,
+          "frame_path": [
+            "main",
+            "content",
+            "iframe#ctl00_MainContent_ifrAccounts"
+          ],
+          "bbox": [
+            1066,
+            220,
+            187,
+            29
+          ],
+          "anchors": [
+            "Account",
+            "Type",
+            "Balance",
+            "Status"
+          ],
+          "sensitivity": "public",
+          "name_sensitivity": "public"
+        },
+        {
+          "ref": "09658fa102a7g13-e24",
           "role": "cell",
           "name": "‹redacted:11 chars›",
           "value": null,
@@ -4925,20 +6002,21 @@
           "bbox": [
             208,
             249,
-            340,
+            279,
             29
           ],
           "anchors": [
             "Account",
             "Savings",
             "‹redacted:9 chars›",
-            "active"
+            "active",
+            "‹redacted:1 chars›"
           ],
           "sensitivity": "public",
           "name_sensitivity": "internal"
         },
         {
-          "ref": "29f7e45997e4g12-e24",
+          "ref": "09658fa102a7g13-e25",
           "role": "cell",
           "name": "Savings",
           "value": null,
@@ -4949,22 +6027,23 @@
             "iframe#ctl00_MainContent_ifrAccounts"
           ],
           "bbox": [
-            548,
+            487,
             249,
-            241,
+            198,
             29
           ],
           "anchors": [
             "Type",
             "‹redacted:11 chars›",
             "‹redacted:9 chars›",
-            "active"
+            "active",
+            "‹redacted:1 chars›"
           ],
           "sensitivity": "public",
           "name_sensitivity": "public"
         },
         {
-          "ref": "29f7e45997e4g12-e25",
+          "ref": "09658fa102a7g13-e26",
           "role": "cell",
           "name": "‹redacted:9 chars›",
           "value": null,
@@ -4975,22 +6054,23 @@
             "iframe#ctl00_MainContent_ifrAccounts"
           ],
           "bbox": [
-            788,
+            684,
             249,
-            269,
+            221,
             29
           ],
           "anchors": [
             "Balance",
             "‹redacted:11 chars›",
             "Savings",
-            "active"
+            "active",
+            "‹redacted:1 chars›"
           ],
           "sensitivity": "public",
           "name_sensitivity": "pii"
         },
         {
-          "ref": "29f7e45997e4g12-e26",
+          "ref": "09658fa102a7g13-e27",
           "role": "cell",
           "name": "active",
           "value": null,
@@ -5001,22 +6081,50 @@
             "iframe#ctl00_MainContent_ifrAccounts"
           ],
           "bbox": [
-            1057,
+            905,
             249,
-            196,
+            161,
             29
           ],
           "anchors": [
             "Status",
             "‹redacted:11 chars›",
             "Savings",
-            "‹redacted:9 chars›"
+            "‹redacted:9 chars›",
+            "‹redacted:1 chars›"
           ],
           "sensitivity": "public",
           "name_sensitivity": "public"
         },
         {
-          "ref": "29f7e45997e4g12-e27",
+          "ref": "09658fa102a7g13-e28",
+          "role": "cell",
+          "name": "‹redacted:1 chars›",
+          "value": null,
+          "enabled": true,
+          "frame_path": [
+            "main",
+            "content",
+            "iframe#ctl00_MainContent_ifrAccounts"
+          ],
+          "bbox": [
+            1066,
+            249,
+            187,
+            29
+          ],
+          "anchors": [
+            "Opened",
+            "‹redacted:11 chars›",
+            "Savings",
+            "‹redacted:9 chars›",
+            "active"
+          ],
+          "sensitivity": "public",
+          "name_sensitivity": "internal"
+        },
+        {
+          "ref": "09658fa102a7g13-e29",
           "role": "cell",
           "name": "‹redacted:11 chars›",
           "value": null,
@@ -5029,20 +6137,21 @@
           "bbox": [
             208,
             278,
-            340,
+            279,
             29
           ],
           "anchors": [
             "Account",
             "Checking",
             "‹redacted:7 chars›",
-            "active"
+            "active",
+            "‹redacted:1 chars›"
           ],
           "sensitivity": "public",
           "name_sensitivity": "internal"
         },
         {
-          "ref": "29f7e45997e4g12-e28",
+          "ref": "09658fa102a7g13-e30",
           "role": "cell",
           "name": "Checking",
           "value": null,
@@ -5053,22 +6162,23 @@
             "iframe#ctl00_MainContent_ifrAccounts"
           ],
           "bbox": [
-            548,
+            487,
             278,
-            241,
+            198,
             29
           ],
           "anchors": [
             "Type",
             "‹redacted:11 chars›",
             "‹redacted:7 chars›",
-            "active"
+            "active",
+            "‹redacted:1 chars›"
           ],
           "sensitivity": "public",
           "name_sensitivity": "public"
         },
         {
-          "ref": "29f7e45997e4g12-e29",
+          "ref": "09658fa102a7g13-e31",
           "role": "cell",
           "name": "‹redacted:7 chars›",
           "value": null,
@@ -5079,22 +6189,23 @@
             "iframe#ctl00_MainContent_ifrAccounts"
           ],
           "bbox": [
-            788,
+            684,
             278,
-            269,
+            221,
             29
           ],
           "anchors": [
             "Balance",
             "‹redacted:11 chars›",
             "Checking",
-            "active"
+            "active",
+            "‹redacted:1 chars›"
           ],
           "sensitivity": "public",
           "name_sensitivity": "pii"
         },
         {
-          "ref": "29f7e45997e4g12-e30",
+          "ref": "09658fa102a7g13-e32",
           "role": "cell",
           "name": "active",
           "value": null,
@@ -5105,43 +6216,71 @@
             "iframe#ctl00_MainContent_ifrAccounts"
           ],
           "bbox": [
-            1057,
+            905,
             278,
-            196,
+            161,
             29
           ],
           "anchors": [
             "Status",
             "‹redacted:11 chars›",
             "Checking",
-            "‹redacted:7 chars›"
+            "‹redacted:7 chars›",
+            "‹redacted:1 chars›"
           ],
           "sensitivity": "public",
           "name_sensitivity": "public"
+        },
+        {
+          "ref": "09658fa102a7g13-e33",
+          "role": "cell",
+          "name": "‹redacted:1 chars›",
+          "value": null,
+          "enabled": true,
+          "frame_path": [
+            "main",
+            "content",
+            "iframe#ctl00_MainContent_ifrAccounts"
+          ],
+          "bbox": [
+            1066,
+            278,
+            187,
+            29
+          ],
+          "anchors": [
+            "Opened",
+            "‹redacted:11 chars›",
+            "Checking",
+            "‹redacted:7 chars›",
+            "active"
+          ],
+          "sensitivity": "public",
+          "name_sensitivity": "internal"
         }
       ],
-      "text_digest": "Servicing | Member Search | Transactions | Reports | Sign Off | Member Profile | Member ID | ‹$inputs.member_id› | Name | ‹redacted:17 chars› | Branch | BR-014 | Status | active | Summary | Accounts | Notes | Return to search | Account | Type | Balance | ‹redacted:11 chars› | Savings | ‹redacted:9 chars› | Checking | ‹redacted:7 chars›",
-      "hash": "7b06f4d981592954",
+      "text_digest": "Servicing | Member Search | Transactions | Reports | Sign Off | Member Profile | Member ID | ‹$inputs.member_id› | Name | ‹redacted:17 chars› | Branch | BR-014 | Status | active | Summary | Accounts | Notes | Return to search | Account | Type | Balance | Opened | ‹redacted:11 chars› | Savings | ‹redacted:9 chars› | ‹redacted:1 chars› | Checking | ‹redacted:7 chars›",
+      "hash": "01b53b31c90e3bc8",
       "frame_urls": [
         [
           [
             "main"
           ],
-          "http://127.0.0.1:8080/console"
+          "http://127.0.0.1:8767/console"
         ],
         [
           [
             "main",
             "nav"
           ],
-          "http://127.0.0.1:8080/console/nav"
+          "http://127.0.0.1:8767/console/nav"
         ],
         [
           [
             "main",
             "content"
           ],
-          "http://127.0.0.1:8080/console/member"
+          "http://127.0.0.1:8767/console/member"
         ],
         [
           [
@@ -5149,7 +6288,7 @@
             "content",
             "iframe#ctl00_MainContent_ifrAccounts"
           ],
-          "http://127.0.0.1:8080/console/member/accounts?member_id=‹$inputs.member_id›"
+          "http://127.0.0.1:8767/console/member/accounts?member_id=‹$inputs.member_id›"
         ]
       ]
     },
@@ -5157,8 +6296,8 @@
       "elements": [
         {
           "role": "cell",
-          "name": "Savings",
-          "anchor": "Type"
+          "name": "\n‹redacted:9 chars›\n",
+          "anchor": "Balance"
         },
         {
           "role": "cell",
@@ -5168,11 +6307,11 @@
       ],
       "text": ""
     },
-    "summary": "Successfully looked up member ‹$inputs.member_id› and retrieved their current savings balance and account status from the Meridian Servicing Console.",
+    "summary": "Successfully looked up member and retrieved their current savings balance and account status from the Accounts tab.",
     "outputs": {
       "savings_balance": {
         "element": {
-          "ref": "29f7e45997e4g12-e25",
+          "ref": "09658fa102a7g13-e26",
           "role": "cell",
           "name": "‹redacted:9 chars›",
           "value": null,
@@ -5183,16 +6322,17 @@
             "iframe#ctl00_MainContent_ifrAccounts"
           ],
           "bbox": [
-            788,
+            684,
             249,
-            269,
+            221,
             29
           ],
           "anchors": [
             "Balance",
             "‹redacted:11 chars›",
             "Savings",
-            "active"
+            "active",
+            "‹redacted:1 chars›"
           ],
           "sensitivity": "public",
           "name_sensitivity": "pii"
@@ -5330,9 +6470,9 @@
                   }
                 },
                 "bbox": [
-                  788,
+                  684,
                   249,
-                  269,
+                  221,
                   29
                 ]
               },
@@ -5345,7 +6485,7 @@
       },
       "account_status": {
         "element": {
-          "ref": "29f7e45997e4g12-e26",
+          "ref": "09658fa102a7g13-e27",
           "role": "cell",
           "name": "active",
           "value": null,
@@ -5356,16 +6496,17 @@
             "iframe#ctl00_MainContent_ifrAccounts"
           ],
           "bbox": [
-            1057,
+            905,
             249,
-            196,
+            161,
             29
           ],
           "anchors": [
             "Status",
             "‹redacted:11 chars›",
             "Savings",
-            "‹redacted:9 chars›"
+            "‹redacted:9 chars›",
+            "‹redacted:1 chars›"
           ],
           "sensitivity": "public",
           "name_sensitivity": "public"
@@ -5477,9 +6618,9 @@
                   }
                 },
                 "bbox": [
-                  1057,
+                  905,
                   249,
-                  196,
+                  161,
                   29
                 ]
               },
@@ -5493,7 +6634,7 @@
     }
   },
   "ending": "finished",
-  "ending_detail": "Successfully looked up member ‹$inputs.member_id› and retrieved their current savings balance and account status from the Meridian Servicing Console.",
-  "started_at": "2026-09-11T23:49:29+00:00",
-  "finished_at": "2026-09-11T23:50:21+00:00"
+  "ending_detail": "Successfully looked up member and retrieved their current savings balance and account status from the Accounts tab.",
+  "started_at": "2026-09-13T18:32:35+00:00",
+  "finished_at": "2026-09-13T18:33:32+00:00"
 }

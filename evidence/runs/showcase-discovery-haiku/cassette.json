@@ -8,7 +8,7 @@
       "snapshot_hash": "32b78af4f06dc6a8",
       "decision": {
         "kind": "type",
-        "intent": "Enter the user ID for signing into Meridian Servicing Console",
+        "intent": "Enter the username for authentication",
         "element": "e4",
         "value": "$secrets.meridian_user",
         "key": null,
@@ -32,7 +32,7 @@
       "snapshot_hash": "2c64983c146b00ac",
       "decision": {
         "kind": "type",
-        "intent": "Enter the password for signing into Meridian Servicing Console",
+        "intent": "Enter the password for authentication",
         "element": "e7",
         "value": "$secrets.meridian_password",
         "key": null,
@@ -56,7 +56,7 @@
       "snapshot_hash": "dfac804e1ca6b245",
       "decision": {
         "kind": "click",
-        "intent": "Click Sign On to authenticate and access the Meridian system",
+        "intent": "Click Sign On to authenticate with the provided credentials",
         "element": "e9",
         "value": null,
         "key": null,
@@ -104,7 +104,7 @@
       "snapshot_hash": "c2fbc0c33f950c99",
       "decision": {
         "kind": "type",
-        "intent": "Enter the member ID to search for the member's account information",
+        "intent": "Enter the member ID to search for the member's account",
         "element": "e8",
         "value": "$inputs.member_id",
         "key": null,
@@ -159,9 +159,9 @@
         "expect": {
           "elements": [
             {
-              "role": "LayoutTableCell",
-              "name": "Member Search Results",
-              "anchor": ""
+              "role": "cell",
+              "name": "‹$inputs.member_id›",
+              "anchor": "Member ID"
             }
           ],
           "text": ""
@@ -176,7 +176,7 @@
       "snapshot_hash": "04051adf3b7872ca",
       "decision": {
         "kind": "click",
-        "intent": "Click View to see the detailed account information for member ‹$inputs.member_id›",
+        "intent": "Click View to access the member's detailed account information",
         "element": "e23",
         "value": null,
         "key": null,
@@ -184,7 +184,7 @@
           "elements": [
             {
               "role": "cell",
-              "name": "‹$inputs.member_id›",
+              "name": "\n‹$inputs.member_id›\n",
               "anchor": ""
             }
           ],
@@ -197,7 +197,7 @@
     },
     {
       "turn": 8,
-      "snapshot_hash": "7e9ec812f3ad99cf",
+      "snapshot_hash": "b6d592984bc5e75e",
       "decision": {
         "kind": "recheck",
         "intent": "",
@@ -208,8 +208,8 @@
           "elements": [
             {
               "role": "LayoutTableCell",
-              "name": "Member Profile",
-              "anchor": ""
+              "name": "‹$inputs.member_id›",
+              "anchor": "Member ID"
             }
           ],
           "text": ""
@@ -221,10 +221,10 @@
     },
     {
       "turn": 9,
-      "snapshot_hash": "7e9ec812f3ad99cf",
+      "snapshot_hash": "b6d592984bc5e75e",
       "decision": {
         "kind": "click",
-        "intent": "Click on Accounts tab to view the member's account details and savings balance",
+        "intent": "Click on Accounts tab to view the member's savings account and balance",
         "element": "e16",
         "value": null,
         "key": null,
@@ -245,20 +245,39 @@
     },
     {
       "turn": 10,
-      "snapshot_hash": "7b06f4d981592954",
+      "snapshot_hash": "01b53b31c90e3bc8",
       "decision": {
-        "kind": "finish",
+        "kind": "click",
+        "intent": "Click on the savings account to view detailed information",
+        "element": "e24",
+        "value": null,
+        "key": null,
+        "expect": {
+          "elements": [
+            {
+              "role": "cell",
+              "name": "‹redacted:11 chars›",
+              "anchor": "Account"
+            }
+          ],
+          "text": ""
+        },
+        "outputs": {},
+        "summary": "",
+        "reason": ""
+      }
+    },
+    {
+      "turn": 11,
+      "snapshot_hash": "01b53b31c90e3bc8",
+      "decision": {
+        "kind": "recheck",
         "intent": "",
         "element": null,
         "value": null,
         "key": null,
         "expect": {
           "elements": [
-            {
-              "role": "LayoutTableCell",
-              "name": "Member Profile",
-              "anchor": ""
-            },
             {
               "role": "cell",
               "name": "Savings",
@@ -267,17 +286,14 @@
           ],
           "text": ""
         },
-        "outputs": {
-          "savings_balance": "e25",
-          "account_status": "e14"
-        },
-        "summary": "Successfully looked up member ‹$inputs.member_id› and retrieved their current savings balance and account status from the Meridian Servicing Console.",
+        "outputs": {},
+        "summary": "",
         "reason": ""
       }
     },
     {
-      "turn": 11,
-      "snapshot_hash": "7b06f4d981592954",
+      "turn": 12,
+      "snapshot_hash": "01b53b31c90e3bc8",
       "decision": {
         "kind": "finish",
         "intent": "",
@@ -288,8 +304,8 @@
           "elements": [
             {
               "role": "cell",
-              "name": "Savings",
-              "anchor": "Type"
+              "name": "\n‹redacted:9 chars›\n",
+              "anchor": "Balance"
             },
             {
               "role": "cell",
@@ -300,10 +316,10 @@
           "text": ""
         },
         "outputs": {
-          "savings_balance": "e25",
-          "account_status": "e26"
+          "savings_balance": "e26",
+          "account_status": "e27"
         },
-        "summary": "Successfully looked up member ‹$inputs.member_id› and retrieved their current savings balance and account status from the Meridian Servicing Console.",
+        "summary": "Successfully looked up member and retrieved their current savings balance and account status from the Accounts tab.",
         "reason": ""
       }
     }

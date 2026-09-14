@@ -74,6 +74,15 @@ class RecordingDecider:
         self.cassette = cassette
         self.model = inner.model
 
+    @property
+    def exchanges(self) -> object:
+        """The wrapped decider's sanitized exchanges, so a recorded run still saves them."""
+        return getattr(self.inner, "exchanges", None)
+
+    @property
+    def usage(self) -> object:
+        return getattr(self.inner, "usage", None)
+
     def decide(self, ctx: DecisionContext) -> Decision:
         decision = self.inner.decide(ctx)
         self.cassette.turns.append(

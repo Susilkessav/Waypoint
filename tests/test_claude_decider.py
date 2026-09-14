@@ -165,3 +165,24 @@ def test_every_acting_tool_is_strict() -> None:
     from waypoint.discovery.decisions import TOOLS
 
     assert {t["name"] for t in TOOLS if not t.get("strict")} == {"recheck"}
+
+
+def test_a_stalled_api_response_fails_fast(monkeypatch) -> None:
+    """A live run once hung on one stalled HTTPS read: the SDK default waits ten minutes a try."""
+    from waypoint.discovery.claude import MAX_RETRIES, REQUEST_TIMEOUT_S, default_client
+
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-test-not-a-key")
+    client = default_client()
+    assert client.timeout == REQUEST_TIMEOUT_S <= 120
+    assert client.max_retries == MAX_RETRIES <= 3
+
+
+def test_a_recorded_live_run_still_saves_its_exchanges() -> None:
+    """The recording wrapper hid the model's exchanges, so a live run saved no prompts."""
+    from waypoint.discovery.cassette import Cassette, RecordingDecider
+
+    live = ClaudeDecider(client=FakeClient(reply(click("t1"))))  # type: ignore[arg-type]
+    recording = RecordingDecider(live, Cassette(model=MODEL, goal="g"))
+    recording.decide(ctx())
+    assert recording.exchanges is live.exchanges and recording.exchanges
+    assert recording.usage is live.usage

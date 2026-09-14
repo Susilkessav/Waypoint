@@ -1,0 +1,229 @@
+{
+  "url": "http://127.0.0.1:55524/console?inject=‹redacted›",
+  "title": "Meridian Servicing Console",
+  "elements": [
+    {
+      "ref": "5950df90cc6dg18-e1",
+      "role": "LayoutTableCell",
+      "name": "Servicing",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "nav"
+      ],
+      "bbox": [
+        8,
+        8,
+        164,
+        27
+      ],
+      "anchors": [],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    },
+    {
+      "ref": "5950df90cc6dg18-e2",
+      "role": "link",
+      "name": "Member Search",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "nav"
+      ],
+      "bbox": [
+        12,
+        39,
+        126,
+        19
+      ],
+      "anchors": [],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    },
+    {
+      "ref": "5950df90cc6dg18-e3",
+      "role": "LayoutTableCell",
+      "name": "Transactions",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "nav"
+      ],
+      "bbox": [
+        8,
+        62,
+        164,
+        27
+      ],
+      "anchors": [],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    },
+    {
+      "ref": "5950df90cc6dg18-e4",
+      "role": "LayoutTableCell",
+      "name": "Reports",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "nav"
+      ],
+      "bbox": [
+        8,
+        89,
+        164,
+        27
+      ],
+      "anchors": [],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    },
+    {
+      "ref": "5950df90cc6dg18-e5",
+      "role": "link",
+      "name": "Sign Off",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "nav"
+      ],
+      "bbox": [
+        12,
+        147,
+        65,
+        19
+      ],
+      "anchors": [],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    },
+    {
+      "ref": "5950df90cc6dg18-e6",
+      "role": "LayoutTableCell",
+      "name": "Member Search",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "content"
+      ],
+      "bbox": [
+        189,
+        8,
+        1083,
+        22
+      ],
+      "anchors": [],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    },
+    {
+      "ref": "5950df90cc6dg18-e7",
+      "role": "LayoutTableCell",
+      "name": "Member ID",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "content"
+      ],
+      "bbox": [
+        189,
+        43,
+        100,
+        31
+      ],
+      "anchors": [],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    },
+    {
+      "ref": "5950df90cc6dg18-e8",
+      "role": "textbox",
+      "name": "",
+      "value": "‹$inputs.member_id›",
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "content"
+      ],
+      "bbox": [
+        294,
+        48,
+        97,
+        21
+      ],
+      "anchors": [
+        "Member ID"
+      ],
+      "sensitivity": "internal",
+      "name_sensitivity": "public"
+    },
+    {
+      "ref": "5950df90cc6dg18-e9",
+      "role": "StaticText",
+      "name": "‹$inputs.member_id›",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "content"
+      ],
+      "bbox": null,
+      "anchors": [
+        "Member ID"
+      ],
+      "sensitivity": "public",
+      "name_sensitivity": "internal"
+    },
+    {
+      "ref": "5950df90cc6dg18-e10",
+      "role": "button",
+      "name": "Search",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "content"
+      ],
+      "bbox": [
+        294,
+        79,
+        58,
+        21
+      ],
+      "anchors": [],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    }
+  ],
+  "text_digest": "Servicing | Member Search | Transactions | Reports | Sign Off | Member ID | ‹$inputs.member_id› | Search",
+  "hash": "1a3b2cf108d0a6c2",
+  "frame_urls": [
+    [
+      [
+        "main"
+      ],
+      "http://127.0.0.1:55524/console?inject=‹redacted›"
+    ],
+    [
+      [
+        "main",
+        "nav"
+      ],
+      "http://127.0.0.1:55524/console/nav"
+    ],
+    [
+      [
+        "main",
+        "content"
+      ],
+      "http://127.0.0.1:55524/console/content"
+    ]
+  ]
+}
