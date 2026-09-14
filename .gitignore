@@ -53,3 +53,4 @@ Thumbs.db
 
 # Local operational state (leases, interventions, intents) - never evidence
 .waypoint/
+docs/
