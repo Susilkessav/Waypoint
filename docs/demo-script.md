@@ -1,6 +1,6 @@
 # Waypoint — demo recording script
 
-Allow **12–15 minutes**, depending on browser waits. This recording is optional submission
+Allow **14–17 minutes**, depending on browser waits. This recording is optional submission
 material. Complete the [README setup](../README.md#setup) first. Spoken lines are in quotes;
 the remaining text describes commands and on-screen actions.
 
@@ -9,7 +9,7 @@ the remaining text describes commands and on-screen actions.
 ## Before you press record
 
 Screen layout: **terminal 1** (small, the app), **terminal 2** (main, replay), **terminal 3**
-(the operator, used from scene 7), and room for a browser window beside them.
+(the operator, used from scene 8), and room for a browser window beside them.
 
 In **every** terminal, enter your cloned repository directory. If setup used
 `UV_PROJECT_ENVIRONMENT`, export that same path here before activating:
@@ -43,19 +43,76 @@ Tips: make the terminal font large; replay prints full JSON, so pause on `"statu
 
 ---
 
-## Scene 1 — The problem (0:00–0:45)
+## Scene 1 — The problem (0:00–1:15)
 
 Show the README top.
 
-> "Banks run a long tail of back-office systems with no API — the only way in is the UI.
-> Waypoint lets an AI agent drive those screens reliably and cheaply: a model figures out a
-> flow **once**, that flow is compiled into a typed, versioned capability, and every run after
-> that replays it with **no model in the loop**. When replay meets a state it won't act on, it
-> hands the live session to a person."
+> "Banks and credit unions run hundreds of back-office systems: core banking screens,
+> servicing tools, admin consoles. Many of them have **no API**. The only way in is the screen,
+> the way a member of staff uses it. If an AI agent is going to do real work — look up a
+> balance, open an account — something has to drive those screens for it."
 
-> "One rule runs through the whole design: the system never acts on the absence of evidence."
+> "There are two obvious ways to do that, and both fail."
 
-## Scene 2 — A deliberately hostile legacy app (0:45–1:45)
+> "**One: write a traditional automation script.** These apps have no test IDs, identical
+> links on every row, and pages that change without the URL changing. Scripts are expensive
+> to write per app, and they usually only handle the happy path. But in production the
+> interesting problems aren't layout changes — they're runtime states: record not found, a
+> session timeout, a maintenance notice, a server error."
+
+> "**Two: let an AI model click through the screens every time.** That's slow and costly, and
+> it isn't repeatable — the same request can take a different path tomorrow. In a regulated
+> bank, a model improvising on a screen that moves money isn't acceptable."
+
+> "And whichever you choose, three things make this harder than ordinary automation:
+> customer data must never leak into logs, some actions — like opening an account — **can't be
+> undone**, and when automation gets stuck, a person has to be able to step in."
+
+## Scene 2 — The solution: Waypoint in one minute (1:15–2:15)
+
+Show this on screen (a slide, or this block in the editor):
+
+```text
+  goal ──► 1. DISCOVER   an LLM works out the flow, once
+                │
+                ▼
+           2. COMPILE    a typed, versioned capability (draft)
+              + APPROVE  a person reviews it; approval is bound to its content
+                │
+  inputs ──► 3. REPLAY   no model; every call is deterministic
+                │
+                ├─► success + outputs
+                ├─► business outcome   ("no such member" is an answer, not a crash)
+                ├─► recovered          (known interruptions handled by declared rules)
+                ├─► failure            (which step, what was expected, what was seen)
+                └─► 4. HAND OFF        a person takes over the same live browser,
+                                       then hands control back
+
+  Around every action: an allowlist, risk checks, redaction
+```
+
+> "Waypoint takes the best of both approaches. **The model is used once, to learn.** It
+> explores the app and works out how to reach the goal. That run is compiled into a
+> **capability**: a typed contract saying what inputs it takes, what it returns, how each
+> control is found, and how to confirm each step really worked."
+
+> "A person reviews that capability and approves it. From then on, every call **replays** it
+> with no model involved — fast, cheap and the same every time. Replay doesn't just succeed
+> or crash. It tells the caller exactly what happened: a result, a business answer like
+> 'member not found', a problem it recovered from, or a failure with enough detail to debug."
+
+> "When replay reaches a state it shouldn't act on alone — an ambiguous screen, or a step that
+> can't be undone — it doesn't guess. It pauses and hands the **same live session** to a
+> person, then carries on when they hand it back."
+
+> "One rule runs through the whole design: **the system never acts on the absence of
+> evidence.** In the next ten minutes I'll show each of those four steps, then what happens
+> when things go wrong."
+
+## Scene 3 — A deliberately hostile legacy app (2:15–3:15)
+
+> "First, why the simple approaches break. This app stands in for the kind of legacy system
+> I just described."
 
 Open [the local fixture](http://127.0.0.1:8080) in the browser. Sign in with
 **operator1 / changeme** (fictional fixture credentials).
@@ -70,7 +127,9 @@ Open [the local fixture](http://127.0.0.1:8080) in the browser. Sign in with
   dangerous button names would catch it."
 - Point at the small unlabeled icon: "And a control with no name at all."
 
-## Scene 3 — Discovery, once (1:45–3:15)
+## Scene 4 — Step 1: discovery, once (3:15–4:45)
+
+> "Step one: the model learns the flow. This is the only part of Waypoint that uses a model."
 
 > "Discovery uses Claude Haiku 4.5. I recorded that live run earlier; here it replays from its
 > cassette, so you see exactly the model's decisions without calling the API."
@@ -99,13 +158,16 @@ When it prints `draft written ... no open gates`:
 > "The result is a **draft** artifact: typed inputs and outputs, locators and checkpoints.
 > Member-specific checks bind to the input reference, so another member can use the same flow."
 
-Keep this terminal open: the same `WAYPOINT_DEMO_DIR` is used in scenes 4 and 5.
-For another take, start scene 3 again with a fresh directory.
+Keep this terminal open: the same `WAYPOINT_DEMO_DIR` is used in scenes 5 and 6.
+For another take, start scene 4 again with a fresh directory.
 
 *(optional)* Show the new discovery run's `transcript.json` and the generated artifact at
 `$WAYPOINT_DEMO_DIR/capabilities/lookup_member_balance/1.0.0.json`.
 
-## Scene 4 — Drafts don't run (3:15–4:00)
+## Scene 5 — Step 2: a person approves (4:45–5:30)
+
+> "Step two. What discovery produces isn't trusted yet. A model wrote it, so a person has to
+> review it before it can run on its own."
 
 ```bash
 waypoint replay lookup_member_balance --root "$WAYPOINT_DEMO_DIR/capabilities" \
@@ -132,7 +194,10 @@ waypoint approve lookup_member_balance --root "$WAYPOINT_DEMO_DIR/capabilities" 
 > "This is the artifact the discovery run just produced. Now that I've reviewed it, I approve
 > that version for replay."
 
-## Scene 5 — Replay with no model (4:00–5:30)
+## Scene 6 — Step 3: replay with no model (5:30–7:00)
+
+> "Step three: this is the production path — what an AI agent calls. No model, just the
+> approved capability and its inputs."
 
 ```bash
 waypoint replay lookup_member_balance --root "$WAYPOINT_DEMO_DIR/capabilities" \
@@ -163,7 +228,11 @@ waypoint replay lookup_member_balance --version 1.2.0 --input member_id=00000
 the not-found run: its `result.json` redacts the balance, and screenshots mask sensitive data.
 "The caller gets the balance. The evidence file keeps it redacted."
 
-## Scene 6 — Things going wrong (5:30–7:00)
+## Scene 7 — Things going wrong at runtime (7:00–8:30)
+
+> "Remember the problem with scripts: they only handle the happy path. Here are the runtime
+> states a real bank app throws at you, and how the result tells the caller which kind each
+> one is."
 
 ```bash
 waypoint replay lookup_member_balance --version 1.2.0 --input member_id=12345 --inject interstitial
@@ -187,7 +256,10 @@ waypoint replay lookup_member_balance --version 1.2.0 --input member_id=12345 --
 > would pass. This one asserts which member — so the run escalates instead of reading someone
 > else's balance."
 
-## Scene 7 — Handing the session to a person (7:00–9:00)
+## Scene 8 — Step 4: handing the session to a person (8:30–10:30)
+
+> "Step four. Some states shouldn't be handled automatically at all. The answer isn't a
+> smarter guess — it's a person, on the same session."
 
 Terminal 2:
 
@@ -223,7 +295,10 @@ Back in terminal 2, point at `"status": "success"`.
 *(optional)* Show `evidence/runs/<run_id>/human/actions.jsonl`: "What the person did is logged —
 the click, the navigation — redacted."
 
-## Scene 8 — The irreversible step (9:00–11:15)
+## Scene 9 — The step that can't be undone (10:30–12:45)
+
+> "This is where 'let a model click it every time' is most dangerous — and where a naive
+> retry does real harm."
 
 > "The hardest case: opening a sub-account. It commits, and it can't be undone."
 
@@ -257,7 +332,7 @@ Point at `"adopted": true`, the reconciliation verdict `completed`, and `"accoun
 
 *(optional)* In the browser, open member 12345 → Accounts: exactly one Money Market account.
 
-## Scene 9 — Evidence and safety (11:15–12:00)
+## Scene 10 — Evidence and safety (12:45–13:30)
 
 Show `evidence/README.md` in GitHub or the editor.
 
@@ -270,10 +345,22 @@ Show the successful local test output, or the GitHub Actions run for the revisio
 > "Policy checks run inside the browser adapter for both discovery and replay. The 429-test
 > suite covers approval, redaction, recovery and handoff without calling a model API."
 
-## Scene 10 — Close (12:00–12:30)
+## Scene 11 — Close: problem to solution (13:30–14:30)
 
-> "Not built: tenant variants, the capability catalog, and a desktop adapter beyond its interface.
-> The design and the trade-offs are in REPORT.md. Thanks for watching."
+Show the Scene 2 diagram again.
+
+> "To recap. The problem: legacy bank systems with no API, where scripts only handle the happy
+> path and a model clicking every time is slow, unrepeatable and risky."
+
+> "Waypoint's answer: a model discovers the flow **once**. It becomes a typed capability that a
+> person approves. Every call after that **replays without a model**, and reports a result, a
+> business answer, a recovery, or a debuggable failure. When it can't act safely — an
+> ambiguous screen, a step that can't be undone — it hands the **live session** to a person.
+> Throughout, it refuses to act without evidence."
+
+> "Not built yet: tenant variants, a capability catalog for agents, and a desktop adapter
+> beyond its interface. The design for those, and the trade-offs, are in REPORT.md. Thanks
+> for watching."
 
 ---
 
