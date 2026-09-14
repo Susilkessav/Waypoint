@@ -1,0 +1,169 @@
+{
+  "url": "http://127.0.0.1:55524/",
+  "title": "Meridian Servicing Console - Sign On",
+  "elements": [
+    {
+      "ref": "6e95d91d505bg5-e1",
+      "role": "LayoutTableCell",
+      "name": "Meridian Servicing Console",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main"
+      ],
+      "bbox": [
+        8,
+        8,
+        1264,
+        46
+      ],
+      "anchors": [],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    },
+    {
+      "ref": "6e95d91d505bg5-e2",
+      "role": "cell",
+      "name": "Operator Sign On",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main"
+      ],
+      "bbox": [
+        512,
+        81,
+        256,
+        33
+      ],
+      "anchors": [],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    },
+    {
+      "ref": "6e95d91d505bg5-e3",
+      "role": "cell",
+      "name": "User ID",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main"
+      ],
+      "bbox": [
+        512,
+        114,
+        89,
+        35
+      ],
+      "anchors": [],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    },
+    {
+      "ref": "6e95d91d505bg5-e4",
+      "role": "textbox",
+      "name": "",
+      "value": "‹secret›",
+      "enabled": true,
+      "frame_path": [
+        "main"
+      ],
+      "bbox": [
+        608,
+        121,
+        153,
+        21
+      ],
+      "anchors": [
+        "User ID"
+      ],
+      "sensitivity": "secret",
+      "name_sensitivity": "public"
+    },
+    {
+      "ref": "6e95d91d505bg5-e5",
+      "role": "StaticText",
+      "name": "‹secret›",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main"
+      ],
+      "bbox": null,
+      "anchors": [
+        "User ID"
+      ],
+      "sensitivity": "public",
+      "name_sensitivity": "secret"
+    },
+    {
+      "ref": "6e95d91d505bg5-e6",
+      "role": "cell",
+      "name": "Password",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main"
+      ],
+      "bbox": [
+        512,
+        149,
+        89,
+        35
+      ],
+      "anchors": [],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    },
+    {
+      "ref": "6e95d91d505bg5-e7",
+      "role": "textbox",
+      "name": "",
+      "value": "",
+      "enabled": true,
+      "frame_path": [
+        "main"
+      ],
+      "bbox": [
+        608,
+        156,
+        153,
+        21
+      ],
+      "anchors": [
+        "Password"
+      ],
+      "sensitivity": "secret",
+      "name_sensitivity": "public"
+    },
+    {
+      "ref": "6e95d91d505bg5-e8",
+      "role": "button",
+      "name": "Sign On",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main"
+      ],
+      "bbox": [
+        697,
+        191,
+        64,
+        21
+      ],
+      "anchors": [],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    }
+  ],
+  "text_digest": "Meridian Servicing Console | Operator Sign On | User ID | ‹secret› | Password | Sign On",
+  "hash": "2c64983c146b00ac",
+  "frame_urls": [
+    [
+      [
+        "main"
+      ],
+      "http://127.0.0.1:55524/"
+    ]
+  ]
+}

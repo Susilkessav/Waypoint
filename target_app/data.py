@@ -28,6 +28,11 @@ class Account:
     def balance(self) -> str:
         return f"${self.balance_cents // 100:,}.{self.balance_cents % 100:02d}"
 
+    @property
+    def opened(self) -> str:
+        """Seeded accounts predate the console's records; only sub-accounts carry a time."""
+        return "-"
+
 
 @dataclass(frozen=True)
 class Member:

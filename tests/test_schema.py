@@ -60,7 +60,11 @@ class TestTheHandWrittenArtifact:
             assert "member_id" in cap.signatures[step.checkpoint.signature].refs(), step.intent
 
     def test_locate_finds_the_highest_release(self) -> None:
-        assert locate(REPO / "capabilities", "lookup_member_balance") == ARTIFACT
+        """Which version is the release is a reviewer's decision; locate follows it."""
+        found = locate(REPO / "capabilities", "lookup_member_balance")
+        assert approval_status(load(found)).approved
+        approved = [p for p in found.parent.glob("*.json") if approval_status(load(p)).approved]
+        assert found == max(approved, key=lambda p: tuple(int(x) for x in p.stem.split(".")))
 
 
 class TestStructuralRules:
@@ -190,3 +194,23 @@ class TestSelfContained:
                 for node in ast.walk(tree):
                     if isinstance(node, ast.ImportFrom) and node.module:
                         assert "signatures.library" not in node.module, path.name
+
+
+def test_the_default_version_is_the_current_release_not_a_newer_draft(tmp_path: Path) -> None:
+    """A discovered draft must not hijack `waypoint replay <id>` before anyone approves it."""
+    from waypoint.artifact.approval import approve
+    from waypoint.artifact.schema import load, locate
+
+    folder = tmp_path / "lookup_member_balance"
+    folder.mkdir(parents=True)
+    released = approve(load(REPO / "capabilities" / "lookup_member_balance" / "1.0.0.json"),
+                       approver="test")
+    (folder / "1.0.0.json").write_text(released.to_json())
+    draft = released.model_copy(update={"version": "1.1.0", "provenance": Provenance()})
+    (folder / "1.1.0.json").write_text(draft.to_json())
+
+    assert locate(tmp_path, "lookup_member_balance").name == "1.0.0.json"
+    assert locate(tmp_path, "lookup_member_balance", "1.1.0").name == "1.1.0.json"
+
+    (folder / "1.0.0.json").unlink()  # nothing approved: the newest, which then refuses
+    assert locate(tmp_path, "lookup_member_balance").name == "1.1.0.json"

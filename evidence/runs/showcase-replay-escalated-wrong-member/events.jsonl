@@ -1,0 +1,19 @@
+{"at": "2026-09-14T06:09:38.377+00:00", "event": "action", "where": "entry", "action": "navigate", "ok": true}
+{"at": "2026-09-14T06:09:38.519+00:00", "event": "action", "where": "preconditions[0].remedy[0]", "intent": "Enter the operator user ID", "action": "type", "tier": 3, "attempt": 1, "ok": true, "navigated": false, "duration_ms": 49}
+{"at": "2026-09-14T06:09:38.537+00:00", "event": "checkpoint_met", "where": "preconditions[0].remedy[0]", "signature": "user_id_filled"}
+{"at": "2026-09-14T06:09:38.566+00:00", "event": "step_captured", "where": "preconditions[0].remedy[0]", "screenshot": "step01.png", "snapshot": "step01_snapshot.json"}
+{"at": "2026-09-14T06:09:38.663+00:00", "event": "action", "where": "preconditions[0].remedy[1]", "intent": "Enter the operator password", "action": "type", "tier": 3, "attempt": 1, "ok": true, "navigated": false, "duration_ms": 62}
+{"at": "2026-09-14T06:09:38.683+00:00", "event": "checkpoint_met", "where": "preconditions[0].remedy[1]", "signature": "password_filled"}
+{"at": "2026-09-14T06:09:38.716+00:00", "event": "step_captured", "where": "preconditions[0].remedy[1]", "screenshot": "step02.png", "snapshot": "step02_snapshot.json"}
+{"at": "2026-09-14T06:09:39.123+00:00", "event": "action", "where": "preconditions[0].remedy[2]", "intent": "Sign on", "action": "click", "tier": 1, "attempt": 1, "ok": true, "navigated": true, "duration_ms": 369}
+{"at": "2026-09-14T06:09:39.153+00:00", "event": "checkpoint_met", "where": "preconditions[0].remedy[2]", "signature": "authenticated"}
+{"at": "2026-09-14T06:09:39.191+00:00", "event": "step_captured", "where": "preconditions[0].remedy[2]", "screenshot": "step03.png", "snapshot": "step03_snapshot.json"}
+{"at": "2026-09-14T06:09:39.211+00:00", "event": "precondition_met", "where": "preconditions[0]", "signature": "authenticated"}
+{"at": "2026-09-14T06:09:39.663+00:00", "event": "action", "where": "steps[0]", "intent": "Enter the member ID in the search form", "action": "type", "tier": 3, "attempt": 1, "ok": true, "navigated": false, "duration_ms": 47}
+{"at": "2026-09-14T06:09:39.685+00:00", "event": "checkpoint_met", "where": "steps[0]", "signature": "search_field_populated"}
+{"at": "2026-09-14T06:09:39.725+00:00", "event": "step_captured", "where": "steps[0]", "screenshot": "step04.png", "snapshot": "step04_snapshot.json"}
+{"at": "2026-09-14T06:09:40.110+00:00", "event": "action", "where": "steps[1]", "intent": "Run the member search", "action": "click", "tier": 1, "attempt": 1, "ok": true, "navigated": true, "duration_ms": 328}
+{"at": "2026-09-14T06:09:40.197+00:00", "event": "checkpoint_met", "where": "steps[1]", "signature": "member_in_results"}
+{"at": "2026-09-14T06:09:40.338+00:00", "event": "step_captured", "where": "steps[1]", "screenshot": "step05.png", "snapshot": "step05_snapshot.json"}
+{"at": "2026-09-14T06:09:40.888+00:00", "event": "action", "where": "steps[2]", "intent": "Open the matching member's record - the View link in THIS member's row", "action": "click", "tier": 3, "attempt": 1, "ok": true, "navigated": true, "duration_ms": 343}
+{"at": "2026-09-14T06:09:51.150+00:00", "event": "finished", "status": "escalated", "code": "checkpoint_not_met"}

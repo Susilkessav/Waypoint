@@ -1,0 +1,28 @@
+{"at": "2026-09-14T06:09:51.478+00:00", "event": "lease", "holder": "AGENT", "generation": 1}
+{"at": "2026-09-14T06:09:51.809+00:00", "event": "action", "where": "entry", "action": "navigate", "ok": true}
+{"at": "2026-09-14T06:09:51.932+00:00", "event": "action", "where": "preconditions[0].remedy[0]", "intent": "Enter the operator user ID", "action": "type", "tier": 3, "attempt": 1, "ok": true, "navigated": false, "duration_ms": 50}
+{"at": "2026-09-14T06:09:51.948+00:00", "event": "checkpoint_met", "where": "preconditions[0].remedy[0]", "signature": "user_id_filled"}
+{"at": "2026-09-14T06:09:51.983+00:00", "event": "step_captured", "where": "preconditions[0].remedy[0]", "screenshot": "step01.png", "snapshot": "step01_snapshot.json"}
+{"at": "2026-09-14T06:09:52.070+00:00", "event": "action", "where": "preconditions[0].remedy[1]", "intent": "Enter the operator password", "action": "type", "tier": 3, "attempt": 1, "ok": true, "navigated": false, "duration_ms": 53}
+{"at": "2026-09-14T06:09:52.087+00:00", "event": "checkpoint_met", "where": "preconditions[0].remedy[1]", "signature": "password_filled"}
+{"at": "2026-09-14T06:09:52.124+00:00", "event": "step_captured", "where": "preconditions[0].remedy[1]", "screenshot": "step02.png", "snapshot": "step02_snapshot.json"}
+{"at": "2026-09-14T06:09:52.517+00:00", "event": "action", "where": "preconditions[0].remedy[2]", "intent": "Sign on", "action": "click", "tier": 1, "attempt": 1, "ok": true, "navigated": true, "duration_ms": 347}
+{"at": "2026-09-14T06:09:52.550+00:00", "event": "checkpoint_met", "where": "preconditions[0].remedy[2]", "signature": "authenticated"}
+{"at": "2026-09-14T06:09:52.591+00:00", "event": "step_captured", "where": "preconditions[0].remedy[2]", "screenshot": "step03.png", "snapshot": "step03_snapshot.json"}
+{"at": "2026-09-14T06:09:52.621+00:00", "event": "precondition_met", "where": "preconditions[0]", "signature": "authenticated"}
+{"at": "2026-09-14T06:09:53.084+00:00", "event": "action", "where": "steps[0]", "intent": "Enter the member ID in the search form", "action": "type", "tier": 3, "attempt": 1, "ok": true, "navigated": false, "duration_ms": 48}
+{"at": "2026-09-14T06:09:53.109+00:00", "event": "checkpoint_met", "where": "steps[0]", "signature": "search_field_populated"}
+{"at": "2026-09-14T06:09:53.151+00:00", "event": "step_captured", "where": "steps[0]", "screenshot": "step04.png", "snapshot": "step04_snapshot.json"}
+{"at": "2026-09-14T06:09:53.541+00:00", "event": "action", "where": "steps[1]", "intent": "Run the member search", "action": "click", "tier": 1, "attempt": 1, "ok": true, "navigated": true, "duration_ms": 328}
+{"at": "2026-09-14T06:09:53.637+00:00", "event": "checkpoint_met", "where": "steps[1]", "signature": "member_in_results"}
+{"at": "2026-09-14T06:09:53.795+00:00", "event": "step_captured", "where": "steps[1]", "screenshot": "step05.png", "snapshot": "step05_snapshot.json"}
+{"at": "2026-09-14T06:09:54.277+00:00", "event": "intervention_opened", "intervention": "1c0da74fde", "reason": "ambiguous_locator", "step": "steps[2]"}
+{"at": "2026-09-14T06:09:54.282+00:00", "event": "lease", "holder": "NONE", "generation": 2}
+{"at": "2026-09-14T06:09:54.388+00:00", "event": "lease", "holder": "HUMAN", "generation": 3, "operator": "showcase-operator"}
+{"at": "2026-09-14T06:09:54.534+00:00", "event": "lease", "holder": "AGENT", "generation": 5}
+{"at": "2026-09-14T06:09:54.587+00:00", "event": "control_returned", "intervention": "1c0da74fde", "ladder": "resume:checkpoint:steps[3]"}
+{"at": "2026-09-14T06:09:55.056+00:00", "event": "action", "where": "steps[3]", "intent": "Open the Accounts tab (a WebForms postback)", "action": "click", "tier": 1, "attempt": 1, "ok": true, "navigated": true, "duration_ms": 344}
+{"at": "2026-09-14T06:09:55.118+00:00", "event": "checkpoint_met", "where": "steps[3]", "signature": "accounts_tab_loaded"}
+{"at": "2026-09-14T06:09:55.229+00:00", "event": "step_captured", "where": "steps[3]", "screenshot": "step06.png", "snapshot": "step06_snapshot.json"}
+{"at": "2026-09-14T06:09:55.473+00:00", "event": "outputs_extracted", "names": ["account_status", "savings_balance"]}
+{"at": "2026-09-14T06:09:55.688+00:00", "event": "finished", "status": "success"}

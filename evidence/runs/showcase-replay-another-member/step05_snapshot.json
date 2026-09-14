@@ -1,0 +1,1543 @@
+{
+  "url": "http://127.0.0.1:55524/console",
+  "title": "Meridian Servicing Console",
+  "elements": [
+    {
+      "ref": "fabc7d19041dg22-e1",
+      "role": "LayoutTableCell",
+      "name": "Servicing",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "nav"
+      ],
+      "bbox": [
+        8,
+        8,
+        164,
+        27
+      ],
+      "anchors": [],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    },
+    {
+      "ref": "fabc7d19041dg22-e2",
+      "role": "link",
+      "name": "Member Search",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "nav"
+      ],
+      "bbox": [
+        12,
+        39,
+        126,
+        19
+      ],
+      "anchors": [],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    },
+    {
+      "ref": "fabc7d19041dg22-e3",
+      "role": "LayoutTableCell",
+      "name": "Transactions",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "nav"
+      ],
+      "bbox": [
+        8,
+        62,
+        164,
+        27
+      ],
+      "anchors": [],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    },
+    {
+      "ref": "fabc7d19041dg22-e4",
+      "role": "LayoutTableCell",
+      "name": "Reports",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "nav"
+      ],
+      "bbox": [
+        8,
+        89,
+        164,
+        27
+      ],
+      "anchors": [],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    },
+    {
+      "ref": "fabc7d19041dg22-e5",
+      "role": "link",
+      "name": "Sign Off",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "nav"
+      ],
+      "bbox": [
+        12,
+        147,
+        65,
+        19
+      ],
+      "anchors": [],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    },
+    {
+      "ref": "fabc7d19041dg22-e6",
+      "role": "LayoutTableCell",
+      "name": "Member Search Results",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "content"
+      ],
+      "bbox": [
+        189,
+        8,
+        1083,
+        22
+      ],
+      "anchors": [],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    },
+    {
+      "ref": "fabc7d19041dg22-e7",
+      "role": "columnheader",
+      "name": "Member ID",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "content"
+      ],
+      "bbox": [
+        190,
+        44,
+        206,
+        29
+      ],
+      "anchors": [
+        "Name",
+        "Branch",
+        "Status",
+        "Joined"
+      ],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    },
+    {
+      "ref": "fabc7d19041dg22-e8",
+      "role": "columnheader",
+      "name": "Name",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "content"
+      ],
+      "bbox": [
+        396,
+        44,
+        303,
+        29
+      ],
+      "anchors": [
+        "Member ID",
+        "Branch",
+        "Status",
+        "Joined"
+      ],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    },
+    {
+      "ref": "fabc7d19041dg22-e9",
+      "role": "columnheader",
+      "name": "Branch",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "content"
+      ],
+      "bbox": [
+        699,
+        44,
+        137,
+        29
+      ],
+      "anchors": [
+        "Member ID",
+        "Name",
+        "Status",
+        "Joined"
+      ],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    },
+    {
+      "ref": "fabc7d19041dg22-e10",
+      "role": "columnheader",
+      "name": "Status",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "content"
+      ],
+      "bbox": [
+        836,
+        44,
+        146,
+        29
+      ],
+      "anchors": [
+        "Member ID",
+        "Name",
+        "Branch",
+        "Joined"
+      ],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    },
+    {
+      "ref": "fabc7d19041dg22-e11",
+      "role": "columnheader",
+      "name": "Joined",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "content"
+      ],
+      "bbox": [
+        983,
+        44,
+        198,
+        29
+      ],
+      "anchors": [
+        "Member ID",
+        "Name",
+        "Branch",
+        "Status"
+      ],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    },
+    {
+      "ref": "fabc7d19041dg22-e12",
+      "role": "cell",
+      "name": "‹redacted:5 chars›",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "content"
+      ],
+      "bbox": [
+        190,
+        73,
+        206,
+        29
+      ],
+      "anchors": [
+        "Member ID",
+        "‹redacted:12 chars›",
+        "BR-014",
+        "active",
+        "‹redacted:10 chars›"
+      ],
+      "sensitivity": "public",
+      "name_sensitivity": "internal"
+    },
+    {
+      "ref": "fabc7d19041dg22-e13",
+      "role": "cell",
+      "name": "‹redacted:12 chars›",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "content"
+      ],
+      "bbox": [
+        396,
+        73,
+        303,
+        29
+      ],
+      "anchors": [
+        "Name",
+        "‹redacted:5 chars›",
+        "BR-014",
+        "active",
+        "‹redacted:10 chars›"
+      ],
+      "sensitivity": "public",
+      "name_sensitivity": "pii"
+    },
+    {
+      "ref": "fabc7d19041dg22-e14",
+      "role": "cell",
+      "name": "BR-014",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "content"
+      ],
+      "bbox": [
+        699,
+        73,
+        137,
+        29
+      ],
+      "anchors": [
+        "Branch",
+        "‹redacted:5 chars›",
+        "‹redacted:12 chars›",
+        "active",
+        "‹redacted:10 chars›"
+      ],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    },
+    {
+      "ref": "fabc7d19041dg22-e15",
+      "role": "cell",
+      "name": "active",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "content"
+      ],
+      "bbox": [
+        836,
+        73,
+        146,
+        29
+      ],
+      "anchors": [
+        "Status",
+        "‹redacted:5 chars›",
+        "‹redacted:12 chars›",
+        "BR-014",
+        "‹redacted:10 chars›"
+      ],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    },
+    {
+      "ref": "fabc7d19041dg22-e16",
+      "role": "cell",
+      "name": "‹redacted:10 chars›",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "content"
+      ],
+      "bbox": [
+        983,
+        73,
+        198,
+        29
+      ],
+      "anchors": [
+        "Joined",
+        "‹redacted:5 chars›",
+        "‹redacted:12 chars›",
+        "BR-014",
+        "active"
+      ],
+      "sensitivity": "public",
+      "name_sensitivity": "pii"
+    },
+    {
+      "ref": "fabc7d19041dg22-e17",
+      "role": "link",
+      "name": "View",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "content"
+      ],
+      "bbox": [
+        1186,
+        78,
+        38,
+        19
+      ],
+      "anchors": [
+        "‹redacted:5 chars›",
+        "‹redacted:12 chars›",
+        "BR-014",
+        "active",
+        "‹redacted:10 chars›"
+      ],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    },
+    {
+      "ref": "fabc7d19041dg22-e18",
+      "role": "cell",
+      "name": "‹redacted:5 chars›",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "content"
+      ],
+      "bbox": [
+        190,
+        102,
+        206,
+        29
+      ],
+      "anchors": [
+        "Member ID",
+        "‹redacted:17 chars›",
+        "BR-014",
+        "active",
+        "‹redacted:10 chars›"
+      ],
+      "sensitivity": "public",
+      "name_sensitivity": "internal"
+    },
+    {
+      "ref": "fabc7d19041dg22-e19",
+      "role": "cell",
+      "name": "‹redacted:17 chars›",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "content"
+      ],
+      "bbox": [
+        396,
+        102,
+        303,
+        29
+      ],
+      "anchors": [
+        "Name",
+        "‹redacted:5 chars›",
+        "BR-014",
+        "active",
+        "‹redacted:10 chars›"
+      ],
+      "sensitivity": "public",
+      "name_sensitivity": "pii"
+    },
+    {
+      "ref": "fabc7d19041dg22-e20",
+      "role": "cell",
+      "name": "BR-014",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "content"
+      ],
+      "bbox": [
+        699,
+        102,
+        137,
+        29
+      ],
+      "anchors": [
+        "Branch",
+        "‹redacted:5 chars›",
+        "‹redacted:17 chars›",
+        "active",
+        "‹redacted:10 chars›"
+      ],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    },
+    {
+      "ref": "fabc7d19041dg22-e21",
+      "role": "cell",
+      "name": "active",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "content"
+      ],
+      "bbox": [
+        836,
+        102,
+        146,
+        29
+      ],
+      "anchors": [
+        "Status",
+        "‹redacted:5 chars›",
+        "‹redacted:17 chars›",
+        "BR-014",
+        "‹redacted:10 chars›"
+      ],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    },
+    {
+      "ref": "fabc7d19041dg22-e22",
+      "role": "cell",
+      "name": "‹redacted:10 chars›",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "content"
+      ],
+      "bbox": [
+        983,
+        102,
+        198,
+        29
+      ],
+      "anchors": [
+        "Joined",
+        "‹redacted:5 chars›",
+        "‹redacted:17 chars›",
+        "BR-014",
+        "active"
+      ],
+      "sensitivity": "public",
+      "name_sensitivity": "pii"
+    },
+    {
+      "ref": "fabc7d19041dg22-e23",
+      "role": "link",
+      "name": "View",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "content"
+      ],
+      "bbox": [
+        1186,
+        107,
+        38,
+        19
+      ],
+      "anchors": [
+        "‹redacted:5 chars›",
+        "‹redacted:17 chars›",
+        "BR-014",
+        "active",
+        "‹redacted:10 chars›"
+      ],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    },
+    {
+      "ref": "fabc7d19041dg22-e24",
+      "role": "cell",
+      "name": "‹redacted:5 chars›",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "content"
+      ],
+      "bbox": [
+        190,
+        131,
+        206,
+        29
+      ],
+      "anchors": [
+        "Member ID",
+        "‹redacted:12 chars›",
+        "BR-014",
+        "active",
+        "‹redacted:10 chars›"
+      ],
+      "sensitivity": "public",
+      "name_sensitivity": "internal"
+    },
+    {
+      "ref": "fabc7d19041dg22-e25",
+      "role": "cell",
+      "name": "‹redacted:12 chars›",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "content"
+      ],
+      "bbox": [
+        396,
+        131,
+        303,
+        29
+      ],
+      "anchors": [
+        "Name",
+        "‹redacted:5 chars›",
+        "BR-014",
+        "active",
+        "‹redacted:10 chars›"
+      ],
+      "sensitivity": "public",
+      "name_sensitivity": "pii"
+    },
+    {
+      "ref": "fabc7d19041dg22-e26",
+      "role": "cell",
+      "name": "BR-014",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "content"
+      ],
+      "bbox": [
+        699,
+        131,
+        137,
+        29
+      ],
+      "anchors": [
+        "Branch",
+        "‹redacted:5 chars›",
+        "‹redacted:12 chars›",
+        "active",
+        "‹redacted:10 chars›"
+      ],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    },
+    {
+      "ref": "fabc7d19041dg22-e27",
+      "role": "cell",
+      "name": "active",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "content"
+      ],
+      "bbox": [
+        836,
+        131,
+        146,
+        29
+      ],
+      "anchors": [
+        "Status",
+        "‹redacted:5 chars›",
+        "‹redacted:12 chars›",
+        "BR-014",
+        "‹redacted:10 chars›"
+      ],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    },
+    {
+      "ref": "fabc7d19041dg22-e28",
+      "role": "cell",
+      "name": "‹redacted:10 chars›",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "content"
+      ],
+      "bbox": [
+        983,
+        131,
+        198,
+        29
+      ],
+      "anchors": [
+        "Joined",
+        "‹redacted:5 chars›",
+        "‹redacted:12 chars›",
+        "BR-014",
+        "active"
+      ],
+      "sensitivity": "public",
+      "name_sensitivity": "pii"
+    },
+    {
+      "ref": "fabc7d19041dg22-e29",
+      "role": "link",
+      "name": "View",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "content"
+      ],
+      "bbox": [
+        1186,
+        136,
+        38,
+        19
+      ],
+      "anchors": [
+        "‹redacted:5 chars›",
+        "‹redacted:12 chars›",
+        "BR-014",
+        "active",
+        "‹redacted:10 chars›"
+      ],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    },
+    {
+      "ref": "fabc7d19041dg22-e30",
+      "role": "cell",
+      "name": "‹redacted:5 chars›",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "content"
+      ],
+      "bbox": [
+        190,
+        160,
+        206,
+        29
+      ],
+      "anchors": [
+        "Member ID",
+        "‹redacted:17 chars›",
+        "BR-014",
+        "frozen",
+        "‹redacted:10 chars›"
+      ],
+      "sensitivity": "public",
+      "name_sensitivity": "internal"
+    },
+    {
+      "ref": "fabc7d19041dg22-e31",
+      "role": "cell",
+      "name": "‹redacted:17 chars›",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "content"
+      ],
+      "bbox": [
+        396,
+        160,
+        303,
+        29
+      ],
+      "anchors": [
+        "Name",
+        "‹redacted:5 chars›",
+        "BR-014",
+        "frozen",
+        "‹redacted:10 chars›"
+      ],
+      "sensitivity": "public",
+      "name_sensitivity": "pii"
+    },
+    {
+      "ref": "fabc7d19041dg22-e32",
+      "role": "cell",
+      "name": "BR-014",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "content"
+      ],
+      "bbox": [
+        699,
+        160,
+        137,
+        29
+      ],
+      "anchors": [
+        "Branch",
+        "‹redacted:5 chars›",
+        "‹redacted:17 chars›",
+        "frozen",
+        "‹redacted:10 chars›"
+      ],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    },
+    {
+      "ref": "fabc7d19041dg22-e33",
+      "role": "cell",
+      "name": "frozen",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "content"
+      ],
+      "bbox": [
+        836,
+        160,
+        146,
+        29
+      ],
+      "anchors": [
+        "Status",
+        "‹redacted:5 chars›",
+        "‹redacted:17 chars›",
+        "BR-014",
+        "‹redacted:10 chars›"
+      ],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    },
+    {
+      "ref": "fabc7d19041dg22-e34",
+      "role": "cell",
+      "name": "‹redacted:10 chars›",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "content"
+      ],
+      "bbox": [
+        983,
+        160,
+        198,
+        29
+      ],
+      "anchors": [
+        "Joined",
+        "‹redacted:5 chars›",
+        "‹redacted:17 chars›",
+        "BR-014",
+        "frozen"
+      ],
+      "sensitivity": "public",
+      "name_sensitivity": "pii"
+    },
+    {
+      "ref": "fabc7d19041dg22-e35",
+      "role": "link",
+      "name": "View",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "content"
+      ],
+      "bbox": [
+        1186,
+        165,
+        38,
+        19
+      ],
+      "anchors": [
+        "‹redacted:5 chars›",
+        "‹redacted:17 chars›",
+        "BR-014",
+        "frozen",
+        "‹redacted:10 chars›"
+      ],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    },
+    {
+      "ref": "fabc7d19041dg22-e36",
+      "role": "cell",
+      "name": "‹redacted:5 chars›",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "content"
+      ],
+      "bbox": [
+        190,
+        189,
+        206,
+        29
+      ],
+      "anchors": [
+        "Member ID",
+        "‹redacted:13 chars›",
+        "BR-014",
+        "active",
+        "‹redacted:10 chars›"
+      ],
+      "sensitivity": "public",
+      "name_sensitivity": "internal"
+    },
+    {
+      "ref": "fabc7d19041dg22-e37",
+      "role": "cell",
+      "name": "‹redacted:13 chars›",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "content"
+      ],
+      "bbox": [
+        396,
+        189,
+        303,
+        29
+      ],
+      "anchors": [
+        "Name",
+        "‹redacted:5 chars›",
+        "BR-014",
+        "active",
+        "‹redacted:10 chars›"
+      ],
+      "sensitivity": "public",
+      "name_sensitivity": "pii"
+    },
+    {
+      "ref": "fabc7d19041dg22-e38",
+      "role": "cell",
+      "name": "BR-014",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "content"
+      ],
+      "bbox": [
+        699,
+        189,
+        137,
+        29
+      ],
+      "anchors": [
+        "Branch",
+        "‹redacted:5 chars›",
+        "‹redacted:13 chars›",
+        "active",
+        "‹redacted:10 chars›"
+      ],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    },
+    {
+      "ref": "fabc7d19041dg22-e39",
+      "role": "cell",
+      "name": "active",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "content"
+      ],
+      "bbox": [
+        836,
+        189,
+        146,
+        29
+      ],
+      "anchors": [
+        "Status",
+        "‹redacted:5 chars›",
+        "‹redacted:13 chars›",
+        "BR-014",
+        "‹redacted:10 chars›"
+      ],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    },
+    {
+      "ref": "fabc7d19041dg22-e40",
+      "role": "cell",
+      "name": "‹redacted:10 chars›",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "content"
+      ],
+      "bbox": [
+        983,
+        189,
+        198,
+        29
+      ],
+      "anchors": [
+        "Joined",
+        "‹redacted:5 chars›",
+        "‹redacted:13 chars›",
+        "BR-014",
+        "active"
+      ],
+      "sensitivity": "public",
+      "name_sensitivity": "pii"
+    },
+    {
+      "ref": "fabc7d19041dg22-e41",
+      "role": "link",
+      "name": "View",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "content"
+      ],
+      "bbox": [
+        1186,
+        194,
+        38,
+        19
+      ],
+      "anchors": [
+        "‹redacted:5 chars›",
+        "‹redacted:13 chars›",
+        "BR-014",
+        "active",
+        "‹redacted:10 chars›"
+      ],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    },
+    {
+      "ref": "fabc7d19041dg22-e42",
+      "role": "cell",
+      "name": "‹redacted:5 chars›",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "content"
+      ],
+      "bbox": [
+        190,
+        218,
+        206,
+        29
+      ],
+      "anchors": [
+        "Member ID",
+        "‹redacted:16 chars›",
+        "BR-014",
+        "dormant",
+        "‹redacted:10 chars›"
+      ],
+      "sensitivity": "public",
+      "name_sensitivity": "internal"
+    },
+    {
+      "ref": "fabc7d19041dg22-e43",
+      "role": "cell",
+      "name": "‹redacted:16 chars›",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "content"
+      ],
+      "bbox": [
+        396,
+        218,
+        303,
+        29
+      ],
+      "anchors": [
+        "Name",
+        "‹redacted:5 chars›",
+        "BR-014",
+        "dormant",
+        "‹redacted:10 chars›"
+      ],
+      "sensitivity": "public",
+      "name_sensitivity": "pii"
+    },
+    {
+      "ref": "fabc7d19041dg22-e44",
+      "role": "cell",
+      "name": "BR-014",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "content"
+      ],
+      "bbox": [
+        699,
+        218,
+        137,
+        29
+      ],
+      "anchors": [
+        "Branch",
+        "‹redacted:5 chars›",
+        "‹redacted:16 chars›",
+        "dormant",
+        "‹redacted:10 chars›"
+      ],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    },
+    {
+      "ref": "fabc7d19041dg22-e45",
+      "role": "cell",
+      "name": "dormant",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "content"
+      ],
+      "bbox": [
+        836,
+        218,
+        146,
+        29
+      ],
+      "anchors": [
+        "Status",
+        "‹redacted:5 chars›",
+        "‹redacted:16 chars›",
+        "BR-014",
+        "‹redacted:10 chars›"
+      ],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    },
+    {
+      "ref": "fabc7d19041dg22-e46",
+      "role": "cell",
+      "name": "‹redacted:10 chars›",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "content"
+      ],
+      "bbox": [
+        983,
+        218,
+        198,
+        29
+      ],
+      "anchors": [
+        "Joined",
+        "‹redacted:5 chars›",
+        "‹redacted:16 chars›",
+        "BR-014",
+        "dormant"
+      ],
+      "sensitivity": "public",
+      "name_sensitivity": "pii"
+    },
+    {
+      "ref": "fabc7d19041dg22-e47",
+      "role": "link",
+      "name": "View",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "content"
+      ],
+      "bbox": [
+        1186,
+        223,
+        38,
+        19
+      ],
+      "anchors": [
+        "‹redacted:5 chars›",
+        "‹redacted:16 chars›",
+        "BR-014",
+        "dormant",
+        "‹redacted:10 chars›"
+      ],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    },
+    {
+      "ref": "fabc7d19041dg22-e48",
+      "role": "cell",
+      "name": "‹redacted:5 chars›",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "content"
+      ],
+      "bbox": [
+        190,
+        247,
+        206,
+        29
+      ],
+      "anchors": [
+        "Member ID",
+        "‹redacted:13 chars›",
+        "BR-014",
+        "active",
+        "‹redacted:10 chars›"
+      ],
+      "sensitivity": "public",
+      "name_sensitivity": "internal"
+    },
+    {
+      "ref": "fabc7d19041dg22-e49",
+      "role": "cell",
+      "name": "‹redacted:13 chars›",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "content"
+      ],
+      "bbox": [
+        396,
+        247,
+        303,
+        29
+      ],
+      "anchors": [
+        "Name",
+        "‹redacted:5 chars›",
+        "BR-014",
+        "active",
+        "‹redacted:10 chars›"
+      ],
+      "sensitivity": "public",
+      "name_sensitivity": "pii"
+    },
+    {
+      "ref": "fabc7d19041dg22-e50",
+      "role": "cell",
+      "name": "BR-014",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "content"
+      ],
+      "bbox": [
+        699,
+        247,
+        137,
+        29
+      ],
+      "anchors": [
+        "Branch",
+        "‹redacted:5 chars›",
+        "‹redacted:13 chars›",
+        "active",
+        "‹redacted:10 chars›"
+      ],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    },
+    {
+      "ref": "fabc7d19041dg22-e51",
+      "role": "cell",
+      "name": "active",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "content"
+      ],
+      "bbox": [
+        836,
+        247,
+        146,
+        29
+      ],
+      "anchors": [
+        "Status",
+        "‹redacted:5 chars›",
+        "‹redacted:13 chars›",
+        "BR-014",
+        "‹redacted:10 chars›"
+      ],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    },
+    {
+      "ref": "fabc7d19041dg22-e52",
+      "role": "cell",
+      "name": "‹redacted:10 chars›",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "content"
+      ],
+      "bbox": [
+        983,
+        247,
+        198,
+        29
+      ],
+      "anchors": [
+        "Joined",
+        "‹redacted:5 chars›",
+        "‹redacted:13 chars›",
+        "BR-014",
+        "active"
+      ],
+      "sensitivity": "public",
+      "name_sensitivity": "pii"
+    },
+    {
+      "ref": "fabc7d19041dg22-e53",
+      "role": "link",
+      "name": "View",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "content"
+      ],
+      "bbox": [
+        1186,
+        252,
+        38,
+        19
+      ],
+      "anchors": [
+        "‹redacted:5 chars›",
+        "‹redacted:13 chars›",
+        "BR-014",
+        "active",
+        "‹redacted:10 chars›"
+      ],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    },
+    {
+      "ref": "fabc7d19041dg22-e54",
+      "role": "cell",
+      "name": "‹$inputs.member_id›",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "content"
+      ],
+      "bbox": [
+        190,
+        276,
+        206,
+        29
+      ],
+      "anchors": [
+        "Member ID",
+        "‹redacted:14 chars›",
+        "BR-014",
+        "dormant",
+        "‹redacted:10 chars›"
+      ],
+      "sensitivity": "public",
+      "name_sensitivity": "internal"
+    },
+    {
+      "ref": "fabc7d19041dg22-e55",
+      "role": "cell",
+      "name": "‹redacted:14 chars›",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "content"
+      ],
+      "bbox": [
+        396,
+        276,
+        303,
+        29
+      ],
+      "anchors": [
+        "Name",
+        "‹$inputs.member_id›",
+        "BR-014",
+        "dormant",
+        "‹redacted:10 chars›"
+      ],
+      "sensitivity": "public",
+      "name_sensitivity": "pii"
+    },
+    {
+      "ref": "fabc7d19041dg22-e56",
+      "role": "cell",
+      "name": "BR-014",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "content"
+      ],
+      "bbox": [
+        699,
+        276,
+        137,
+        29
+      ],
+      "anchors": [
+        "Branch",
+        "‹$inputs.member_id›",
+        "‹redacted:14 chars›",
+        "dormant",
+        "‹redacted:10 chars›"
+      ],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    },
+    {
+      "ref": "fabc7d19041dg22-e57",
+      "role": "cell",
+      "name": "dormant",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "content"
+      ],
+      "bbox": [
+        836,
+        276,
+        146,
+        29
+      ],
+      "anchors": [
+        "Status",
+        "‹$inputs.member_id›",
+        "‹redacted:14 chars›",
+        "BR-014",
+        "‹redacted:10 chars›"
+      ],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    },
+    {
+      "ref": "fabc7d19041dg22-e58",
+      "role": "cell",
+      "name": "‹redacted:10 chars›",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "content"
+      ],
+      "bbox": [
+        983,
+        276,
+        198,
+        29
+      ],
+      "anchors": [
+        "Joined",
+        "‹$inputs.member_id›",
+        "‹redacted:14 chars›",
+        "BR-014",
+        "dormant"
+      ],
+      "sensitivity": "public",
+      "name_sensitivity": "pii"
+    },
+    {
+      "ref": "fabc7d19041dg22-e59",
+      "role": "link",
+      "name": "View",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "content"
+      ],
+      "bbox": [
+        1186,
+        281,
+        38,
+        19
+      ],
+      "anchors": [
+        "‹$inputs.member_id›",
+        "‹redacted:14 chars›",
+        "BR-014",
+        "dormant",
+        "‹redacted:10 chars›"
+      ],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    },
+    {
+      "ref": "fabc7d19041dg22-e60",
+      "role": "StaticText",
+      "name": "8 record(s) in branch context.",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "content"
+      ],
+      "bbox": [
+        189,
+        319,
+        166,
+        13
+      ],
+      "anchors": [],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    }
+  ],
+  "text_digest": "Servicing | Member Search | Transactions | Reports | Sign Off | Member Search Results | Member ID | Name | Branch | Status | Joined | ‹redacted:5 chars› | ‹redacted:12 chars› | BR-014 | active | ‹redacted:10 chars› | View | ‹redacted:17 chars› | frozen | ‹redacted:13 chars› | ‹redacted:16 chars› | dormant | ‹$inputs.member_id› | ‹redacted:14 chars› | 8 record(s) in branch context.",
+  "hash": "04051adf3b7872ca",
+  "frame_urls": [
+    [
+      [
+        "main"
+      ],
+      "http://127.0.0.1:55524/console"
+    ],
+    [
+      [
+        "main",
+        "nav"
+      ],
+      "http://127.0.0.1:55524/console/nav"
+    ],
+    [
+      [
+        "main",
+        "content"
+      ],
+      "http://127.0.0.1:55524/console/search"
+    ]
+  ]
+}

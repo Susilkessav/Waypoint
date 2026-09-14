@@ -70,3 +70,59 @@ no_records_banner:
   description: The search found no member - a business outcome, not an error.
   match:
     text_contains: No records found
+
+# --------------------------------------------------------------------------------
+# Global recognizers (R-OUT-1): states any step can meet, whatever the capability.
+
+maintenance_interstitial:
+  description: A notice page stands between the operator and the screen they asked for.
+  match:
+    text_contains: Scheduled Maintenance Notice
+
+server_error:
+  description: The application failed outright - a fault, never an answer.
+  match:
+    text_contains: "Server Error in '/' Application"
+
+gateway_error:
+  description: The response was lost on its way back. What was sent may or may not have landed.
+  match:
+    text_contains: Web server received an invalid response
+
+not_authorized_banner:
+  description: The application will not let this operator service the member - an answer.
+  match:
+    text_contains: You are not authorized to service member
+
+deposit_rejected_banner:
+  description: The application refused the initial deposit - an answer, not a fault.
+  match:
+    text_contains: Initial deposit must be
+
+# --------------------------------------------------------------------------------
+# open_sub_account: the authoritative record a reconcile probe reads (R-REC-5). The
+# probe navigates the top-level page, so none of these pins a frame.
+
+accounts_listed_for_member:
+  description: THIS member's accounts grid, including when each account was opened.
+  match:
+    all:
+      - element_exists: {role: LayoutTableCell, name_ref: $inputs.member_id, anchor: Member ID}
+      - element_exists: {role: columnheader, name: Opened}
+
+subaccount_present_for_inputs:
+  description: THIS member's grid shows an account of THIS type.
+  match:
+    all:
+      - element_exists: {role: LayoutTableCell, name_ref: $inputs.member_id, anchor: Member ID}
+      - element_exists: {role: cell, name_ref: $inputs.account_type, anchor: Type}
+
+no_subaccount_for_inputs:
+  description: >-
+    THIS member's complete grid is on screen and holds no account of THIS type. Positive
+    evidence of absence - the list is visible - not a page that merely failed to show one.
+  match:
+    all:
+      - element_exists: {role: LayoutTableCell, name_ref: $inputs.member_id, anchor: Member ID}
+      - element_exists: {role: columnheader, name: Opened}
+      - element_absent: {role: cell, name_ref: $inputs.account_type, anchor: Type}

@@ -122,3 +122,26 @@ def test_bundle_rejects_unverified_position():
     positional = Candidate(tier=4, kind="structural", path="button:nth-child(2)")
     with pytest.raises(ValidationError, match="identity"):
         LocatorBundle(recorded_tier=1, candidates=(semantic, positional))
+
+
+def test_a_value_beside_its_label_gets_a_semantic_extraction_locator(surface):
+    """Label/value layout rows - every confirmation page - locate the value by its label.
+
+    The row holds two cells, so a locator that took "the cells of the label's row" matched
+    the label as well and could never be unique; outputs on such pages had no semantic
+    locator at all (found by the live discovery of open_sub_account).
+    """
+    from tests.test_web_surface import open_member
+    from waypoint.artifact.schema import keys_on_value
+
+    detail = open_member(surface)
+    joined = next(e for e in detail.elements
+                  if e.role == "LayoutTableCell" and "Joined" in e.anchors)
+    bundle = surface.synthesize(joined.ref, INPUTS, extraction=True)
+    anchored = [c for c in bundle.candidates if c.kind == "anchored"]
+    assert anchored and anchored[0].anchor.text == "Joined" and anchored[0].name is None
+    assert not any(keys_on_value(c) for c in bundle.candidates)
+
+    found = surface.resolve(bundle, INPUTS)
+    assert isinstance(found, Found) and found.tier == 3  # refs are per-observation
+    assert surface.extract_raw(found.ref) == "2001-07-22"

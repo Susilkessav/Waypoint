@@ -1,0 +1,16 @@
+{
+  "artifact": "capabilities/lookup_member_balance/1.1.0.json",
+  "notes": [
+    "turn 4: proposed as a resume point - confirm at approval",
+    "turn 5: proposed as a resume point - confirm at approval",
+    "turn 7: proposed as a resume point - confirm at approval",
+    "turn 9: added an identity check on 'member_id' (R-RESUME-5)",
+    "turn 9: proposed as a resume point - confirm at approval",
+    "turn 10: added an identity check on 'member_id' (R-RESUME-5)",
+    "turn 10: proposed as a resume point - confirm at approval",
+    "finish: dropped an expectation on redacted data - it would identify one record, not the step",
+    "finish: dropped an expectation on an output's own value - it would hold for this record only, not for the next one",
+    "finish: added an identity check on 'member_id' (R-RESUME-5)"
+  ],
+  "open_gates": []
+}

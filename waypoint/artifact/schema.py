@@ -27,7 +27,7 @@ from typing import Any, Literal, Self
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from waypoint.policy.engine import Risk
-from waypoint.signatures.recognizers import Signature
+from waypoint.signatures.recognizers import ElementPredicate, Signature
 from waypoint.surface.locators import Candidate, LocatorBundle, TextTarget
 from waypoint.surface.ports import Sensitivity
 from waypoint.surface.sensitivity import PATTERNS
@@ -119,18 +119,66 @@ class Retry(_Model):
     backoff_ms: int = Field(default=500, ge=0, le=10_000)
 
 
-class Reconcile(_Model):
-    """Three-way check of whether an irreversible step already happened (R-REC).
+class Records(_Model):
+    """Which on-screen records could be *this* operation, judged row by row (R-REC-2).
 
-    Executed from milestone B3; declared, validated and gated from A5.
+    A screen signature can establish that this member has an account of this type; only a
+    record's own values can establish that it is the one this operation made. Those values -
+    balances, dates - are redacted from every snapshot, so the engine reads them through the
+    raw layer, one row at a time, compares them, and keeps only the verdict.
     """
 
+    rows: ElementPredicate
+    """One cell per candidate record, e.g. the Type cell of each row showing the input type."""
+    created: str = Field(min_length=1)
+    """Column holding when the record was created. No readable time means Unknown."""
+    fields: dict[str, str] = {}
+    """Column -> ``$inputs.<name>`` every candidate must show, e.g. the opening deposit."""
+    outputs: dict[str, str] = {}
+    """Output name -> column, read from the one record that is adopted."""
+    skew_s: int = Field(default=120, ge=0, le=3600)
+    """A record showing these inputs created this close *before* the attempt could be either
+    operation, so it makes the verdict Unknown rather than extending the adoption window."""
+
+    @model_validator(mode="after")
+    def _input_refs(self) -> Self:
+        for column, ref in self.fields.items():
+            if not _INPUT_REF.match(ref):
+                raise ValueError(f"records.fields[{column!r}] must be $inputs.<name>")
+        return self
+
+
+class Reconcile(_Model):
+    """Three-way answer to "did this irreversible step already happen?" (R-REC-1..5).
+
+    ``probe`` navigates to a read-only screen that shows the authoritative state. On it,
+    ``completed_when`` is evidence that records of this kind exist *for these inputs*;
+    ``not_completed_when`` is positive evidence none do - never mere absence. Neither
+    holding is Unknown, and Unknown escalates. ``records`` then decides, row by row, whether
+    one of them is this operation.
+    """
+
+    probe: tuple[Step, ...] = Field(min_length=1)
     completed_when: str
     not_completed_when: str
     identity: tuple[str, ...]
-    """Inputs the ``completed_when`` signature must assert, so that someone else's
-    confirmation page can never be adopted as ours (R-REC-2)."""
+    """Inputs ``completed_when`` must assert, so that someone else's record can never be
+    adopted as ours (R-REC-2)."""
+    records: Records | None = None
     extract: dict[str, LocatorBundle] = {}
+    """Where an output is read on the probe screen, for outputs no record column supplies."""
+
+    @model_validator(mode="after")
+    def _probe_is_read_only(self) -> Self:
+        for i, step in enumerate(self.probe):
+            if step.action not in ("navigate", "wait_for"):
+                raise ValueError(
+                    f"reconcile.probe[{i}] is a {step.action}: a probe may only navigate and "
+                    "wait (R-REC-5) - checking must never be able to act"
+                )
+            if step.risk != "safe" or step.reconcile is not None:
+                raise ValueError(f"reconcile.probe[{i}] must be a plain, safe step")
+        return self
 
 
 class Step(_Model):
@@ -175,6 +223,10 @@ class Step(_Model):
         return self
 
 
+Reconcile.model_rebuild()
+Step.model_rebuild()
+
+
 class Remedy(_Model):
     """A bounded, declared sub-flow that establishes a precondition (e.g. sign-on)."""
 
@@ -203,13 +255,25 @@ class Outcome(_Model):
 
 
 class RecoveryRule(_Model):
-    """Declarative and bounded (R-OUT-3). Executed from milestone B4."""
+    """Declarative and bounded (R-OUT-3): on this state, do this, at most this often.
+
+    ``dismiss`` clicks ``target`` (a notice's Continue); ``wait`` lets the page settle;
+    ``reauth`` re-enters the application and replays the safe prefix. Nothing else - no
+    open-ended logic and no model.
+    """
 
     on: str
     do: Literal["dismiss", "wait", "reauth"]
+    target: LocatorBundle | None = None
     max: int = Field(default=1, ge=1, le=3)
     backoff_ms: int = Field(default=0, ge=0, le=10_000)
     else_: Literal["escalate", "fail"] = Field(default="escalate", alias="else")
+
+    @model_validator(mode="after")
+    def _target_iff_dismiss(self) -> Self:
+        if (self.do == "dismiss") != (self.target is not None):
+            raise ValueError("a dismiss recovery needs a target, and only dismiss takes one")
+        return self
 
 
 class ArtifactPolicy(_Model):
@@ -256,7 +320,12 @@ class Capability(_Model):
     # --- traversal
 
     def all_steps(self) -> list[tuple[str, Step]]:
-        out = [(f"steps[{i}]", s) for i, s in enumerate(self.steps)]
+        out: list[tuple[str, Step]] = []
+        for i, s in enumerate(self.steps):
+            out.append((f"steps[{i}]", s))
+            if s.reconcile is not None:
+                out += [(f"steps[{i}].reconcile.probe[{k}]", p)
+                        for k, p in enumerate(s.reconcile.probe)]
         for i, pre in enumerate(self.preconditions):
             if pre.remedy is not None:
                 where = f"preconditions[{i}].remedy"
@@ -272,6 +341,9 @@ class Capability(_Model):
                     yield f"{where}.reconcile.extract.{key}", bundle
         for name, out in self.outputs.properties.items():
             yield f"outputs.{name}.extraction", out.extraction
+        for i, rule in enumerate(self.recovery):
+            if rule.target is not None:
+                yield f"recovery[{i}].target", rule.target
 
     def signature_refs(self) -> Iterator[tuple[str, str]]:
         for where, step in self.all_steps():
@@ -299,6 +371,12 @@ class Capability(_Model):
             if step.reconcile is not None:
                 for name in step.reconcile.identity:
                     yield f"{where}.reconcile.identity", name
+                if step.reconcile.records is not None:
+                    records = step.reconcile.records
+                    for name in records.rows.refs():
+                        yield f"{where}.reconcile.records.rows", name
+                    for ref in records.fields.values():
+                        yield f"{where}.reconcile.records.fields", ref.removeprefix("$inputs.")
         for where, bundle in self.bundles():
             for candidate in (*bundle.candidates, *(d.candidate for d in bundle.diagnostics)):
                 for target in _text_targets(candidate):
@@ -340,7 +418,7 @@ def _text_targets(c: Candidate) -> list[TextTarget]:
     return out
 
 
-def _keys_on_value(c: Candidate) -> bool:
+def keys_on_value(c: Candidate) -> bool:
     """Whether a candidate finds an output by the very text it is meant to read."""
     if c.kind == "role_name" or (c.kind == "anchored" and c.name is not None):
         return True
@@ -361,6 +439,38 @@ def _strings(node: Any, path: str = "") -> Iterator[tuple[str, str]]:
 # ------------------------------------------------------------- approval gates
 
 
+def _reconcile_problems(cap: Capability, where: str, step: Step) -> list[str]:
+    """Why this irreversible step could not be reconciled unattended (R-REC, R-PKG-3)."""
+    r = step.reconcile
+    if r is None:
+        return [f"{where}: irreversible step lacks a compliant reconcile (R-REC)"]
+    problems: list[str] = []
+    if not r.identity or not set(r.identity) <= cap.signatures[r.completed_when].refs():
+        problems.append(f"{where}: irreversible step lacks a compliant reconcile (R-REC): "
+                        "completed_when does not assert the identity inputs (R-REC-2)")
+    if not cap.signatures[r.not_completed_when].match.asserts_content():
+        problems.append(f"{where}: irreversible step lacks a compliant reconcile (R-REC): "
+                        "not_completed_when asserts nothing on screen - absence is not "
+                        "evidence (R-REC-3)")
+    adoptable = set(r.extract) | set(r.records.outputs if r.records else ())
+    missing = sorted(set(cap.outputs.properties) - adoptable)
+    if missing:
+        problems.append(f"{where}: irreversible step lacks a compliant reconcile (R-REC): "
+                        f"an adopted run could not return {missing}")
+    if cap.outputs.properties and r.records is None:
+        problems.append(f"{where}: irreversible step lacks a compliant reconcile (R-REC): "
+                        "adopting outputs needs records - a screen cannot say which record "
+                        "is this operation's (R-REC-2)")
+    checked = set(r.identity) | {
+        ref.removeprefix("$inputs.") for ref in (r.records.fields.values() if r.records else ())}
+    unchecked = sorted(set(cap.inputs.properties) - checked)
+    if unchecked:
+        problems.append(f"{where}: irreversible step lacks a compliant reconcile (R-REC): "
+                        f"it never checks {unchecked}, so an operation differing only there "
+                        "would be adopted as this one (R-REC-2)")
+    return problems
+
+
 def approval_gates(cap: Capability) -> list[str]:
     """Every reason this artifact may not be approved, recomputed from content."""
     reasons: list[str] = []
@@ -375,16 +485,12 @@ def approval_gates(cap: Capability) -> list[str]:
         if step.unreviewed_literal:
             reasons.append(f"{where}: unreviewed literal")
         if step.risk == "irreversible" and cap.policy.unattended:
-            r = step.reconcile
-            if r is None or not r.identity or not set(r.identity) <= cap.signatures[
-                r.completed_when
-            ].refs():
-                reasons.append(f"{where}: irreversible step lacks a compliant reconcile (R-REC)")
+            reasons += _reconcile_problems(cap, where, step)
     for where, bundle in cap.bundles():
         if any(c.is_positional and c.identity is None for c in bundle.candidates):
             reasons.append(f"{where}: positional candidate lacks identity (R-LOC-5)")
     for name, out in cap.outputs.properties.items():
-        if any(_keys_on_value(c) for c in out.extraction.candidates):
+        if any(keys_on_value(c) for c in out.extraction.candidates):
             reasons.append(f"outputs.{name}: extraction keys on the value it reads (R-SENS-7)")
     body = cap.model_dump(mode="json", by_alias=True, exclude={"provenance"})
     for path, text in _strings(body):
@@ -418,8 +524,13 @@ def _semver_key(path: Path) -> tuple[int, int, int, int, str]:
     return (major, minor, patch, 0 if pre else 1, pre)
 
 
-def locate(root: Path, capability_id: str, version: str | None = None) -> Path:
-    """``capabilities/<id>/<semver>.json`` - the given version, or the highest release."""
+def locate(root: Path, capability_id: str, version: str | None = None, *,
+           release: bool = True) -> Path:
+    """``capabilities/<id>/<semver>.json`` - the given version, else the highest release.
+
+    ``release=False`` means the newest version whatever its state - what a reviewer about to
+    approve means, where replay means the version in service.
+    """
     folder = root / capability_id
     if version is not None:
         path = folder / f"{version}.json"
@@ -431,4 +542,16 @@ def locate(root: Path, capability_id: str, version: str | None = None) -> Path:
     )
     if not found:
         raise FileNotFoundError(f"no artifacts for {capability_id!r} under {root}")
-    return found[-1]
+    from waypoint.artifact.approval import approval_status  # circular at module level
+
+    def approved(path: Path) -> bool:
+        try:
+            return approval_status(load(path)).approved
+        except (ValueError, OSError):
+            return False
+
+    # A freshly discovered draft sits at a higher version than the release in service.
+    # Without a version the caller means the current release, not whatever is newest.
+    if not release:
+        return found[-1]
+    return next((p for p in reversed(found) if approved(p)), found[-1])

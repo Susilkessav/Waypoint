@@ -1,0 +1,4 @@
+{"at": "2026-09-14T06:09:54.388+00:00", "event": "control_transfer", "direction": "to_human", "actor": "operator", "generation": 3}
+{"at": "2026-09-14T06:09:54.406+00:00", "event": "click", "tag": "a", "role": "", "name": "View", "element_id": "ctl00_MainContent_gvMembers_ctl03_lnkView", "frame_path": ["main", "content"]}
+{"at": "2026-09-14T06:09:54.415+00:00", "event": "navigation", "from_url": null, "to_url": "http://127.0.0.1:55524/console/member?member_id=‹$inputs.member_id›", "frame_path": ["main", "content"]}
+{"at": "2026-09-14T06:09:54.533+00:00", "event": "control_transfer", "direction": "to_agent", "actor": "replay", "generation": 5}

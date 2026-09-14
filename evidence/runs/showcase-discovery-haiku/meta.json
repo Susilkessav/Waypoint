@@ -1,0 +1,15 @@
+{
+  "run_id": "20260913T183235Z-ca2020",
+  "kind": "discovery",
+  "capability_id": "lookup_member_balance",
+  "goal": "Look up member $inputs.member_id and read their current savings balance",
+  "entry": "http://127.0.0.1:8767/console",
+  "model": "claude-haiku-4-5",
+  "inputs": [
+    {
+      "name": "member_id",
+      "type": "string",
+      "sensitivity": "internal"
+    }
+  ]
+}

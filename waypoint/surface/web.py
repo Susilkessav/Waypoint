@@ -22,7 +22,7 @@ import uuid
 from collections.abc import Callable, Iterator, Mapping, Sequence
 from contextlib import contextmanager
 from typing import TYPE_CHECKING, Any
-from urllib.parse import urljoin
+from urllib.parse import parse_qsl, unquote, urljoin, urlsplit
 
 from playwright.sync_api import Error as PlaywrightError
 from playwright.sync_api import Frame, Locator, Page, Request, sync_playwright
@@ -137,6 +137,16 @@ class WebSurface:
         self.context = context or RunContext()
         self.secrets = secrets or SecretBroker()
         self.approve = approve
+        self.lease_guard: Callable[[], None] | None = None
+        """Set by a holder of the control lease; act() calls it first (R-PROC-4)."""
+        self.human_in_control = False
+        """Set by the engine while a person holds the lease. Their navigation is recorded as
+        theirs; only while the agent drives must each request be one it was cleared for."""
+        self._authorized: tuple[object, ...] | None = None
+        self._block_reason = ""
+        self.before_dispatch: Callable[[Action], None] | None = None
+        """Called once policy and any approval have passed, immediately before dispatch.
+        The engine writes its intent record here (R-REC-4); raising stops the dispatch."""
         self.events: list[dict[str, object]] = []
         self.matcher = WebMatcher(self)
         self._cdp = page.context.new_cdp_session(page)
@@ -297,8 +307,13 @@ class WebSurface:
     # ------------------------------------------------------------------- act
 
     def act(self, action: Action) -> ActionResult:
+        if self.lease_guard is not None:
+            # Raises LeaseLost for a caller acting under a grant that has moved on.
+            # Deliberately outside the try below: a stale actor must not proceed.
+            self.lease_guard()
         started, navigations = time.monotonic(), self._navigations
         self._navigation_blocked = False
+        self._block_reason = ""
         try:
             if self._unsettled and action.kind not in ("read", "assert", "wait_for"):
                 return ActionResult(
@@ -317,6 +332,7 @@ class WebSurface:
             if isinstance(verdict, RequireApproval):
                 if (
                     self.context.unattended
+                    or not verdict.approvable
                     or self.approve is None
                     or not self.approve(verdict, action)
                 ):
@@ -344,17 +360,31 @@ class WebSurface:
                     )
                 self.events.append({"event": "action_approved", "risk": verdict.risk})
             self.policy.record(action, facts)
+            if self.before_dispatch is not None:
+                self.before_dispatch(action)  # the last moment nothing has been sent
+            # The one document request this action was classified - and, if risky, approved -
+            # for. Any other mutating request it causes, a redirect hop included, is refused.
+            self._authorized = (
+                _request_key(facts.method, facts.target_url) if facts.target_url else None
+            )
             self._dispatch(action)
         except (PlaywrightError, LookupError, ValueError) as exc:
+            self._authorized = None
             return ActionResult(
                 action.kind,
                 ok=False,
                 ref=action.ref,
-                error=self.redactor.error(exc),
+                # A navigation the guard refused surfaces as a driver error; report why.
+                error=f"navigation_{self._block_reason or 'location_not_allowed'}"
+                if self._navigation_blocked
+                else self.redactor.error(exc),
                 error_code="policy_block" if self._navigation_blocked else "action_failed",
                 duration_ms=_ms(started),
             )
-        quiet = self.quiesce()
+        try:
+            quiet = self.quiesce()
+        finally:
+            self._authorized = None
         return ActionResult(
             action.kind,
             ok=isinstance(quiet, Settled) and not self._navigation_blocked,
@@ -366,7 +396,7 @@ class WebSurface:
             if self._navigation_blocked
             else ("in_flight" if isinstance(quiet, InFlight) else None),
             error=(
-                "navigation_location_not_allowed"
+                f"navigation_{self._block_reason or 'location_not_allowed'}"
                 if self._navigation_blocked
                 else (
                     "Action dispatched; completion is unknown. Do not retry automatically."
@@ -536,8 +566,10 @@ class WebSurface:
             )
             return NotFound("invalid_or_unavailable_locator")
 
-    def synthesize(self, ref: str, inputs: Mapping[str, str] | None = None) -> LocatorBundle:
-        return self.matcher.synthesize(ref, inputs or {})
+    def synthesize(
+        self, ref: str, inputs: Mapping[str, str] | None = None, *, extraction: bool = False
+    ) -> LocatorBundle:
+        return self.matcher.synthesize(ref, inputs or {}, extraction=extraction)
 
     # --------------------------------------------------------------- quiesce
 
@@ -548,14 +580,37 @@ class WebSurface:
         initial URL would allow a permitted page to redirect off the allowlist.
         """
         request_id = event["requestId"]
-        if self.policy.allowed_url(event["request"]["url"]):
-            self._cdp.send("Fetch.continueRequest", {"requestId": request_id})
+        url = event["request"]["url"]
+        method = event["request"].get("method", "GET")
+        if not self.policy.allowed_url(url):
+            reason = "location_not_allowed"
+        elif (
+            not self.human_in_control
+            and self.policy.mutates(method, url)
+            and _request_key(method, url) != self._authorized
+        ):
+            # R-RISK-3 applies to every hop, not only the action's own target: an allowed
+            # page that redirects into a commit would otherwise execute it unclassified,
+            # unapproved and with no intent written.
+            reason = "unauthorized_mutation"
         else:
-            self._navigation_blocked = True
-            self.events.append({"event": "navigation_blocked", "reason": "location_not_allowed"})
-            self._cdp.send(
-                "Fetch.failRequest", {"requestId": request_id, "errorReason": "BlockedByClient"}
-            )
+            if (
+                not self.human_in_control
+                and self._authorized is not None
+                and self.policy.mutates(method, url)
+            ):
+                # One approval, one request: consumed the moment it is sent. A 307 back to
+                # the same URL, or any retry, would otherwise commit again under the same
+                # approval; refused, its effect goes to reconciliation instead.
+                self._authorized = None
+            self._cdp.send("Fetch.continueRequest", {"requestId": request_id})
+            return
+        self._navigation_blocked = True
+        self._block_reason = reason
+        self.events.append({"event": "navigation_blocked", "reason": reason})
+        self._cdp.send(
+            "Fetch.failRequest", {"requestId": request_id, "errorReason": "BlockedByClient"}
+        )
 
     def quiesce(self, timeout_ms: int = 5000) -> Quiescence:
         started = time.monotonic()
@@ -599,6 +654,47 @@ class WebSurface:
             return None
         return p.element.value.text if p.element.value is not None else p.element.name.text
 
+    def row_raw(self, ref: str, columns: Sequence[str]) -> dict[str, str | None]:
+        """Raw text of ``ref``'s table row under each column header; None where unreadable.
+
+        Engine-only, like ``extract_raw``: reconciliation compares these values - balances,
+        creation dates - and nothing may log them. A secret cell is never read.
+        """
+        p = self._perceived.get(ref)
+        if p is None or p.element.name.cls.level == "secret":
+            return dict.fromkeys(columns)
+        try:
+            row = self._locate(Action("read", ref=ref)).locator("xpath=ancestor::tr[1]")
+            table = row.locator("xpath=ancestor::table[1]")
+            headers = [h.inner_text().strip()
+                       for h in table.locator("tr").first.locator("th").all()]
+            cells = row.locator(":scope > td, :scope > th").all()
+        except (PlaywrightError, LookupError):
+            return dict.fromkeys(columns)
+        out: dict[str, str | None] = {}
+        for column in columns:
+            i = headers.index(column) if column in headers else -1
+            out[column] = self._cell_raw(cells[i]) if 0 <= i < len(cells) else None
+        return out
+
+    def _cell_raw(self, cell: Locator) -> str | None:
+        """One cell's raw text through the same door as ``extract_raw``.
+
+        Every cell read is looked up in the classified snapshot: a secret anywhere in it is
+        withheld, and a cell perception never classified is not read at all.
+        """
+        try:
+            refs = (cell.get_attribute(REF_ATTR) or "").split()
+        except PlaywrightError:
+            return None
+        perceived = [ref for ref in refs if ref in self._perceived]
+        if not perceived:
+            return None
+        texts = [self.extract_raw(ref) for ref in perceived]
+        if any(text is None for text in texts):
+            return None
+        return (texts[0] or "").strip()
+
     def capture_evidence(self) -> Evidence:
         """Screenshot with every element the evidence sink may not see blacked out.
 
@@ -625,6 +721,14 @@ class WebSurface:
             except PlaywrightError:
                 continue
         return out
+
+
+def _request_key(method: str, url: str) -> tuple[object, ...]:
+    """A request's identity for authorization: method, origin, decoded path, sorted query."""
+    parts = urlsplit(url)
+    query = tuple(sorted(parse_qsl(parts.query, keep_blank_values=True)))
+    return (method.upper(), parts.scheme, parts.netloc.lower(), unquote(parts.path or "/"),
+            query)
 
 
 def _hidden_from_evidence(element: RawElement) -> bool:

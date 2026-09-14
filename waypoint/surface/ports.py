@@ -172,7 +172,8 @@ class Evidence:
 class Surface(Protocol):
     """What every surface - web, desktop, anything - must offer.
 
-    ``act`` gains a lease token in milestone A7 (PLAN.md R-PROC-4).
+    Control-lease enforcement (PLAN.md R-PROC-4) is the adapter's: ``WebSurface``
+    checks its ``lease_guard`` before every action.
     """
 
     def observe(self) -> UISnapshot: ...

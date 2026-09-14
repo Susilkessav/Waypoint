@@ -6,8 +6,14 @@ string matters: the console is a frameset, so a run navigates several URLs the
 harness never writes by hand, and a query parameter would be lost at the first
 frame load. It also gives `waypoint replay --inject X` one place to set state.
 
-Milestone A2 implements the three injections that A4 and A7 need test fixtures
-for. The remaining six arrive in B1.
+Milestone A2 implemented the injections A4 and A7 needed; B1 adds the rest, which
+belong to the sub-account flow: a slow page, a hard 500, an interstitial, an expired
+session, a validation refusal, a renamed control, a commit whose response is dropped,
+and a stale confirmation page.
+
+Injections that would otherwise make a run impossible - the interstitial and the expired
+session - fire **once** per session. An obstacle that never clears is not a recoverable
+failure, it is a wall, and a remedy could never be shown to work against it.
 """
 
 from __future__ import annotations
@@ -16,19 +22,29 @@ from collections.abc import Iterable
 
 from flask import session
 
-from target_app.data import Member, branch_roster
+from target_app.data import RESTRICTED_MEMBER_ID, Member, branch_roster
 
 SESSION_KEY = "wp_inject"
+ONCE_KEY = "wp_inject_fired"
 CLEAR_VALUE = "none"
 
-#: Implemented in A2. B1 adds: slow, 500, interstitial, session, validation,
-#: drift, commit_then_drop, stale_confirmation.
 SUPPORTED = frozenset(
     {
+        # A2
         "ambiguous",  # duplicates a control so two elements match  -> escalate
         "row_missing",  # target row absent, no banner              -> tests R-LOC-5
         "reorder",  # rows re-sorted, positions shift               -> tests R-LOC-5
         "wrong_member",  # detail shows a different member          -> tests R-RESUME-5
+        # B1
+        "slow",  # the page takes seconds to settle                 -> recoverable
+        "500",  # the server fails outright                         -> hard failure
+        "interstitial",  # a notice stands in the way, once         -> recoverable
+        "session",  # the sign-on lapses mid-flow, once             -> recoverable
+        "validation",  # the application refuses the input          -> business outcome
+        "drift",  # the submit control is renamed                   -> tier degradation
+        "commit_then_drop",  # committed, response lost             -> tests R-REC-3
+        "stale_confirmation",  # an older, unrelated confirmation   -> tests R-REC-2
+        "resubmit",  # commit, then 307 back to itself, once        -> one approval, one request
     }
 )
 
@@ -44,8 +60,10 @@ def absorb_query_param(raw: str | None) -> None:
     value = raw.strip().lower()
     if value == CLEAR_VALUE:
         session.pop(SESSION_KEY, None)
-    elif value in SUPPORTED:
+        session.pop(ONCE_KEY, None)
+    elif value in SUPPORTED and session.get(SESSION_KEY) != value:
         session[SESSION_KEY] = value
+        session.pop(ONCE_KEY, None)  # a re-armed injection has not fired yet
 
 
 def active() -> str | None:
@@ -90,3 +108,63 @@ def displayed_member_id(requested: str) -> str:
     if requested not in roster or len(roster) < 2:
         return requested
     return roster[(roster.index(requested) + 1) % len(roster)]
+
+
+def _fires_once(name: str) -> bool:
+    """True the first time `name` is active in this session, False after that."""
+    if not is_active(name):
+        return False
+    fired = set(session.get(ONCE_KEY, []))
+    if name in fired:
+        return False
+    session[ONCE_KEY] = sorted(fired | {name})
+    return True
+
+
+def interstitial_due() -> bool:
+    """A notice page stands between the operator and the screen they asked for."""
+    return _fires_once("interstitial")
+
+
+def session_lapses_now() -> bool:
+    """The sign-on expires mid-flow; the next request lands on the login screen."""
+    return _fires_once("session")
+
+
+def delay_seconds() -> float:
+    """How long the sub-account screens take to answer. Slow is not broken."""
+    return 2.0 if is_active("slow") else 0.0
+
+
+def fails_hard() -> bool:
+    return is_active("500")
+
+
+def refuses_input() -> bool:
+    """The application rejects the request itself - a business outcome, not a fault."""
+    return is_active("validation")
+
+
+def submit_label(default: str) -> str:
+    """Under `drift` the control keeps its id and loses its name: tier 1 stops matching."""
+    return "Continue" if is_active("drift") else default
+
+
+def drops_response_after_commit() -> bool:
+    """The commit lands and the answer never arrives - indistinguishable, from outside,
+    from a request that never arrived at all. That is the whole point (R-REC-3)."""
+    return is_active("commit_then_drop")
+
+
+def resubmits_once() -> bool:
+    """After committing, answer 307 to the same URL: the browser sends the commit again."""
+    return _fires_once("resubmit")
+
+
+def serves_stale_confirmation() -> bool:
+    return is_active("stale_confirmation")
+
+
+def authorized(member_id: str) -> bool:
+    """One member nobody may service: a refusal that is an answer, not a failure."""
+    return member_id != RESTRICTED_MEMBER_ID

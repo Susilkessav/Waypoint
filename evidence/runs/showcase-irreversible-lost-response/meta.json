@@ -1,0 +1,16 @@
+{
+  "run_id": "20260914T060955Z-eb7f91",
+  "capability_id": "open_sub_account",
+  "version": "1.0.0",
+  "variant": "base",
+  "content_hash": "sha256:36a0a85423f08c734cfd215945d27e6c54069ec32868d034e768136022babadf",
+  "approved": true,
+  "approval_reasons": [],
+  "inputs": {
+    "member_id": "‹$inputs.member_id›",
+    "account_type": "Money Market",
+    "initial_deposit": "‹$inputs.initial_deposit›"
+  },
+  "origin": "http://127.0.0.1:55524",
+  "started_at": "2026-09-14T06:09:55+00:00"
+}

@@ -25,6 +25,9 @@ from pathlib import Path
 
 import pytest
 
+# The CLI loads a developer's .env (API key, credentials); no test may depend on one.
+os.environ.setdefault("WAYPOINT_NO_DOTENV", "1")
+
 READY_TIMEOUT_S = 20.0
 LOG_TAIL_CHARS = 4000
 
@@ -98,3 +101,28 @@ def live_server(target_app_log: Path) -> Iterator[str]:
             except subprocess.TimeoutExpired:
                 proc.kill()
                 proc.wait(timeout=5)
+
+
+@pytest.fixture
+def fresh_app(live_server: str) -> str:
+    """The live server with its server-side state cleared - sub-accounts outlive sessions."""
+    request = urllib.request.Request(f"{live_server}/_fixture/reset", data=b"", method="POST")
+    with urllib.request.urlopen(request, timeout=10):
+        pass
+    return live_server
+
+
+@pytest.fixture(autouse=True)
+def _server_state_is_per_test(request: pytest.FixtureRequest) -> None:
+    """Every test that touches the live server starts with no sub-accounts.
+
+    Server-side state is the point of the fixture - a later run must see an earlier
+    commit - so without this, a test that opens accounts silently changes what the next
+    test's grids contain, and results depend on file order.
+    """
+    if "live_server" not in request.fixturenames:
+        return
+    base = request.getfixturevalue("live_server")
+    reset = urllib.request.Request(f"{base}/_fixture/reset", data=b"", method="POST")
+    with urllib.request.urlopen(reset, timeout=10):
+        pass

@@ -1,0 +1,32 @@
+<html>
+<head><title>Review Sub-Account</title></head>
+<body bgcolor="#FFFFFF" style="font-family: Verdana, Arial, sans-serif; font-size: 11px;">
+<table cellpadding="0" cellspacing="0" border="0" width="100%">
+  <tr><td bgcolor="#DDDDD0" height="22">&nbsp;<b>Review Sub-Account</b></td></tr>
+</table>
+<br>
+Please review. Opening the sub-account cannot be undone from this console.
+<br><br>
+<table cellpadding="5" cellspacing="0" border="0">
+  <tr><td>Member ID</td><td id="ctl00_MainContent_lblMemberId">{{ member.member_id }}</td></tr>
+  <tr><td>Account type</td><td id="ctl00_MainContent_lblType">{{ kind }}</td></tr>
+  <tr><td>Initial deposit</td><td id="ctl00_MainContent_lblDeposit">{{ deposit }}</td></tr>
+</table>
+<br>
+<!-- Confirm is a GET. It commits. No verb list would call this link dangerous;
+     only the route it resolves to says so (PLAN.md R-RISK-3). -->
+<a id="ctl00_MainContent_lnkConfirm"
+   href="/console/subaccount/confirm?member_id={{ member.member_id }}&type={{ kind|urlencode }}&cents={{ cents }}">Confirm</a>
+&nbsp;
+<a id="ctl00_MainContent_lnkAmend"
+   href="/console/subaccount/new?member_id={{ member.member_id }}">Amend</a>
+&nbsp;
+<!-- No text, no title, no alt, no aria-label - and it deletes this member's most
+     recent sub-account (PLAN.md R-RISK-5). An empty accessible name is 'unknown',
+     never 'safe'. -->
+<a id="ctl00_MainContent_lnkDiscard"
+   href="/console/subaccount/delete?member_id={{ member.member_id }}"><img
+   src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+   width="14" height="14" border="0" alt=""></a>
+</body>
+</html>

@@ -18,6 +18,7 @@ readonly_routes:
   - "POST /"                  # sign-on: establishes a session
   - "POST /console/search"    # member search
   - "POST /console/member"    # member-detail tab postbacks (__doPostBack)
+  - "POST /console/subaccount/review"  # renders a review page; the commit is Confirm (a GET)
 irreversible_verbs: [transfer, submit, confirm, delete, remove, close, wire, disburse,
                      post, approve, send, pay, withdraw, freeze]
 unknown_state_policy: safe_only

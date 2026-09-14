@@ -176,3 +176,89 @@ def test_redirect_outside_allowed_routes_is_blocked_before_request():
         server.shutdown()
         server.server_close()
         worker.join(timeout=5)
+
+
+def _signed_in_origin(surface) -> str:
+    open_member(surface)
+    return surface.page.url.split("/console")[0]
+
+
+def _sub_accounts(surface, origin: str) -> str:
+    return surface.page.context.request.get(
+        f"{origin}/console/member/accounts?member_id=12345").text()
+
+
+EXPRESS = "/console/subaccount/express?member_id=12345&type=Money%20Market&cents=25000"
+
+
+def test_a_redirect_into_a_commit_is_refused_while_the_agent_drives(surface, fresh_app):
+    """Review finding P1: the action targets a harmless route; the server's redirect hop is
+    the commit. Classified by its own URL alone, it ran unattended and reported success."""
+    origin = _signed_in_origin(surface)
+    surface.context = RunContext(unattended=True, state_known=True)
+    result = surface.act(Action("navigate", url=f"{origin}{EXPRESS}"))
+    assert not result.ok and result.error_code == "policy_block"
+    assert result.error == "navigation_unauthorized_mutation"
+    assert {"event": "navigation_blocked", "reason": "unauthorized_mutation"} in surface.events
+    assert "SA-12345" not in _sub_accounts(surface, origin)
+
+
+def test_a_page_that_navigates_itself_into_a_commit_is_refused(surface, fresh_app):
+    """No action authorized it at all - a script, a meta refresh, a stray link."""
+    from playwright.sync_api import Error as PlaywrightError
+
+    origin = _signed_in_origin(surface)
+    with pytest.raises(PlaywrightError):
+        surface.page.goto(f"{origin}{EXPRESS}")
+    assert "SA-12345" not in _sub_accounts(surface, origin)
+
+
+def test_the_approved_commit_itself_still_goes_through(surface, fresh_app):
+    """Authorization is per request: the Confirm an operator approved is exactly the
+    request its action named, so it passes - and nothing else it causes would."""
+    origin = _signed_in_origin(surface)
+    surface.page.set_content(
+        f"<a href='{origin}/console/subaccount/confirm?member_id=12345&type=Money Market"
+        f"&amp;cents=25000'>Confirm</a>".replace("Money Market&amp;", "Money%20Market&"))
+    target = find(surface.observe(), "link", name="Confirm")
+    result = surface.act(Action("click", ref=target.ref))
+    assert result.ok, result.error
+    assert "SA-12345-01" in _sub_accounts(surface, origin)
+
+
+def test_a_person_in_control_may_commit_by_hand(surface, fresh_app):
+    """During a handoff the person drives: their Confirm is recorded and reconciled, not
+    policed - the handed-over intent is what keeps it from being repeated."""
+    origin = _signed_in_origin(surface)
+    surface.human_in_control = True
+    surface.page.goto(f"{origin}{EXPRESS}")
+    assert "SA-12345-01" in _sub_accounts(surface, origin)
+
+
+def test_one_approval_permits_one_request(surface, fresh_app):
+    """Review finding P1: the commit answered 307 to itself and the browser sent it again
+    under the same approval. Authorization is consumed as the first request is sent."""
+    origin = _signed_in_origin(surface)
+    surface.page.goto(f"{origin}/console/content?inject=resubmit")
+    surface.page.set_content(
+        f"<a href='{origin}/console/subaccount/confirm?member_id=12345"
+        f"&type=Money%20Market&cents=25000'>Confirm</a>")
+    target = find(surface.observe(), "link", name="Confirm")
+    result = surface.act(Action("click", ref=target.ref))
+    assert not result.ok and result.error == "navigation_unauthorized_mutation"
+    accounts = _sub_accounts(surface, origin)
+    assert "SA-12345-01" in accounts and "SA-12345-02" not in accounts
+
+
+def test_row_reads_withhold_every_secret_cell(surface):
+    """Review finding P1: starting from a public Type cell, the Password column came back
+    raw. Every cell read is checked against the classified snapshot."""
+    surface.page.set_content(
+        "<table><tr><th>Type</th><th>Password</th><th>Balance</th></tr>"
+        "<tr><td>Money Market</td><td>hunter2-not-real</td><td>$250.00</td></tr></table>")
+    snap = surface.observe()
+    kind = find(snap, "cell", name="Money Market")
+    secret = next(e for e in snap.elements if e.role == "cell" and e.anchors[:1] == ("Password",))
+    assert surface.extract_raw(secret.ref) is None
+    values = surface.row_raw(kind.ref, ["Type", "Password", "Balance"])
+    assert values == {"Type": "Money Market", "Password": None, "Balance": "$250.00"}

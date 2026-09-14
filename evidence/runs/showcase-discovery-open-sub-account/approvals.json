@@ -1,0 +1,8 @@
+[
+  {
+    "reason": "risky_action",
+    "risk": "irreversible",
+    "intent": "Click Confirm to create the sub-account with the specified details",
+    "approved": true
+  }
+]

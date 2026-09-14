@@ -1,0 +1,810 @@
+{
+  "url": "http://127.0.0.1:55524/console/member?member_id=‹$inputs.member_id›&tab=‹redacted›",
+  "title": "Member Profile",
+  "elements": [
+    {
+      "ref": "1fb4c7646536g51-e1",
+      "role": "LayoutTableCell",
+      "name": "Member Profile",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main"
+      ],
+      "bbox": [
+        8,
+        8,
+        1264,
+        22
+      ],
+      "anchors": [],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    },
+    {
+      "ref": "1fb4c7646536g51-e2",
+      "role": "LayoutTableCell",
+      "name": "Member ID",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main"
+      ],
+      "bbox": [
+        8,
+        43,
+        100,
+        29
+      ],
+      "anchors": [
+        "‹$inputs.member_id›"
+      ],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    },
+    {
+      "ref": "1fb4c7646536g51-e3",
+      "role": "LayoutTableCell",
+      "name": "‹$inputs.member_id›",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main"
+      ],
+      "bbox": [
+        108,
+        43,
+        147,
+        29
+      ],
+      "anchors": [
+        "Member ID"
+      ],
+      "sensitivity": "public",
+      "name_sensitivity": "internal"
+    },
+    {
+      "ref": "1fb4c7646536g51-e4",
+      "role": "LayoutTableCell",
+      "name": "Name",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main"
+      ],
+      "bbox": [
+        8,
+        72,
+        100,
+        29
+      ],
+      "anchors": [
+        "‹redacted:17 chars›"
+      ],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    },
+    {
+      "ref": "1fb4c7646536g51-e5",
+      "role": "LayoutTableCell",
+      "name": "‹redacted:17 chars›",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main"
+      ],
+      "bbox": [
+        108,
+        72,
+        147,
+        29
+      ],
+      "anchors": [
+        "Name"
+      ],
+      "sensitivity": "public",
+      "name_sensitivity": "pii"
+    },
+    {
+      "ref": "1fb4c7646536g51-e6",
+      "role": "LayoutTableCell",
+      "name": "Branch",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main"
+      ],
+      "bbox": [
+        8,
+        101,
+        100,
+        29
+      ],
+      "anchors": [
+        "BR-014"
+      ],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    },
+    {
+      "ref": "1fb4c7646536g51-e7",
+      "role": "LayoutTableCell",
+      "name": "BR-014",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main"
+      ],
+      "bbox": [
+        108,
+        101,
+        147,
+        29
+      ],
+      "anchors": [
+        "Branch"
+      ],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    },
+    {
+      "ref": "1fb4c7646536g51-e8",
+      "role": "LayoutTableCell",
+      "name": "Status",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main"
+      ],
+      "bbox": [
+        8,
+        130,
+        100,
+        29
+      ],
+      "anchors": [
+        "active"
+      ],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    },
+    {
+      "ref": "1fb4c7646536g51-e9",
+      "role": "LayoutTableCell",
+      "name": "active",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main"
+      ],
+      "bbox": [
+        108,
+        130,
+        147,
+        29
+      ],
+      "anchors": [
+        "Status"
+      ],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    },
+    {
+      "ref": "1fb4c7646536g51-e10",
+      "role": "cell",
+      "name": "Summary",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main"
+      ],
+      "bbox": [
+        8,
+        172,
+        104,
+        29
+      ],
+      "anchors": [
+        "Accounts",
+        "Notes"
+      ],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    },
+    {
+      "ref": "1fb4c7646536g51-e11",
+      "role": "cell",
+      "name": "Accounts",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main"
+      ],
+      "bbox": [
+        112,
+        172,
+        98,
+        29
+      ],
+      "anchors": [
+        "Summary",
+        "Notes"
+      ],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    },
+    {
+      "ref": "1fb4c7646536g51-e12",
+      "role": "cell",
+      "name": "Notes",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main"
+      ],
+      "bbox": [
+        210,
+        172,
+        72,
+        29
+      ],
+      "anchors": [
+        "Summary",
+        "Accounts"
+      ],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    },
+    {
+      "ref": "1fb4c7646536g51-e13",
+      "role": "link",
+      "name": "Return to search",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main"
+      ],
+      "bbox": [
+        8,
+        414,
+        92,
+        13
+      ],
+      "anchors": [],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    },
+    {
+      "ref": "1fb4c7646536g51-e14",
+      "role": "columnheader",
+      "name": "Account",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "iframe#ctl00_MainContent_ifrAccounts"
+      ],
+      "bbox": [
+        27,
+        220,
+        217,
+        29
+      ],
+      "anchors": [
+        "Type",
+        "Balance",
+        "Status",
+        "Opened"
+      ],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    },
+    {
+      "ref": "1fb4c7646536g51-e15",
+      "role": "columnheader",
+      "name": "Type",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "iframe#ctl00_MainContent_ifrAccounts"
+      ],
+      "bbox": [
+        244,
+        220,
+        228,
+        29
+      ],
+      "anchors": [
+        "Account",
+        "Balance",
+        "Status",
+        "Opened"
+      ],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    },
+    {
+      "ref": "1fb4c7646536g51-e16",
+      "role": "columnheader",
+      "name": "Balance",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "iframe#ctl00_MainContent_ifrAccounts"
+      ],
+      "bbox": [
+        472,
+        220,
+        172,
+        29
+      ],
+      "anchors": [
+        "Account",
+        "Type",
+        "Status",
+        "Opened"
+      ],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    },
+    {
+      "ref": "1fb4c7646536g51-e17",
+      "role": "columnheader",
+      "name": "Status",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "iframe#ctl00_MainContent_ifrAccounts"
+      ],
+      "bbox": [
+        644,
+        220,
+        125,
+        29
+      ],
+      "anchors": [
+        "Account",
+        "Type",
+        "Balance",
+        "Opened"
+      ],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    },
+    {
+      "ref": "1fb4c7646536g51-e18",
+      "role": "columnheader",
+      "name": "Opened",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "iframe#ctl00_MainContent_ifrAccounts"
+      ],
+      "bbox": [
+        769,
+        220,
+        484,
+        29
+      ],
+      "anchors": [
+        "Account",
+        "Type",
+        "Balance",
+        "Status"
+      ],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    },
+    {
+      "ref": "1fb4c7646536g51-e19",
+      "role": "cell",
+      "name": "‹redacted:11 chars›",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "iframe#ctl00_MainContent_ifrAccounts"
+      ],
+      "bbox": [
+        27,
+        249,
+        217,
+        29
+      ],
+      "anchors": [
+        "Account",
+        "Savings",
+        "‹redacted:9 chars›",
+        "active",
+        "‹redacted:1 chars›"
+      ],
+      "sensitivity": "public",
+      "name_sensitivity": "internal"
+    },
+    {
+      "ref": "1fb4c7646536g51-e20",
+      "role": "cell",
+      "name": "Savings",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "iframe#ctl00_MainContent_ifrAccounts"
+      ],
+      "bbox": [
+        244,
+        249,
+        228,
+        29
+      ],
+      "anchors": [
+        "Type",
+        "‹redacted:11 chars›",
+        "‹redacted:9 chars›",
+        "active",
+        "‹redacted:1 chars›"
+      ],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    },
+    {
+      "ref": "1fb4c7646536g51-e21",
+      "role": "cell",
+      "name": "‹redacted:9 chars›",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "iframe#ctl00_MainContent_ifrAccounts"
+      ],
+      "bbox": [
+        472,
+        249,
+        172,
+        29
+      ],
+      "anchors": [
+        "Balance",
+        "‹redacted:11 chars›",
+        "Savings",
+        "active",
+        "‹redacted:1 chars›"
+      ],
+      "sensitivity": "public",
+      "name_sensitivity": "pii"
+    },
+    {
+      "ref": "1fb4c7646536g51-e22",
+      "role": "cell",
+      "name": "active",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "iframe#ctl00_MainContent_ifrAccounts"
+      ],
+      "bbox": [
+        644,
+        249,
+        125,
+        29
+      ],
+      "anchors": [
+        "Status",
+        "‹redacted:11 chars›",
+        "Savings",
+        "‹redacted:9 chars›",
+        "‹redacted:1 chars›"
+      ],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    },
+    {
+      "ref": "1fb4c7646536g51-e23",
+      "role": "cell",
+      "name": "‹redacted:1 chars›",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "iframe#ctl00_MainContent_ifrAccounts"
+      ],
+      "bbox": [
+        769,
+        249,
+        484,
+        29
+      ],
+      "anchors": [
+        "Opened",
+        "‹redacted:11 chars›",
+        "Savings",
+        "‹redacted:9 chars›",
+        "active"
+      ],
+      "sensitivity": "public",
+      "name_sensitivity": "internal"
+    },
+    {
+      "ref": "1fb4c7646536g51-e24",
+      "role": "cell",
+      "name": "‹redacted:11 chars›",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "iframe#ctl00_MainContent_ifrAccounts"
+      ],
+      "bbox": [
+        27,
+        278,
+        217,
+        29
+      ],
+      "anchors": [
+        "Account",
+        "Checking",
+        "‹redacted:7 chars›",
+        "active",
+        "‹redacted:1 chars›"
+      ],
+      "sensitivity": "public",
+      "name_sensitivity": "internal"
+    },
+    {
+      "ref": "1fb4c7646536g51-e25",
+      "role": "cell",
+      "name": "Checking",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "iframe#ctl00_MainContent_ifrAccounts"
+      ],
+      "bbox": [
+        244,
+        278,
+        228,
+        29
+      ],
+      "anchors": [
+        "Type",
+        "‹redacted:11 chars›",
+        "‹redacted:7 chars›",
+        "active",
+        "‹redacted:1 chars›"
+      ],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    },
+    {
+      "ref": "1fb4c7646536g51-e26",
+      "role": "cell",
+      "name": "‹redacted:7 chars›",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "iframe#ctl00_MainContent_ifrAccounts"
+      ],
+      "bbox": [
+        472,
+        278,
+        172,
+        29
+      ],
+      "anchors": [
+        "Balance",
+        "‹redacted:11 chars›",
+        "Checking",
+        "active",
+        "‹redacted:1 chars›"
+      ],
+      "sensitivity": "public",
+      "name_sensitivity": "pii"
+    },
+    {
+      "ref": "1fb4c7646536g51-e27",
+      "role": "cell",
+      "name": "active",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "iframe#ctl00_MainContent_ifrAccounts"
+      ],
+      "bbox": [
+        644,
+        278,
+        125,
+        29
+      ],
+      "anchors": [
+        "Status",
+        "‹redacted:11 chars›",
+        "Checking",
+        "‹redacted:7 chars›",
+        "‹redacted:1 chars›"
+      ],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    },
+    {
+      "ref": "1fb4c7646536g51-e28",
+      "role": "cell",
+      "name": "‹redacted:1 chars›",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "iframe#ctl00_MainContent_ifrAccounts"
+      ],
+      "bbox": [
+        769,
+        278,
+        484,
+        29
+      ],
+      "anchors": [
+        "Opened",
+        "‹redacted:11 chars›",
+        "Checking",
+        "‹redacted:7 chars›",
+        "active"
+      ],
+      "sensitivity": "public",
+      "name_sensitivity": "internal"
+    },
+    {
+      "ref": "1fb4c7646536g51-e29",
+      "role": "cell",
+      "name": "‹redacted:11 chars›",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "iframe#ctl00_MainContent_ifrAccounts"
+      ],
+      "bbox": [
+        27,
+        307,
+        217,
+        29
+      ],
+      "anchors": [
+        "Account",
+        "Money Market",
+        "‹redacted:7 chars›",
+        "active",
+        "‹redacted:27 chars›"
+      ],
+      "sensitivity": "public",
+      "name_sensitivity": "internal"
+    },
+    {
+      "ref": "1fb4c7646536g51-e30",
+      "role": "cell",
+      "name": "Money Market",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "iframe#ctl00_MainContent_ifrAccounts"
+      ],
+      "bbox": [
+        244,
+        307,
+        228,
+        29
+      ],
+      "anchors": [
+        "Type",
+        "‹redacted:11 chars›",
+        "‹redacted:7 chars›",
+        "active",
+        "‹redacted:27 chars›"
+      ],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    },
+    {
+      "ref": "1fb4c7646536g51-e31",
+      "role": "cell",
+      "name": "‹redacted:7 chars›",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "iframe#ctl00_MainContent_ifrAccounts"
+      ],
+      "bbox": [
+        472,
+        307,
+        172,
+        29
+      ],
+      "anchors": [
+        "Balance",
+        "‹redacted:11 chars›",
+        "Money Market",
+        "active",
+        "‹redacted:27 chars›"
+      ],
+      "sensitivity": "public",
+      "name_sensitivity": "pii"
+    },
+    {
+      "ref": "1fb4c7646536g51-e32",
+      "role": "cell",
+      "name": "active",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "iframe#ctl00_MainContent_ifrAccounts"
+      ],
+      "bbox": [
+        644,
+        307,
+        125,
+        29
+      ],
+      "anchors": [
+        "Status",
+        "‹redacted:11 chars›",
+        "Money Market",
+        "‹redacted:7 chars›",
+        "‹redacted:27 chars›"
+      ],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    },
+    {
+      "ref": "1fb4c7646536g51-e33",
+      "role": "cell",
+      "name": "‹redacted:27 chars›",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "iframe#ctl00_MainContent_ifrAccounts"
+      ],
+      "bbox": [
+        769,
+        307,
+        484,
+        29
+      ],
+      "anchors": [
+        "Opened",
+        "‹redacted:11 chars›",
+        "Money Market",
+        "‹redacted:7 chars›",
+        "active"
+      ],
+      "sensitivity": "public",
+      "name_sensitivity": "pii"
+    }
+  ],
+  "text_digest": "Member Profile | Member ID | ‹$inputs.member_id› | Name | ‹redacted:17 chars› | Branch | BR-014 | Status | active | Summary | Accounts | Notes | Return to search | Account | Type | Balance | Opened | ‹redacted:11 chars› | Savings | ‹redacted:9 chars› | ‹redacted:1 chars› | Checking | ‹redacted:7 chars› | Money Market | ‹redacted:27 chars›",
+  "hash": "b6906eacf46ca2e9",
+  "frame_urls": [
+    [
+      [
+        "main"
+      ],
+      "http://127.0.0.1:55524/console/member?member_id=‹$inputs.member_id›&tab=‹redacted›"
+    ],
+    [
+      [
+        "main",
+        "iframe#ctl00_MainContent_ifrAccounts"
+      ],
+      "http://127.0.0.1:55524/console/member/accounts?member_id=‹$inputs.member_id›"
+    ]
+  ]
+}

@@ -50,3 +50,6 @@ Thumbs.db
 .vscode/
 *.swp
 .claude/
+
+# Local operational state (leases, interventions, intents) - never evidence
+.waypoint/

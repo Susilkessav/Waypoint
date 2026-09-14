@@ -11,6 +11,8 @@ from playwright.sync_api import Frame, Locator
 from waypoint.surface.locators import Candidate, Identity, LocatorBundle, TextTarget, compile_bundle
 from waypoint.surface.ports import Action
 
+SIBLING_CELLS = "xpath=preceding-sibling::td | following-sibling::td"
+
 if TYPE_CHECKING:
     from waypoint.surface.web import WebSurface
 
@@ -56,6 +58,12 @@ class WebMatcher:
                         for i, header in enumerate(headers.all()):
                             if header.inner_text().strip() == c.column:
                                 result.append(row.locator(":scope > td, :scope > th").nth(i))
+                    elif c.name is None and c.role in ("cell", "LayoutTableCell"):
+                        # A label/value row: the value sits beside its label and is never
+                        # the label itself. Selecting every cell of the row would count the
+                        # anchor too, so no such candidate could ever be unique - and every
+                        # confirmation page is built of exactly these rows.
+                        result.append(a.locator(SIBLING_CELLS))
                     else:
                         result.append(role_locator(row, c.role or "", c.name))
         return result
@@ -92,12 +100,16 @@ class WebMatcher:
         row = loc.locator("xpath=ancestor::tr[1]")
         return row.count() == 1 and role_locator(row, identity.target.role, expected).count() == 1
 
-    def synthesize(self, ref: str, inputs: Mapping[str, str]) -> LocatorBundle:
+    def synthesize(
+        self, ref: str, inputs: Mapping[str, str], *, extraction: bool = False
+    ) -> LocatorBundle:
         p = self.surface._perceived.get(ref)
         if p is None:
             raise ValueError("target is not in the current observation")
         e = p.element
-        name = e.name.text if e.name.cls.level == "public" else None
+        # An output is located by its labels and row, never by the value it holds
+        # (R-SENS-7): a locator keyed on "active" can never find a dormant member.
+        name = None if extraction else (e.name.text if e.name.cls.level == "public" else None)
         candidates: list[Candidate] = []
         if name is not None:
             candidates.append(

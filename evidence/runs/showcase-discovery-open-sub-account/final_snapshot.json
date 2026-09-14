@@ -1,0 +1,434 @@
+{
+  "url": "http://127.0.0.1:8767/console",
+  "title": "Meridian Servicing Console",
+  "elements": [
+    {
+      "ref": "2c57e0c9d4f8g20-e1",
+      "role": "LayoutTableCell",
+      "name": "Servicing",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "nav"
+      ],
+      "bbox": [
+        8,
+        8,
+        164,
+        27
+      ],
+      "anchors": [],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    },
+    {
+      "ref": "2c57e0c9d4f8g20-e2",
+      "role": "link",
+      "name": "Member Search",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "nav"
+      ],
+      "bbox": [
+        12,
+        39,
+        126,
+        19
+      ],
+      "anchors": [],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    },
+    {
+      "ref": "2c57e0c9d4f8g20-e3",
+      "role": "LayoutTableCell",
+      "name": "Transactions",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "nav"
+      ],
+      "bbox": [
+        8,
+        62,
+        164,
+        27
+      ],
+      "anchors": [],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    },
+    {
+      "ref": "2c57e0c9d4f8g20-e4",
+      "role": "LayoutTableCell",
+      "name": "Reports",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "nav"
+      ],
+      "bbox": [
+        8,
+        89,
+        164,
+        27
+      ],
+      "anchors": [],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    },
+    {
+      "ref": "2c57e0c9d4f8g20-e5",
+      "role": "link",
+      "name": "Sign Off",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "nav"
+      ],
+      "bbox": [
+        12,
+        147,
+        65,
+        19
+      ],
+      "anchors": [],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    },
+    {
+      "ref": "2c57e0c9d4f8g20-e6",
+      "role": "LayoutTableCell",
+      "name": "Sub-Account Opened",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "content"
+      ],
+      "bbox": [
+        189,
+        8,
+        1083,
+        22
+      ],
+      "anchors": [],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    },
+    {
+      "ref": "2c57e0c9d4f8g20-e7",
+      "role": "LayoutTableCell",
+      "name": "Confirmation",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "content"
+      ],
+      "bbox": [
+        189,
+        43,
+        144,
+        29
+      ],
+      "anchors": [
+        "CN-‹$inputs.member_id›-9F17"
+      ],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    },
+    {
+      "ref": "2c57e0c9d4f8g20-e8",
+      "role": "LayoutTableCell",
+      "name": "CN-‹$inputs.member_id›-9F17",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "content"
+      ],
+      "bbox": [
+        333,
+        43,
+        261,
+        29
+      ],
+      "anchors": [
+        "Confirmation"
+      ],
+      "sensitivity": "public",
+      "name_sensitivity": "internal"
+    },
+    {
+      "ref": "2c57e0c9d4f8g20-e9",
+      "role": "LayoutTableCell",
+      "name": "Member ID",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "content"
+      ],
+      "bbox": [
+        189,
+        72,
+        144,
+        29
+      ],
+      "anchors": [
+        "‹$inputs.member_id›"
+      ],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    },
+    {
+      "ref": "2c57e0c9d4f8g20-e10",
+      "role": "LayoutTableCell",
+      "name": "‹$inputs.member_id›",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "content"
+      ],
+      "bbox": [
+        333,
+        72,
+        261,
+        29
+      ],
+      "anchors": [
+        "Member ID"
+      ],
+      "sensitivity": "public",
+      "name_sensitivity": "internal"
+    },
+    {
+      "ref": "2c57e0c9d4f8g20-e11",
+      "role": "LayoutTableCell",
+      "name": "Account",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "content"
+      ],
+      "bbox": [
+        189,
+        101,
+        144,
+        29
+      ],
+      "anchors": [
+        "‹redacted:11 chars›"
+      ],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    },
+    {
+      "ref": "2c57e0c9d4f8g20-e12",
+      "role": "LayoutTableCell",
+      "name": "‹redacted:11 chars›",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "content"
+      ],
+      "bbox": [
+        333,
+        101,
+        261,
+        29
+      ],
+      "anchors": [
+        "Account"
+      ],
+      "sensitivity": "public",
+      "name_sensitivity": "internal"
+    },
+    {
+      "ref": "2c57e0c9d4f8g20-e13",
+      "role": "LayoutTableCell",
+      "name": "Account type",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "content"
+      ],
+      "bbox": [
+        189,
+        130,
+        144,
+        29
+      ],
+      "anchors": [
+        "‹redacted:12 chars›"
+      ],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    },
+    {
+      "ref": "2c57e0c9d4f8g20-e14",
+      "role": "LayoutTableCell",
+      "name": "‹redacted:12 chars›",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "content"
+      ],
+      "bbox": [
+        333,
+        130,
+        261,
+        29
+      ],
+      "anchors": [
+        "Account type"
+      ],
+      "sensitivity": "public",
+      "name_sensitivity": "internal"
+    },
+    {
+      "ref": "2c57e0c9d4f8g20-e15",
+      "role": "LayoutTableCell",
+      "name": "Opening balance",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "content"
+      ],
+      "bbox": [
+        189,
+        159,
+        144,
+        29
+      ],
+      "anchors": [
+        "‹redacted:7 chars›"
+      ],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    },
+    {
+      "ref": "2c57e0c9d4f8g20-e16",
+      "role": "LayoutTableCell",
+      "name": "‹redacted:7 chars›",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "content"
+      ],
+      "bbox": [
+        333,
+        159,
+        261,
+        29
+      ],
+      "anchors": [
+        "Opening balance"
+      ],
+      "sensitivity": "public",
+      "name_sensitivity": "pii"
+    },
+    {
+      "ref": "2c57e0c9d4f8g20-e17",
+      "role": "LayoutTableCell",
+      "name": "Opened",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "content"
+      ],
+      "bbox": [
+        189,
+        188,
+        144,
+        29
+      ],
+      "anchors": [
+        "‹redacted› 02:24:59.550 UTC"
+      ],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    },
+    {
+      "ref": "2c57e0c9d4f8g20-e18",
+      "role": "LayoutTableCell",
+      "name": "‹redacted› 02:24:59.550 UTC",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "content"
+      ],
+      "bbox": [
+        333,
+        188,
+        261,
+        29
+      ],
+      "anchors": [
+        "Opened"
+      ],
+      "sensitivity": "public",
+      "name_sensitivity": "pii"
+    },
+    {
+      "ref": "2c57e0c9d4f8g20-e19",
+      "role": "link",
+      "name": "Back to member",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "content"
+      ],
+      "bbox": [
+        189,
+        230,
+        91,
+        13
+      ],
+      "anchors": [],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    }
+  ],
+  "text_digest": "Servicing | Member Search | Transactions | Reports | Sign Off | Sub-Account Opened | Confirmation | CN-‹$inputs.member_id›-9F17 | Member ID | ‹$inputs.member_id› | Account | ‹redacted:11 chars› | Account type | ‹redacted:12 chars› | Opening balance | ‹redacted:7 chars› | Opened | ‹redacted› 02:24:59.550 UTC | Back to member",
+  "hash": "d4672ba898ec5e31",
+  "frame_urls": [
+    [
+      [
+        "main"
+      ],
+      "http://127.0.0.1:8767/console"
+    ],
+    [
+      [
+        "main",
+        "nav"
+      ],
+      "http://127.0.0.1:8767/console/nav"
+    ],
+    [
+      [
+        "main",
+        "content"
+      ],
+      "http://127.0.0.1:8767/console/subaccount/confirm?member_id=‹$inputs.member_id›&type=‹redacted›&cents=‹redacted›"
+    ]
+  ]
+}

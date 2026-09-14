@@ -63,7 +63,7 @@ def test_installed_console_script_runs_outside_the_repo(tmp_path: Path) -> None:
 
 def test_unimplemented_command_exits_loudly(tmp_path: Path) -> None:
     """A stub must fail visibly rather than appear to succeed."""
-    result = _run_console_script("intervene", cwd=tmp_path)
+    result = _run_console_script("catalog", cwd=tmp_path)
     assert result.returncode == 2
     assert "not implemented" in result.stderr.lower()
 
