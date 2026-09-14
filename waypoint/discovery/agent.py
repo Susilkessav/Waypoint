@@ -75,7 +75,7 @@ class InputBinding:
 class DiscoveryOptions:
     capability_id: str
     goal: str
-    """May reference inputs as {{name}}; the model sees $inputs.name, never the value."""
+    """May reference inputs as {{name}}; rendered and scrubbed before model use or evidence."""
     entry: str
     inputs: Sequence[InputBinding]
     outputs: Sequence[OutputSpecDecl]
@@ -136,7 +136,8 @@ class _Discovery:
         self.redactor = Redactor(self.bindings)
         self.rendered = {b.name: binding_placeholder(b.name) for b in options.inputs
                          if b.sensitivity != "public"}
-        self.goal = render_goal(options.goal, [b.name for b in options.inputs])
+        self.goal = self.redactor.scrub(
+            render_goal(options.goal, [b.name for b in options.inputs]))
         self.run_id = EvidenceWriter.new_run_id()
         self.ev = EvidenceWriter(options.evidence_root, self.run_id, self.redactor)
         self.corrections = 0

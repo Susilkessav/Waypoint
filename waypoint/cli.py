@@ -102,7 +102,7 @@ def _next_version(root: Path, capability_id: str) -> str:
     from waypoint.artifact.schema import locate
 
     try:
-        highest = locate(root, capability_id).stem.partition("-")[0]
+        highest = locate(root, capability_id, release=False).stem.partition("-")[0]
     except FileNotFoundError:
         return "1.0.0"
     major, minor, _ = (int(x) for x in highest.split("."))
@@ -214,7 +214,8 @@ def discover(
                         "ANTHROPIC_API_KEY (exported, or in .env), or reproduce a recorded "
                         "run with --llm cassette", err=True, fg=typer.colors.RED)
             raise typer.Exit(code=1) from None
-        recording = Cassette(model=model, goal=goal)
+        # The discovery loop owns goal sanitization; never record the raw CLI argument.
+        recording = Cassette(model=model, goal="")
         decider = RecordingDecider(live, recording)
     else:
         typer.secho("--llm must be 'anthropic' or 'cassette'", err=True)
@@ -225,9 +226,10 @@ def discover(
         max_steps=max_steps, evidence_root=evidence_root, headed=headed,
         approve=_operator_approval,
     ))
-    if recording is not None:
-        recording.save(result.run_dir / "cassette.json")
     t = result.transcript
+    if recording is not None:
+        recording.goal = t.goal
+        recording.save(result.run_dir / "cassette.json")
     typer.secho(f"discovery {t.ending}: {len(t.steps)} actions; evidence in {result.run_dir}",
                 err=True)
     if t.ending != "finished":
