@@ -7,7 +7,6 @@ versioned **capability**. Production runs replay the capability deterministicall
 model deciding anything. When replay meets a state it will not act on, control transfers to a
 person on the same live session, and what they do is recorded as evidence.
 
-Built for the interface.ai Computer-Use Automation System assessment.
 Read the [design report](REPORT.md), inspect the [run evidence](evidence/README.md), or follow
 the [recording script](docs/demo-script.md) for a narrated demonstration.
 
