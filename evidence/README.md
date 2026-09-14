@@ -1,14 +1,37 @@
 # Evidence
 
-Each `runs/showcase-*` directory is one complete run: `artifact.json` (the exact
-artifact that ran), `meta.json`, `events.jsonl`, `result.json`, per-step screenshots and
-sanitized accessibility snapshots, and - where a person took part -
-`human/actions.jsonl` and a before/after `handoff1_diff.json`. Raw values never appear:
-outputs are redacted on disk and returned in full only to the caller.
+These saved runs demonstrate discovery, deterministic replay, error handling and
+handoff against the local fixture. Start with `showcase-discovery-haiku`, then
+`showcase-replay-success` and `showcase-handoff-ambiguous`.
 
-Replay showcases are produced by `scripts/showcase.py` from approved artifacts; in the
-handoff runs, the operator's part is played by that script through the same state
-store `waypoint intervene` uses.
+## Files in each run
+
+- **Discovery:** `transcript.json`, `cassette.json`, the compiled draft in
+  `artifact.json`, metadata, events and the final screenshot and snapshot. These
+  recordings were made with a live Claude model; a cassette reproduces its decisions
+  without another model call. Discovery uses a transcript ending, not `result.json`.
+- **Replay:** the exact approved `artifact.json`, `meta.json`, `events.jsonl`,
+  `result.json`, per-step screenshots and sanitized snapshots. Failure runs include
+  the stopped screen and diagnostic context.
+- **Handoff and reconciliation:** human actions in `human/actions.jsonl`, a
+  `handoff1_diff.json`, and reconciliation evidence where applicable. The showcase
+  script plays the operator through the same lease and intervention store used by
+  the CLI. The [manual demo](../README.md#demo-path) uses a person in the live
+  browser.
+
+Sensitive outputs are redacted in saved evidence; replay returns full outputs only
+to the caller. The target app and credentials are fictional fixtures.
+
+## Artifact provenance
+
+The lookup discovery produced draft **1.1.0**. The lookup replay showcases use
+reviewed **1.2.0**, built from the handwritten base with outcomes and recovery.
+The [README demo](../README.md#demo-path) separately discovers, approves and replays
+the same newly generated artifact for two members. The sub-account showcases use
+**1.0.0**, derived from live discovery and hardened with a reconciliation probe by
+[the review script](../scripts/review_capabilities.py).
+
+## Run index
 
 | Run | Capability | Result | What it shows |
 |---|---|---|---|
@@ -23,3 +46,16 @@ store `waypoint intervene` uses.
 | [`showcase-replay-hard-failure`](runs/showcase-replay-hard-failure) | lookup_member_balance 1.2.0 | `failure` hard_failure | a server error: failure, expected vs observed |
 | [`showcase-replay-recovered-interstitial`](runs/showcase-replay-recovered-interstitial) | lookup_member_balance 1.2.0 | `success`  | a notice dismissed: success with recoveries |
 | [`showcase-replay-success`](runs/showcase-replay-success) | lookup_member_balance 1.2.0 | `success`  | clean replay, no model: the balance and status |
+
+## Regenerate replay evidence
+
+From the repository root:
+
+```bash
+uv run python scripts/showcase.py --list
+uv run python scripts/showcase.py
+```
+
+The second command starts a private fixture, replaces the replay showcases and
+rebuilds this index. Scenarios with unapproved artifacts are skipped. It preserves
+the two original live discovery recordings and makes no model API calls.
