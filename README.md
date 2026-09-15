@@ -192,5 +192,3 @@ the engine's guardrails; generated pytest runs the real engine.
 | `waypoint/catalog/` | Agent tool interface |
 | `target_app/`, `capabilities/` | Fictional legacy application and versioned workflows |
 | `scripts/`, `tests/`, `evidence/` | Reproducible demonstrations, checks and retained proof |
-
-Unlicensed take-home submission.
