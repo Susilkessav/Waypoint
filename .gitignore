@@ -56,9 +56,11 @@ Thumbs.db
 docs/*
 !docs/demo-script.md
 !docs/project-walkthrough.md
+!docs/manual-walkthrough.md
+!docs/manual-session.sh
 !docs/demo-slides.html
 !docs/present.sh
 skel.text
 
-# Historical review scratch output; current resolution is PROJECT_REVIEW.md.
+# Historical review scratch output.
 /reviews/

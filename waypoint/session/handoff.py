@@ -22,8 +22,7 @@ from __future__ import annotations
 
 import time
 import uuid
-from collections.abc import Callable, Iterator
-from contextlib import contextmanager
+from collections.abc import Callable
 from dataclasses import asdict, dataclass
 from datetime import UTC, datetime
 from pathlib import Path
@@ -110,9 +109,6 @@ class ControlSession:
         self.token: LeaseToken | None = None
         self.recorder: HumanRecorder | None = None
         self.count = 0
-        self.while_waiting: Callable[[WebSurface], None] | None = None
-        """Called on every poll while a person holds control, after their events are
-        drained. Discovery uses it to turn what they demonstrate into steps."""
 
     # ----------------------------------------------------------------- lease
 
@@ -138,32 +134,6 @@ class ControlSession:
             except LeaseError:
                 pass  # already moved on; nothing of ours to release
             self.token = None
-
-    def human_holds_control(self) -> bool:
-        """True while a person, not this run, holds the current grant."""
-        lease = self.leases.read(self.run_id)
-        return lease is not None and lease.effective_holder(self.state.clock()) == "HUMAN"
-
-    @contextmanager
-    def acting_for_the_person(self, surface: WebSurface) -> Iterator[None]:
-        """Narrow permission to re-send something the person just did themselves.
-
-        While they hold control the run holds no token, so every action it tries raises
-        (R-PROC-4) - that is the invariant, and it stays. Capturing a demonstration needs
-        one exception, scoped to the moment of re-sending their own click and checked
-        against the lease rather than a flag: outside this block the run still cannot act.
-        """
-        def allowed() -> None:
-            if self.token is not None:
-                self.guard()  # control is back with the run: the ordinary rules apply again
-            elif not self.human_holds_control():
-                raise LeaseLost("a person no longer holds control of this session")
-
-        previous, surface.lease_guard = surface.lease_guard, allowed
-        try:
-            yield
-        finally:
-            surface.lease_guard = previous
 
     # --------------------------------------------------------------- handoff
 
@@ -242,8 +212,6 @@ class ControlSession:
         while True:
             surface.page.wait_for_timeout(self.settings.lease_poll_ms)  # delivers page events
             recorder.drain()
-            if seen_human and self.while_waiting is not None:
-                self.while_waiting(surface)
             iv = self.interventions.get(iv.id)
             if iv.status == "returned":
                 return iv

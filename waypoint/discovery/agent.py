@@ -25,10 +25,11 @@ screen that is going nowhere - unchanged for ``stuck_after`` turns, alternating 
 two states, or refusing the last few actions.
 
 With ``handoff`` on, being stuck is not the end (REPORT.md §5): discovery opens an
-intervention and hands the live browser to a person, exactly as replay does. What they
-demonstrate is captured as steps (``demonstration.py``), the model is told what they did,
-and the run carries on from the screen they left. An action policy will not let the model
-take - an irreversible one, unattended - routes to the same queue instead of a prompt.
+intervention and hands the live browser to a person, exactly as replay does. When control
+comes back, the model carries on from the screen they left. What the person did is logged
+(R-RESUME-6) and recorded in the transcript as a gap: it compiles into a step that blocks
+approval until someone authors it, so a draft never silently skips work a person did. An
+action policy will not let the model take routes to the same queue instead of a prompt.
 """
 
 from __future__ import annotations
@@ -41,10 +42,14 @@ from pathlib import Path
 from typing import Any, cast
 from urllib.parse import urlsplit
 
-from waypoint.compiler.compile import finish_problems, locator_problem, nomination_holds
+from waypoint.compiler.compile import (
+    diff_expectation,
+    finish_problems,
+    locator_problem,
+    nomination_holds,
+)
 from waypoint.discovery.cassette import CassetteMismatch, Decider, DecisionContext
 from waypoint.discovery.decisions import Decision
-from waypoint.discovery.demonstration import DemonstrationCapture
 from waypoint.discovery.transcript import (
     BindingSpec,
     FinishRecord,
@@ -57,7 +62,13 @@ from waypoint.evidence import EvidenceWriter
 from waypoint.policy.engine import PolicyConfig, PolicyEngine, RequireApproval, RunContext
 from waypoint.policy.redactor import Redactor, binding_placeholder
 from waypoint.policy.secrets import SecretBroker
-from waypoint.session.handoff import ControlSession, HandoffEnded, HandoffSettings, Request
+from waypoint.session.handoff import (
+    ControlSession,
+    HandoffEnded,
+    HandoffSettings,
+    Request,
+    Returned,
+)
 from waypoint.surface.ports import (
     Action,
     ActionKind,
@@ -171,10 +182,9 @@ class _Discovery:
         self.ev = EvidenceWriter(options.evidence_root, self.run_id, self.redactor)
         self.corrections = 0
         self.seq = 0
-        """Turn numbers, shared by the model's decisions and a person's demonstrated steps."""
+        """Turn numbers, shared by the model's decisions and a person's handoffs."""
         self.model_turns = 0
         self.control: ControlSession | None = None
-        self.demo: DemonstrationCapture | None = None
         self.handoff_log: list[dict[str, Any]] = []
         if options.handoff:
             self.control = ControlSession(self.run_id, self.redactor, self.ev,
@@ -211,11 +221,6 @@ class _Discovery:
             ) as surface:
                 if self.control is not None:
                     self.control.take(surface)
-                    self.demo = DemonstrationCapture(
-                        surface, self.control, self.control.recorder_for(surface),
-                        self.transcript.steps.append,
-                        self._next_turn, self._value, self.values, self.rendered, self.ev.event)
-                    self.control.while_waiting = self.demo.process
                 try:
                     self._loop(surface)
                 finally:
@@ -350,34 +355,49 @@ class _Discovery:
         intent = next((s.decision.get("intent") for s in reversed(self.transcript.steps)
                        if s.decision.get("intent")), None)
         self.ev.event("escalation", reason=code, detail=message, turn=self.seq)
-        if self.demo is not None:
-            self.demo.begin()
         try:
             returned = self.control.hand_over(surface, Request(
                 capability_id=self.opt.capability_id, version="discovery", reason_code=code,
                 message=message, step=f"turn {self.seq}", intent=intent,
             ))
         except HandoffEnded as ended:
-            if self.demo is not None:
-                self.demo.accepting = False
             self._end("blocked", f"{ended.code}: {ended.message}")
             return None
-        demonstrated = self.demo.end(surface) if self.demo is not None else []
-        self.control.write_diff(returned, demonstrated=len(demonstrated))
+        self.control.write_diff(returned)
+        acted = returned.human_actions > 0 or returned.before.hash != returned.after.hash
+        if acted:
+            self._record_gap(returned, code)
         self.handoff_log.append({
             "intervention": returned.intervention.id, "reason": code,
             "turn": returned.intervention.step, "operator": returned.intervention.operator,
-            "human_actions": returned.human_actions,
-            "demonstrated_steps": [s.decision.get("intent") for s in demonstrated],
+            "human_actions": returned.human_actions, "gap_recorded": acted,
         })
         self.ev.event("control_returned", intervention=returned.intervention.id,
-                      demonstrated=len(demonstrated), human_actions=returned.human_actions)
-        did = [str(s.decision.get("intent") or s.action) for s in demonstrated]
-        what = ("A person took control and: " + "; ".join(did) + ".") if did else (
-            f"A person took control and made {returned.human_actions} change(s) that could "
-            "not be recorded as steps.")
+                      human_actions=returned.human_actions, gap_recorded=acted)
+        what = (f"A person took control and made {returned.human_actions} change(s)."
+                if acted else "A person took control and changed nothing.")
         return (what + " Control is back with you. Do not repeat what they did - look at the "
                 "screen below and carry on towards the goal.")
+
+    def _record_gap(self, returned: Returned, code: str) -> None:
+        """Where a person acted, the transcript says so - and the compiled step blocks approval.
+
+        Nothing the person did is turned into a replayable step: their actions are in the human
+        log (R-RESUME-6), and a reviewer authors the step before the capability can be approved.
+        The screen they reached still gives the gap a checkpoint to wait for.
+        """
+        step = Step(
+            turn=self._next_turn(), pre=snapshot_to_dict(returned.before),
+            decision={"kind": "gap", "intent": f"A person took control here ({code})",
+                      "expect": diff_expectation(returned.before, returned.after,
+                                                 self.rendered)},
+            action="gap", ok=True, post_hash=returned.after.hash,
+            unrecorded=(f"{returned.human_actions} action(s) by "
+                        f"{returned.intervention.operator or 'an operator'}; "
+                        "see human/actions.jsonl"),
+        )
+        self.transcript.steps.append(step)
+        self.ev.event("gap_recorded", turn=step.turn, human_actions=returned.human_actions)
 
     # ---------------------------------------------------------------- steps
 

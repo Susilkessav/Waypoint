@@ -242,12 +242,12 @@ def run_sweep(cap: Capability, cases: Sequence[Case], *, runs: int, options: Rep
     ]
     counted = [r for r in records if r.injected is None]
     confidence: Confidence = (score(counted) if counted
-                              else ledger.confidence(cap, options.variant))
+                              else ledger.confidence(cap))
     verdict = ("broken" if any(r.mismatches for r in reports) or
                any(not r.same_outputs for r in reports) else confidence.verdict)
     sweep = StabilityReport(
         capability_id=cap.capability_id, version=cap.version,
-        content_hash=content_hash(cap, options.variant),
+        content_hash=content_hash(cap),
         started_at=started.isoformat(timespec="seconds"), runs=len(records), passed=passed,
         verdict=verdict, confidence=confidence.to_dict(), cases=reports, slow_steps=slow,
         evidence=evidence,

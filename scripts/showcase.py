@@ -19,6 +19,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import shutil
 import socket
 import subprocess
@@ -158,7 +159,9 @@ def run(scenario: Scenario, cap: Capability, base: str, state: Path) -> ReplayRe
 
 def write_index() -> None:
     rows = []
-    for d in sorted(RUNS.glob("showcase-*")):
+    # Only real showcase folders: a synced copy ("showcase-x 2") is not a run.
+    runs = (p for p in RUNS.glob("showcase-*") if re.fullmatch(r"showcase-[a-z0-9-]+", p.name))
+    for d in sorted(runs):
         result = d / "result.json"
         if result.exists():
             r = json.loads(result.read_text())
@@ -204,19 +207,18 @@ def write_index() -> None:
         "## Run index\n\n"
         "| Run | Capability | Result | What it shows |\n|---|---|---|---|\n"
         + "\n".join(rows) + "\n\n"
-        "## Retained extensions\n\n"
-        "[Feature demonstrations](features/README.md) include tenant reuse, measured catalog "
-        "invocation, protected-console handoff, scripted discovery demonstration, reuse of "
-        "the demonstrated step, assisted-cassette playback and actual worker-crash recovery. "
-        "They make no new model calls.\n\n"
+        "## Beyond single runs\n\n"
         "| Recording | Provenance | Reproduce |\n|---|---|---|\n"
         "| [Upstream agent](agent/lookup.json) | Saved live Claude tool-use exchange; "
         "fictional fixture inputs and caller outputs are intentionally visible here. | "
         "`uv run python scripts/agent_demo.py --cassette evidence/agent/lookup.json` |\n"
         "| [Assist choice](agent/assist.json) | Saved live Claude element selection, "
-        "bound to the sanitized observation hash. | `scripts/feature_demo.py` |\n"
-        "| [Stability reports](stability/) | Historical fixture sweeps; current "
-        "reproduction measures a fresh private ledger. | `waypoint stability` |\n\n"
+        "bound to the sanitized observation hash. | `waypoint replay lookup_member_balance "
+        "--version 1.3.0 --input member_id=12345 --inject drift_search "
+        "--assist-cassette evidence/agent/assist.json` |\n"
+        "| [Stability reports](stability/) | Fixture sweeps of every declared case; "
+        "injected cases are reported but never counted. | `waypoint stability "
+        "lookup_member_balance --cases capabilities/lookup_member_balance/cases.yaml` |\n\n"
         "Runtime SQLite files are not submitted. Run IDs and captured absolute paths describe "
         "the original execution; use this index to inspect the retained copies.\n\n"
         "## Regenerate replay evidence\n\n"

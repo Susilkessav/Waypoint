@@ -72,10 +72,9 @@ class Step:
     navigated: bool = False
     risk: str = "safe"
     post_hash: str | None = None
-    performed_by: Literal["model", "human"] = "model"
-    """``human`` for a step a person demonstrated while holding control during discovery."""
     unrecorded: str | None = None
-    """For ``action == "gap"``: what a person did that could not be recorded as a step."""
+    """For ``action == "gap"``: a person acted here during a handoff; nothing replayable was
+    recorded, so the compiled step blocks approval until someone authors it."""
 
 
 @dataclass

@@ -48,7 +48,6 @@ CAPABILITIES = Path("capabilities")
 def approve(
     capability_id: str,
     version: Annotated[str | None, typer.Option(help="Defaults to the newest version.")] = None,
-    variant: Annotated[str, typer.Option(help="Tenant variant to approve.")] = "base",
     note: Annotated[str | None, typer.Option(help="Why this is approved.")] = None,
     approver: Annotated[str | None, typer.Option(help="Defaults to the OS user.")] = None,
     root: Annotated[Path, typer.Option(help="Capabilities directory.")] = CAPABILITIES,
@@ -64,36 +63,17 @@ def approve(
     cap = load(path)
     try:
         approved = approve_artifact(
-            cap, approver=approver or getpass.getuser(), note=note, variant=variant
+            cap, approver=approver or getpass.getuser(), note=note
         )
     except ApprovalBlocked as exc:
         typer.secho(str(exc), fg=typer.colors.RED, err=True)
         raise typer.Exit(code=1) from None
     path.write_text(approved.to_json())
-    typer.echo(f"approved {capability_id} {cap.version} [{variant}] "
-              f"{content_hash(approved, variant)}")
+    typer.echo(f"approved {capability_id} {cap.version} {content_hash(approved)}")
 
 
 _SENSITIVITIES = ("public", "internal", "pii", "secret")
 _TYPES = ("string", "enum", "money")
-
-
-CredentialSource = Annotated[
-    str,
-    typer.Option("--credentials", help="Where credentials come from: 'env' (default) or "
-                 "'keyring' (the OS keychain, falling back to env if unset)."),
-]
-
-
-def _secret_broker(source: str) -> Any:
-    from waypoint.policy.secrets import SecretBroker, VaultSecretBroker
-
-    if source == "keyring":
-        return VaultSecretBroker()
-    if source == "env":
-        return SecretBroker()
-    typer.secho("--credentials must be 'env' or 'keyring'", err=True)
-    raise typer.Exit(code=2)
 
 
 def _parse_inputs(items: list[str]) -> list[tuple[str, str]]:
@@ -235,7 +215,6 @@ def discover(
         "evidence/runs"
     ),
     root: Annotated[Path, typer.Option(help="Capabilities directory.")] = CAPABILITIES,
-    credentials: CredentialSource = "env",
 ) -> None:
     """Discover a flow with a model (or a recorded cassette) and compile a draft artifact.
 
@@ -288,7 +267,7 @@ def discover(
         handoff=handoff,
         handoff_settings=HandoffSettings(state_db=state_db,
                                          notify=_announce_intervention(state_db)),
-        secrets=_secret_broker(credentials),
+       
     ))
     t = result.transcript
     if recording is not None:
@@ -323,7 +302,6 @@ def replay(
         list[str], typer.Option("--input", "-i", help="An input as name=value; repeatable.")
     ] = [],  # noqa: B006 - typer requires a literal default here
     version: Annotated[str | None, typer.Option(help="Defaults to the highest release.")] = None,
-    variant: Annotated[str, typer.Option(help="Tenant variant to run (R-PKG-4).")] = "base",
     base_url: Annotated[
         str | None, typer.Option(help="Replay against another origin than the artifact's entry.")
     ] = None,
@@ -358,7 +336,6 @@ def replay(
         "evidence/runs"
     ),
     root: Annotated[Path, typer.Option(help="Capabilities directory.")] = CAPABILITIES,
-    credentials: CredentialSource = "env",
 ) -> None:
     """Replay an approved capability deterministically, with no LLM.
 
@@ -392,25 +369,22 @@ def replay(
         recorder = RecordingAssistant(ClaudeAssistant())
         assistant = recorder
 
-    cap = load(locate(root, capability_id, version, variant=variant))
+    cap = load(locate(root, capability_id, version))
     result = run_replay(
         cap,
         values,
         ReplayOptions(
             base_url=base_url,
             evidence_root=evidence_root,
-            variant=variant,
             headed=handoff if headed is None else headed,
             approve=_operator_approval,  # asked only by attended capabilities
             after_preconditions=set_injection if inject else None,
             handoff=handoff,
             state_db=state_db,
             ledger_db=state_db,
-            resume_db=state_db,
             injected=inject,
             notify=_announce_intervention(state_db) if handoff else None,
             assist=assistant,
-            secrets=_secret_broker(credentials),
         ),
     )
     if recorder is not None and recorder.recorded and result.evidence_dir:
@@ -429,65 +403,6 @@ def replay(
     raise typer.Exit(code=result.exit_code)
 
 
-@app.command("resume-run")
-def resume_run(
-    run_id: Annotated[str, typer.Argument(help="The run whose process died.")],
-    inputs: Annotated[
-        list[str], typer.Option("--input", "-i", help="An input as name=value; repeatable.")
-    ] = [],  # noqa: B006 - typer requires a literal default here
-    version: Annotated[str | None, typer.Option(help="Defaults to the highest release.")] = None,
-    headed: Annotated[bool, typer.Option("--headed/--headless", help="Show the browser.")] = False,
-    state_db: Annotated[
-        Path, typer.Option(help="Where the interrupted run recorded its progress.")
-    ] = DEFAULT_DB,
-    evidence_root: Annotated[Path, typer.Option(help="Where run evidence goes.")] = Path(
-        "evidence/runs"
-    ),
-    root: Annotated[Path, typer.Option(help="Capabilities directory.")] = CAPABILITIES,
-    credentials: CredentialSource = "env",
-) -> None:
-    """Continue a run whose process died, in a fresh browser, from verified state.
-
-    Nothing here detects a dead process - you decide a run is gone and name it. The recorded
-    step is only a starting suggestion: the live screen must match a checkpoint, a declared
-    resume point, a postcondition or an outcome, or the run escalates instead of guessing.
-    Give the same inputs the run started with; they are checked against a stored hash.
-    """
-    import json
-
-    from waypoint.artifact.schema import load, locate
-    from waypoint.replay.engine import ReplayOptions, ResumeRefused
-    from waypoint.replay.engine import resume as run_resume
-    from waypoint.session.progress import ProgressError, ProgressStore
-    from waypoint.session.store import StateStore
-
-    values = dict(_parse_inputs(inputs))
-    try:
-        recorded = ProgressStore(StateStore(state_db)).get(run_id)
-    except ProgressError as exc:
-        typer.secho(str(exc), err=True, fg=typer.colors.RED)
-        raise typer.Exit(code=2) from None
-    capability_id = recorded.capability_id
-    cap = load(locate(root, capability_id, version or recorded.version,
-                      variant=recorded.variant))
-    try:
-        result = run_resume(cap, values, run_id, ReplayOptions(
-            evidence_root=evidence_root, headed=headed, state_db=state_db,
-            ledger_db=state_db, resume_db=state_db, secrets=_secret_broker(credentials),
-        ))
-    except ResumeRefused as exc:
-        typer.secho(str(exc), err=True, fg=typer.colors.RED)
-        raise typer.Exit(code=2) from None
-    typer.echo(json.dumps(result.to_dict(), indent=2, ensure_ascii=False))
-    typer.secho(
-        f"{result.status}: {capability_id} resumed from steps[{recorded.completed_index + 1}]; "
-        f"evidence in {result.evidence_dir}",
-        fg=typer.colors.GREEN if result.exit_code == 0 else typer.colors.YELLOW,
-        err=True,
-    )
-    raise typer.Exit(code=result.exit_code)
-
-
 @app.command()
 def stability(
     capability_id: str,
@@ -500,7 +415,6 @@ def stability(
     ] = None,
     runs: Annotated[int, typer.Option(help="Replays per case.")] = 5,
     version: Annotated[str | None, typer.Option(help="Defaults to the highest release.")] = None,
-    variant: Annotated[str, typer.Option(help="Tenant variant to sweep (R-PKG-4).")] = "base",
     base_url: Annotated[str | None, typer.Option(help="Sweep another origin.")] = None,
     allow_irreversible: Annotated[
         bool,
@@ -515,7 +429,6 @@ def stability(
         "evidence/stability"
     ),
     root: Annotated[Path, typer.Option(help="Capabilities directory.")] = CAPABILITIES,
-    credentials: CredentialSource = "env",
 ) -> None:
     """Replay a capability many times and report how reliably it holds up.
 
@@ -528,7 +441,7 @@ def stability(
     from waypoint.replay.engine import ReplayOptions
     from waypoint.replay.stability import Case, StabilityRefused, load_cases, run_sweep
 
-    cap = load(locate(root, capability_id, version, variant=variant))
+    cap = load(locate(root, capability_id, version))
     declared = load_cases(cases) if cases is not None else []
     if inputs:
         declared.append(Case(inputs=dict(_parse_inputs(inputs)), name="cli"))
@@ -536,10 +449,10 @@ def stability(
         typer.secho("give --input or --cases: a sweep needs something to replay", err=True)
         raise typer.Exit(code=2)
     options = ReplayOptions(
-        base_url=base_url, evidence_root=evidence_root, variant=variant,
+        base_url=base_url, evidence_root=evidence_root,
         state_db=state_db, ledger_db=state_db,
         require_confidence=False,  # measuring is how a capability earns its confidence
-        secrets=_secret_broker(credentials),
+       
     )
     try:
         report = run_sweep(cap, declared, runs=runs, options=options,
@@ -557,7 +470,6 @@ def stability(
 def confidence(
     capability_id: str,
     version: Annotated[str | None, typer.Option(help="Defaults to the highest release.")] = None,
-    variant: Annotated[str, typer.Option(help="Tenant variant to measure (R-PKG-4).")] = "base",
     state_db: Annotated[Path, typer.Option(help="Where runs are recorded.")] = DEFAULT_DB,
     root: Annotated[Path, typer.Option(help="Capabilities directory.")] = CAPABILITIES,
 ) -> None:
@@ -566,9 +478,9 @@ def confidence(
     from waypoint.replay.ledger import Ledger
     from waypoint.session.store import StateStore
 
-    cap = load(locate(root, capability_id, version, release=False, variant=variant))
+    cap = load(locate(root, capability_id, version, release=False))
     ledger = Ledger(StateStore(state_db))
-    status = ledger.confidence(cap, variant)
+    status = ledger.confidence(cap)
     bar = cap.policy.min_confidence
     typer.echo(f"{cap.capability_id} {cap.version}: {status.summary()}")
     if status.runs:
@@ -632,21 +544,15 @@ def approvals(
             if not re.match(SEMVER, path.stem):
                 continue
             cap = load(path)
-            # Only an artifact that actually declares tenant variants is labelled by variant;
-            # naming "base" on every line would be noise on the artifacts that have only one.
-            for variant in sorted({"base", *cap.overrides}):
-                status = approval_status(cap, variant)
-                if status.approved:
-                    continue
-                drafts += 1
-                gates = [r for r in status.reasons if "not approved" not in r]
-                state = "approvable" if not gates else f"{len(gates)} open gate(s): {gates[0]}"
-                tag = f" [{variant}]" if cap.overrides else ""
-                typer.echo(f"  {cap.capability_id} {cap.version}{tag}  {state}")
-                if not gates:
-                    flag = f" --variant {variant}" if cap.overrides else ""
-                    typer.echo(f"    -> waypoint approve {cap.capability_id} "
-                              f"--version {cap.version}{flag}")
+            status = approval_status(cap)
+            if status.approved:
+                continue
+            drafts += 1
+            gates = [r for r in status.reasons if "not approved" not in r]
+            state = "approvable" if not gates else f"{len(gates)} open gate(s): {gates[0]}"
+            typer.echo(f"  {cap.capability_id} {cap.version}  {state}")
+            if not gates:
+                typer.echo(f"    -> waypoint approve {cap.capability_id} --version {cap.version}")
     if not drafts:
         typer.echo("  none")
 
@@ -665,25 +571,6 @@ def approvals(
         typer.echo(f"    -> waypoint intervene take {iv.id}{_db_flag(db)}")
     if not waiting:
         typer.echo("  none")
-
-
-@app.command()
-def console(
-    port: Annotated[int, typer.Option(help="Port to serve on.")] = 8765,
-    host: Annotated[str, typer.Option(help="Interface to bind.")] = "127.0.0.1",
-    db: Annotated[Path, typer.Option("--db", help="Shared session state (SQLite).")] = DEFAULT_DB,
-) -> None:
-    """Serve the operator queue in a browser: the same rows `waypoint intervene` works on.
-
-    This moves lease and intervention state only. The run owns its browser and there is no
-    remote-control channel (R-PROC-3), so after taking control you still drive the headed
-    window that run opened. Binds to localhost by default; it carries no authentication.
-    """
-    from waypoint.operator.console import create_console
-
-    typer.secho(f"operator console on http://{host}:{port}  (state: {db})", err=True,
-                fg=typer.colors.GREEN)
-    create_console(db).run(host=host, port=port, debug=False, use_reloader=False)
 
 
 intervene_app = typer.Typer(
@@ -874,22 +761,21 @@ catalog_app = typer.Typer(
 app.add_typer(catalog_app, name="catalog")
 
 
-def _catalog(root: Path, state_db: Path, variant: str = "base") -> Any:
+def _catalog(root: Path, state_db: Path) -> Any:
     from waypoint.catalog.registry import Catalog
     from waypoint.replay.ledger import Ledger
     from waypoint.session.store import StateStore
 
-    return Catalog(root, Ledger(StateStore(state_db)), variant=variant)
+    return Catalog(root, Ledger(StateStore(state_db)))
 
 
 @catalog_app.command("list")
 def catalog_list(
-    variant: Annotated[str, typer.Option(help="Approved tenant variant.")] = "base",
     state_db: Annotated[Path, typer.Option(help="Where runs are recorded.")] = DEFAULT_DB,
     root: Annotated[Path, typer.Option(help="Capabilities directory.")] = CAPABILITIES,
 ) -> None:
     """Every approved capability an agent may call, and what each needs and returns."""
-    entries = _catalog(root, state_db, variant).entries()
+    entries = _catalog(root, state_db).entries()
     if not entries:
         typer.echo("no approved capabilities; `waypoint approvals` shows what awaits review")
         return
@@ -914,7 +800,6 @@ def catalog_list(
 
 @catalog_app.command("tools")
 def catalog_tools(
-    variant: Annotated[str, typer.Option(help="Approved tenant variant.")] = "base",
     fmt: Annotated[str, typer.Option("--format", help="anthropic or openai.")] = "anthropic",
     state_db: Annotated[Path, typer.Option(help="Where runs are recorded.")] = DEFAULT_DB,
     root: Annotated[Path, typer.Option(help="Capabilities directory.")] = CAPABILITIES,
@@ -925,14 +810,13 @@ def catalog_tools(
     if fmt not in ("anthropic", "openai"):
         typer.secho("--format must be 'anthropic' or 'openai'", err=True)
         raise typer.Exit(code=2)
-    tools = _catalog(root, state_db, variant).tools(fmt)
+    tools = _catalog(root, state_db).tools(fmt)
     typer.echo(json.dumps(tools, indent=2, ensure_ascii=False))
 
 
 @catalog_app.command("invoke")
 def catalog_invoke(
     name: str,
-    variant: Annotated[str, typer.Option(help="Approved tenant variant.")] = "base",
     args: Annotated[str, typer.Option(help='Arguments as JSON, e.g. \'{"member_id": "12345"}\'.')
                     ] = "{}",
     version: Annotated[str | None, typer.Option(help="Defaults to the highest release.")] = None,
@@ -962,10 +846,10 @@ def catalog_invoke(
         typer.secho(f"--args must be JSON: {exc}", err=True)
         raise typer.Exit(code=2) from None
     try:
-        result = _catalog(root, state_db, variant).invoke(
+        result = _catalog(root, state_db).invoke(
             name, arguments, version=version,
             options=ReplayOptions(base_url=base_url, headed=handoff if headed is None else headed,
-                                  handoff=handoff, resume_db=state_db,
+                                  handoff=handoff,
                                   notify=_announce_intervention(state_db) if handoff else None,
                                   evidence_root=evidence_root, state_db=state_db,
                                   ledger_db=state_db),

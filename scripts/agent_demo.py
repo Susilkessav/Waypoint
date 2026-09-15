@@ -55,11 +55,11 @@ def free_port() -> int:
         return int(sock.getsockname()[1])
 
 
-def start_app(port: int, log: Path, tenant: str = "base") -> subprocess.Popen[bytes]:
+def start_app(port: int, log: Path) -> subprocess.Popen[bytes]:
     handle = log.open("wb")
     app = subprocess.Popen([sys.executable, "-m", "target_app"], cwd=REPO,
                            env={**os.environ, "PORT": str(port), **FIXTURE,
-                                "WAYPOINT_NO_DOTENV": "1", "WAYPOINT_TENANT": tenant},
+                                "WAYPOINT_NO_DOTENV": "1"},
                            stdout=handle, stderr=subprocess.STDOUT)
     handle.close()
     for _ in range(60):

@@ -1,3 +1,0 @@
-{"at": "2026-09-15T15:27:51.630+00:00", "event": "control_transfer", "direction": "to_human", "actor": "operator", "generation": 3}
-{"at": "2026-09-15T15:27:51.643+00:00", "event": "click", "tag": "a", "role": "", "name": "View", "element_id": "ctl00_MainContent_gvMembers_ctl03_lnkView", "frame_path": ["main", "content"]}
-{"at": "2026-09-15T15:27:51.970+00:00", "event": "control_transfer", "direction": "to_agent", "actor": "replay", "generation": 5}

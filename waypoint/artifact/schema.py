@@ -303,8 +303,6 @@ class Provenance(_Model):
     approval_note: str | None = None
     approval_gates: dict[str, int] | None = None
     """A cache tools may write for display. Never read by any decision (R-PKG-3)."""
-    demonstrated_steps: tuple[str, ...] = Field(default=(), exclude_if=lambda v: not v)
-    """Steps a person performed during discovery rather than the model, for the reviewer."""
 
 
 # ------------------------------------------------------------------- capability
@@ -326,6 +324,7 @@ class Capability(_Model):
     outcomes: tuple[Outcome, ...] = ()
     recovery: tuple[RecoveryRule, ...] = ()
     overrides: dict[str, dict[str, Any]] = {}
+    """Reserved for per-tenant variants (R-PKG-4). Design only: nothing applies it yet."""
     policy: ArtifactPolicy = Field(default_factory=ArtifactPolicy)
     provenance: Provenance = Field(default_factory=Provenance)
 
@@ -483,56 +482,8 @@ def _reconcile_problems(cap: Capability, where: str, step: Step) -> list[str]:
     return problems
 
 
-_STEP_OVERRIDE = re.compile(r"^steps\[(\d+)\]\.(target|checkpoint)$")
-"""Patchable override paths (R-PKG-4): the same ``where`` strings ``all_steps``/``bundles``
-already use elsewhere, kept deliberately narrow to what REPORT.md §4 describes - relocating a
-control that a vendor version renamed or moved, and a per-tenant route allowlist."""
-
-
-def _apply_patch(body: dict[str, Any], path: str, value: Any) -> None:
-    if path == "policy.allowed_routes":
-        body.setdefault("policy", {})["allowed_routes"] = value
-        return
-    if m := _STEP_OVERRIDE.match(path):
-        index, field = int(m.group(1)), m.group(2)
-        try:
-            body["steps"][index][field] = value
-        except IndexError:
-            raise ValueError(f"override path {path!r} names a step that does not exist") from None
-        return
-    raise ValueError(f"override path {path!r} is not patchable")
-
-
-def apply_overrides(cap: Capability, variant: str) -> Capability:
-    """The effective capability a tenant variant actually runs (R-PKG-4).
-
-    ``variant == "base"`` returns ``cap`` itself - not an equivalent copy, the same object -
-    so every other function that merges before using ``cap`` is a no-op for base callers and
-    every artifact approved before this existed keeps its exact hash and gate results.
-
-    Otherwise the artifact is dumped to JSON, the variant's declared patches are applied to
-    that dict, and the result is re-validated as a ``Capability`` - so an override that makes
-    the artifact structurally invalid (e.g. a ``type`` step left with no ``target``) fails
-    loudly here rather than misbehaving during replay.
-    """
-    if variant == "base":
-        return cap
-    if variant not in cap.overrides:
-        raise ValueError(f"unknown variant {variant!r}")
-    body = cap.model_dump(mode="json", by_alias=True)
-    for path, value in cap.overrides[variant].items():
-        _apply_patch(body, path, value)
-    return Capability.model_validate(body)
-
-
-def approval_gates(cap: Capability, variant: str = "base") -> list[str]:
-    """Every reason this artifact may not be approved, recomputed from content.
-
-    Runs against the variant's effective (merged) capability, so an override that introduces
-    a problem - a positional locator with no identity, a weak checkpoint - blocks approval of
-    that variant even when base is clean.
-    """
-    cap = apply_overrides(cap, variant)
+def approval_gates(cap: Capability) -> list[str]:
+    """Every reason this artifact may not be approved, recomputed from content."""
     reasons: list[str] = []
     for where, step in cap.all_steps():
         cp = step.checkpoint
@@ -563,16 +514,13 @@ def approval_gates(cap: Capability, variant: str = "base") -> list[str]:
     return reasons
 
 
-def content_hash(cap: Capability, variant: str = "base") -> str:
+def content_hash(cap: Capability) -> str:
     """What approval binds to: every execution-relevant key, canonically serialized.
 
     Fields added after schema 1.0.0 are left out of the dump while unset (``exclude_if``),
-    so adding one does not silently unapprove artifacts approved before it existed. Computed
-    over the variant's effective (merged) capability (R-PKG-4), so an edit to that variant's
-    override - or to shared base content - both invalidate its approval.
+    so adding one does not silently unapprove artifacts approved before it existed.
     """
-    effective = apply_overrides(cap, variant)
-    body = effective.model_dump(mode="json", by_alias=True, exclude={"provenance"})
+    body = cap.model_dump(mode="json", by_alias=True, exclude={"provenance"})
     canonical = json.dumps(body, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
     return "sha256:" + hashlib.sha256(canonical.encode()).hexdigest()
 
@@ -591,13 +539,11 @@ def _semver_key(path: Path) -> tuple[int, int, int, int, str]:
 
 
 def locate(root: Path, capability_id: str, version: str | None = None, *,
-           release: bool = True, variant: str = "base") -> Path:
+           release: bool = True) -> Path:
     """``capabilities/<id>/<semver>.json`` - the given version, else the highest release.
 
     ``release=False`` means the newest version whatever its state - what a reviewer about to
-    approve means, where replay means the version in service. ``variant`` picks the highest
-    version approved *for that variant* (R-PKG-4): a version where only base is approved does
-    not count as in service for a tenant whose own approval is still open.
+    approve means, where replay means the version in service.
     """
     folder = root / capability_id
     if version is not None:
@@ -614,7 +560,7 @@ def locate(root: Path, capability_id: str, version: str | None = None, *,
 
     def approved(path: Path) -> bool:
         try:
-            return approval_status(load(path), variant).approved
+            return approval_status(load(path)).approved
         except (ValueError, OSError):
             return False
 

@@ -14,6 +14,9 @@ Start with this README, the concise [design report](REPORT.md), and the
 features to demonstrations and limits; the [walkthrough](docs/project-walkthrough.md) explains
 why the pieces work this way.
 
+To run and test every feature yourself, follow the [complete manual walkthrough](docs/manual-walkthrough.md).
+It includes ordered setup, short commands, exact browser actions, expected results and cleanup.
+
 ## Setup
 
 Requires Python 3.11+ and [uv](https://docs.astral.sh/uv/). From the repository root:
@@ -109,10 +112,6 @@ These commands start private fixtures and require no API key:
 # Deterministic replay, business outcomes, recovery, live handoff and reconciliation
 uv run python scripts/showcase.py
 
-# Tenant reuse, catalog + protected console, assisted relocation, demonstrated-step reuse,
-# and actual worker termination followed by successful resume
-uv run python scripts/feature_demo.py
-
 # Upstream agent's saved tool calls; first measures the tool in its own fresh ledger
 uv run python scripts/agent_demo.py --cassette evidence/agent/lookup.json
 
@@ -120,16 +119,13 @@ uv run python scripts/agent_demo.py --cassette evidence/agent/lookup.json
 uv run python scripts/present.py --rehearse
 ```
 
-The showcase scripts play the operator and say so in their evidence. The feature demo uses an
-explicitly scripted discovery decider and a saved live-model assist cassette. The agent demo
+The showcase script plays the operator and says so in its evidence. The agent demo
 replays saved model tool calls, executes the tools against a real fixture, and repeats the saved
 answer only if status, outputs and outcome match. A mismatch returns a nonzero exit.
 
-Lookup **1.4.0** includes the delivered `riverbank` override: its Search button is named
-**Continue**. It retains 1.3.0's confidence bar of **0.5** and optional assisted relocation.
-Base and riverbank require separate approvals and measurements. The demonstration proves the
-base target fails on the changed fixture and the selected override succeeds. The baseline
-1.2.0 remains available for demonstrations that do not require confidence bootstrap.
+Lookup **1.3.0** declares a confidence bar of **0.5** and allows assisted relocation. It is
+unavailable for unattended use until a sweep has measured it. The baseline **1.2.0** remains
+available for demonstrations that do not need that measurement first.
 
 ## Direct CLI use
 
@@ -139,12 +135,14 @@ running and `.env` supplies its fictional credentials.
 ```bash
 uv run waypoint approvals
 uv run waypoint replay lookup_member_balance --version 1.2.0 --input member_id=12345
-uv run waypoint stability lookup_member_balance --version 1.4.0 \
+uv run waypoint stability lookup_member_balance --version 1.3.0 \
   --cases capabilities/lookup_member_balance/cases.yaml --runs 2
+uv run waypoint replay lookup_member_balance --version 1.3.0 --input member_id=12345 \
+  --inject drift_search --assist-cassette evidence/agent/assist.json
 uv run waypoint catalog list
 uv run waypoint catalog tools --format openai
 uv run waypoint catalog invoke lookup_member_balance --args '{"member_id":"67890"}'
-uv run waypoint codegen lookup_member_balance --version 1.4.0 \
+uv run waypoint codegen lookup_member_balance --version 1.3.0 \
   --target pytest --out .waypoint/test_generated_lookup.py
 uv run pytest .waypoint/test_generated_lookup.py -q
 ```
@@ -156,23 +154,10 @@ behavior, while retaining approval and action-policy checks. Injected cases are 
 reported but excluded from confidence. Failed case expectations and inconsistent outputs
 cannot earn passing confidence.
 
-`replay` and `catalog invoke` support `--variant riverbank`, `--base-url`, and `--handoff`.
-Choose the variant explicitly and measure it against the corresponding fixture/deployment.
-`WAYPOINT_TENANT=riverbank uv run python -m target_app` starts the changed local fixture.
-
-`uv run waypoint console` opens the loopback operator queue on port 8765. Supply
-`--state-db` to catalog/replay and the console's `--db` when using a custom database. The console
-changes lease state; you still operate the browser the run owns. It validates Host, Origin and
-session CSRF tokens. It is a local tool with no user authentication.
-
-`resume-run` takes an interrupted run ID and the original inputs. It verifies artifact, variant,
-origin and input identity, atomically claims the source, then starts a fresh browser. A verified
-safe prefix may be reconstructed; a prefix containing a mutation is never repeated. Unresolved
-operations are reconciled first. Automatic death detection and browser reattachment are omitted.
-
-`--credentials keyring` is available on discovery and replay. A missing keychain entry falls back
-to the environment; an unavailable or locked provider fails with a sanitized error. The real OS
-backend requires local provisioning and is not claimed as validated by the mocked-provider tests.
+`replay` and `catalog invoke` also accept `--base-url` and `--handoff`. With `--handoff`, an
+escalation pauses and prints the `waypoint intervene take` / `return` commands for a second
+terminal. `discover --handoff` does the same when discovery gets stuck; what the person does is
+logged and becomes a gap in the draft that blocks approval until someone authors the step.
 
 ## Verification and evidence
 
@@ -184,8 +169,7 @@ uv run pytest -m 'not llm' -q
 
 CI installs the committed lockfile and Chromium, then runs these checks. Browser tests exercise
 real fixture sessions. Saved live discovery, agent and assist recordings provide model provenance;
-regression checks do not call paid services. Final check results are in
-[the submission checklist](SUBMISSION.md).
+regression checks do not call paid services.
 
 Run evidence contains the exact artifact, metadata, events, sanitized snapshots and masked
 screenshots. Failure evidence includes the stopped step and expected versus observed state.
@@ -204,8 +188,8 @@ the engine's guardrails; generated pytest runs the real engine.
 |---|---|
 | `waypoint/discovery/`, `compiler/`, `artifact/` | Exploration, compilation, schema, approval and generation |
 | `waypoint/surface/`, `policy/`, `signatures/` | Browser perception, actions, safety and state recognition |
-| `waypoint/replay/`, `session/` | Execution, recovery, confidence, leases, intents and progress |
-| `waypoint/catalog/`, `operator/` | Agent tool interface and local operator console |
+| `waypoint/replay/`, `session/` | Execution, recovery, confidence, leases, intents and handoff |
+| `waypoint/catalog/` | Agent tool interface |
 | `target_app/`, `capabilities/` | Fictional legacy application and versioned workflows |
 | `scripts/`, `tests/`, `evidence/` | Reproducible demonstrations, checks and retained proof |
 

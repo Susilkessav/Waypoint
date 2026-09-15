@@ -50,7 +50,7 @@ from typing import NoReturn
 from urllib.parse import quote, urlsplit
 
 from waypoint.artifact.approval import approval_status
-from waypoint.artifact.schema import Capability, Reconcile, Step, apply_overrides, content_hash
+from waypoint.artifact.schema import Capability, Reconcile, Step, content_hash
 from waypoint.evidence import EvidenceWriter
 from waypoint.policy.engine import PolicyConfig, PolicyEngine, RequireApproval, RunContext
 from waypoint.policy.redactor import Redactor, Sink
@@ -77,7 +77,6 @@ from waypoint.session.handoff import (
 )
 from waypoint.session.intents import Intent, IntentState, IntentStore, Resolution, inputs_hash
 from waypoint.session.lease import LeaseLost
-from waypoint.session.progress import ProgressError, ProgressStore
 from waypoint.session.store import DEFAULT_DB, StateStore
 from waypoint.signatures.recognizers import rendered_inputs
 from waypoint.surface.locators import Ambiguous, Found, LocatorBundle, NotFound
@@ -105,7 +104,6 @@ class ReplayOptions:
     base_url: str | None = None
     """Run against another origin than the artifact's entry (a test server, a tenant)."""
     evidence_root: Path = Path("evidence/runs")
-    variant: str = "base"
     headed: bool = False
     require_approval: bool = True
     secrets: SecretBroker | None = None
@@ -122,11 +120,6 @@ class ReplayOptions:
     state_db: Path = DEFAULT_DB
     ledger_db: Path | None = None
     """Where to record this run for confidence (REPORT.md §3). None records nothing."""
-    resume_db: Path | None = None
-    """Where to persist step progress so a crashed run can be resumed. None records nothing."""
-    resume_from: int | None = None
-    """Set by ``resume()``: the first step the interrupted run is not known to have completed.
-    The return ladder decides from the live screen whether it may actually start there."""
     kind: Kind = "call"
     """``stability`` for a measurement sweep; ``call`` for work someone asked for."""
     injected: str | None = None
@@ -196,65 +189,9 @@ def replay(
     return _Run(cap, dict(inputs), options or ReplayOptions()).execute()
 
 
-class ResumeRefused(Exception):
-    """A recorded run that must not be picked up where it stopped."""
-
-
-def resume(
-    cap: Capability, inputs: Mapping[str, str], run_id: str,
-    options: ReplayOptions | None = None,
-) -> ReplayResult:
-    """Continue a run whose process died, in a fresh browser, from verified state.
-
-    Every check here happens before a browser starts. The recorded step index is only a
-    starting suggestion - ``_resume_point`` still makes the live screen prove it (R-RESUME-3),
-    and any irreversible action the dead run left open is reconciled first (R-REC-4).
-
-    Inputs are supplied again rather than stored: this state file keeps their hash, never
-    their values, and the hash must match before anything is replayed.
-    """
-    opt = options or ReplayOptions()
-    if opt.resume_db is None:
-        raise ResumeRefused("resuming needs resume_db: where the interrupted run wrote progress")
-    progress = ProgressStore(StateStore(opt.resume_db))
-    recorded = progress.get(run_id)
-    if recorded.status != "running":
-        raise ResumeRefused(f"run {run_id} finished; there is nothing to resume")
-    if recorded.capability_id != cap.capability_id:
-        raise ResumeRefused(f"run {run_id} ran {recorded.capability_id!r}, not "
-                            f"{cap.capability_id!r}")
-    if recorded.inputs_hash != inputs_hash(cap.capability_id, dict(inputs)):
-        raise ResumeRefused("these inputs are not the ones that run was started with")
-    try:
-        current = content_hash(cap, recorded.variant)
-    except ValueError as exc:  # the variant it ran under is gone, or no longer merges
-        raise ResumeRefused(f"variant {recorded.variant!r} cannot be applied: {exc}") from None
-    if recorded.content_hash != current:
-        raise ResumeRefused("the artifact changed since that run started; approval no longer "
-                            "covers it (R-PKG-2), so it cannot be resumed")
-    if opt.base_url and opt.base_url.rstrip("/") != recorded.base_url.rstrip("/"):
-        raise ResumeRefused("a run must resume against the application origin it started with")
-    runner = _Run(cap, dict(inputs), replace(
-        opt,
-        variant=recorded.variant,
-        base_url=opt.base_url or recorded.base_url,
-        resume_from=recorded.completed_index + 1,
-    ))
-    try:
-        progress.claim(run_id, runner.run_id)
-    except ProgressError as exc:
-        runner.ev.close()
-        raise ResumeRefused(str(exc)) from None
-    return runner.execute()
-
-
 class _Run:
     def __init__(self, cap: Capability, inputs: dict[str, str], opt: ReplayOptions) -> None:
-        self.raw_cap = cap
-        """The artifact as loaded: what approval, hashing and the ledger key against, since
-        those index provenance by variant name (R-PKG-4). Never used to run a step."""
-        self.cap = apply_overrides(cap, opt.variant)
-        """The effective capability this run actually executes."""
+        self.cap = cap
         self.inputs, self.opt = inputs, opt
         self.sens = {n: spec.sensitivity for n, spec in cap.inputs.properties.items()}
         known = {n: v for n, v in inputs.items() if n in self.sens}
@@ -293,12 +230,10 @@ class _Run:
         origin = urlsplit(self.origin)
         self.intent_scope = json.dumps([
             origin.scheme.lower(), (origin.hostname or "").lower(),
-            origin.port or (443 if origin.scheme == "https" else 80), opt.variant,
+            origin.port or (443 if origin.scheme == "https" else 80),
         ], separators=(",", ":"))
-        self.intent_contract = content_hash(self.raw_cap, opt.variant)
+        self.intent_contract = content_hash(cap)
         self.ledger = Ledger(StateStore(opt.ledger_db)) if opt.ledger_db is not None else None
-        self.progress = (ProgressStore(StateStore(opt.resume_db))
-                         if opt.resume_db is not None else None)
         self.open_intents: dict[str, str] = {}
         """This run's irreversible actions not yet confirmed: where -> intent id."""
         irreversible = any(s.risk == "irreversible" for _, s in cap.all_steps())
@@ -317,21 +252,20 @@ class _Run:
         result = self._execute()
         refused = result.failure is not None and result.failure.code in NOT_EVIDENCE
         if self.ledger is not None and not refused:
-            self.ledger.record(record_for(result, self.raw_cap, inputs_hash=self.digest,
+            self.ledger.record(record_for(result, self.cap, inputs_hash=self.digest,
                                           kind=self.opt.kind, injected=self.opt.injected))
         return result
 
     def _execute(self) -> ReplayResult:
         self.ev.text("artifact.json", self.cap.to_json())
-        status = approval_status(self.raw_cap, self.opt.variant)
+        status = approval_status(self.cap)
         self.ev.json(
             "meta.json",
             {
                 "run_id": self.run_id,
                 "capability_id": self.cap.capability_id,
                 "version": self.cap.version,
-                "variant": self.opt.variant,
-                "content_hash": content_hash(self.raw_cap, self.opt.variant),
+                "content_hash": content_hash(self.cap),
                 "approved": status.approved,
                 "approval_reasons": list(status.reasons),
                 "inputs": {
@@ -353,20 +287,10 @@ class _Run:
                 raise _Stop("failure", FailureDetail("invalid_input", "; ".join(problems)))
             self._check_confidence()
             self._check_unreconciled()  # before any browser starts
-            if self.progress is not None:
-                self.progress.start(
-                    run_id=self.run_id, capability_id=self.cap.capability_id,
-                    version=self.cap.version, variant=self.opt.variant,
-                    content_hash=content_hash(self.raw_cap, self.opt.variant),
-                    inputs_hash=self.digest, base_url=self.origin)
             return self._finish("success", outputs=self._with_surface())
         except _Stop as stop:
             return self._finish(stop.status, detail=stop.detail, outcome=stop.outcome)
         finally:
-            # Only a row left at 'running' means a process died mid-flow; every ending this
-            # code can observe - success, failure, escalation - closes it (R-RESUME).
-            if self.progress is not None:
-                self.progress.finish(self.run_id)
             self.ev.close()
 
     def _check_confidence(self) -> None:
@@ -384,7 +308,7 @@ class _Run:
                 "confidence_unknown",
                 f"this capability requires measured confidence of {threshold:.2f} and this run "
                 "records none; run `waypoint stability` or pass a ledger"))
-        confidence = self.ledger.confidence(self.raw_cap, self.opt.variant)
+        confidence = self.ledger.confidence(self.cap)
         self.ev.event("confidence", **confidence.to_dict())
         if not confidence.meets(threshold):
             raise _Stop("failure", FailureDetail(
@@ -444,7 +368,6 @@ class _Run:
             capability_id=self.cap.capability_id,
             version=self.cap.version,
             run_id=self.run_id,
-            variant=self.opt.variant,
             outputs=outputs,
             outcome=outcome,
             failure=detail,
@@ -480,11 +403,6 @@ class _Run:
         if adopted is not None:
             return adopted
         index, pending = 0, None
-        if self.opt.resume_from is not None:
-            resumed = self._resume_point(surface, self.opt.resume_from)
-            if isinstance(resumed, dict):
-                return resumed
-            index, pending = resumed
         while True:
             try:
                 if pending is not None:
@@ -494,8 +412,6 @@ class _Run:
                     if self.control is not None:
                         self.control.renew()
                     self._step(surface, f"steps[{index}]", self.cap.steps[index])
-                    if self.progress is not None:
-                        self.progress.advance(self.run_id, index)
                     index += 1
                 self._postconditions(surface)
                 return self._extract(surface)
@@ -539,48 +455,6 @@ class _Run:
                     stop.detail.step, expected=stop.detail.expected_signature,
                     snap=ladder.snapshot,
                 )
-
-    def _resume_point(
-        self, surface: WebSurface, resume_from: int
-    ) -> dict[str, str] | tuple[int, FailureDetail | None]:
-        """Where an interrupted run may pick up, judged from the live screen (R-RESUME-3).
-
-        A recorded step index says only what the dead process *believed*; it is never trusted
-        on its own. The same return ladder a handoff uses decides from what is actually on
-        screen, so a crash that left the application somewhere else cannot be resumed past.
-        """
-        snap = self._observe(surface, "resume")
-        ladder = return_ladder(self.cap, self.rendered, snap, resume_from)
-        self.ev.event("resumed", from_step=f"steps[{resume_from}]", ladder=describe(ladder))
-        if isinstance(ladder, Outcome):
-            if ladder.class_ == "business":
-                raise _Stop("business_outcome", outcome=ladder.name)
-            raise self._fail("hard_failure", f"recognised {ladder.name!r}",
-                             f"steps[{resume_from}]")
-        # No _confirm_intents here: this run has dispatched nothing yet. The dead run's
-        # intents belong to its own run_id and were settled by _check_unreconciled and
-        # _reconcile_leftovers before this point (R-REC-4).
-        if isinstance(ladder, Success):
-            return self._extract(surface)
-        if isinstance(ladder, Resume):
-            return ladder.index, None
-        # A fresh browser loses navigation state. Reconstruct only a prefix whose every
-        # action was declared safe, from the entry preconditions just verified by _enter.
-        # Any mutation in that prefix forbids reconstruction, even if its intent was closed.
-        prefix = self.cap.steps[:resume_from]
-        if (0 <= resume_from <= len(self.cap.steps)
-                and all(step.risk == "safe" for step in prefix)
-                and not self.sent_irreversible and not self.leftovers):
-            self.ev.event("resume_safe_prefix", steps=len(prefix))
-            # Use the ordinary driver so recovery, handoff and progress updates also apply
-            # while reconstructing the prefix. It verifies every step again before advancing.
-            return 0, None
-        return resume_from, self._detail(
-            "unrecognized_state_after_crash",
-            "on re-entry the screen matches no outcome, postcondition, checkpoint or declared "
-            "resume point of the interrupted run",
-            f"steps[{resume_from}]", snap=ladder.snapshot,
-        )
 
     def _enter(self, surface: WebSurface) -> None:
         """Open the entry point and establish preconditions - at the start, and again after
@@ -955,40 +829,20 @@ class _Run:
             self.ev.event("proposal_skipped", where=where, reason=self.redactor.error(exc))
             return None
         position = int(index.group(1))
-        variant = self.opt.variant
-        raw = self.raw_cap
-        major, minor, patch = (int(p) for p in raw.version.split("-")[0].split("."))
-        note = (f"proposed by an assisted run: {where} was relocated by "
-                f"{getattr(self.opt.assist, 'model', 'a model')} in run "
-                f"{self.run_id}; review the new locator before approving")
-        # Every variant goes back to draft, not just the one that was relocated: this is a new
-        # version nobody has read, and a variant hash covers the whole file anyway (R-PKG-4),
-        # so a carried-over "approved" would be a label that no longer verifies.
-        variants = {"base", variant, *raw.overrides}
-        provenance_update = {
-            "approval": {**raw.provenance.approval, **dict.fromkeys(variants, "draft")},
-            "approval_hash": {**raw.provenance.approval_hash, **dict.fromkeys(variants)},
-            "approved_by": None, "approved_at": None, "approval_note": note,
-        }
-        if variant == "base":
-            steps = list(raw.steps)
-            steps[position] = steps[position].model_copy(update={"target": bundle})
-            proposed = raw.model_copy(update={
-                "version": f"{major}.{minor}.{patch + 1}",
-                "steps": tuple(steps),
-                "provenance": raw.provenance.model_copy(update=provenance_update),
-            })
-        else:
-            # Bake the relocation into this variant's override, not into base's steps - base
-            # never sees a locator that only this tenant's UI needed.
-            path = f"steps[{position}].target"
-            variant_overrides = {**raw.overrides.get(variant, {}), path:
-                                  bundle.model_dump(mode="json", by_alias=True)}
-            proposed = raw.model_copy(update={
-                "version": f"{major}.{minor}.{patch + 1}",
-                "overrides": {**raw.overrides, variant: variant_overrides},
-                "provenance": raw.provenance.model_copy(update=provenance_update),
-            })
+        major, minor, patch = (int(p) for p in self.cap.version.split("-")[0].split("."))
+        steps = list(self.cap.steps)
+        steps[position] = steps[position].model_copy(update={"target": bundle})
+        proposed = self.cap.model_copy(update={
+            "version": f"{major}.{minor}.{patch + 1}",
+            "steps": tuple(steps),
+            "provenance": self.cap.provenance.model_copy(update={
+                "approval": {"base": "draft"}, "approval_hash": {"base": None},
+                "approved_by": None, "approved_at": None,
+                "approval_note": f"proposed by an assisted run: {where} was relocated by "
+                                 f"{getattr(self.opt.assist, 'model', 'a model')} in run "
+                                 f"{self.run_id}; review the new locator before approving",
+            }),
+        })
         name = f"proposal/{proposed.capability_id}-{proposed.version}.json"
         (self.ev.dir / "proposal").mkdir(parents=True, exist_ok=True)
         self.ev.text(name, proposed.to_json())

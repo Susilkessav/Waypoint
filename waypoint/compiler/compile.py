@@ -25,7 +25,7 @@ from __future__ import annotations
 
 import re
 from collections.abc import Mapping
-from dataclasses import dataclass, replace
+from dataclasses import dataclass
 from datetime import UTC, datetime
 from typing import Any
 
@@ -157,9 +157,9 @@ def diff_expectation(pre: UISnapshot, post: UISnapshot, rendered: Mapping[str, s
                      limit: int = 2) -> dict[str, Any]:
     """A checkpoint nomination for a step nobody nominated one for: what the step made appear.
 
-    A person demonstrating a step during discovery says nothing about what it should
-    achieve, so the elements present after it and absent before it stand in for the
-    model's expectation. An input's placeholder first, since it asserts *which* record
+    A person acting during a discovery handoff says nothing about what it should achieve,
+    so the elements present after it and absent before it stand in for the model's
+    expectation. An input's placeholder first, since it asserts *which* record
     (R-RESUME-5), then headings and table headers, which describe a screen rather than one
     record's data. Redacted data is never nominated. The nomination goes through the
     same promotion gate as the model's (R-PKG-5), so a poor one blocks approval instead of
@@ -234,7 +234,6 @@ class _Compiler:
             self.keyed["final"] = snapshot_from_dict(t.finish.snapshot)
         self.signatures: dict[str, Signature] = {}
         self.extra_inputs: dict[str, dict[str, Any]] = {}
-        self.demonstrated: list[str] = []
         finish = t.finish.outputs if t.finish is not None else {}
         self.output_values = frozenset(
             str((entry.get("element") or {}).get("name") or "")
@@ -328,17 +327,8 @@ class _Compiler:
 
     def _step(self, s: Step, index: int) -> dict[str, Any]:
         where = f"turn {s.turn}"
-        human = s.performed_by == "human"
-        if human and s.action != "gap" and s.action != "key" and s.bundle is None:
-            # A person's click with no replayable locator is still a place a person acted.
-            s = replace(s, action="gap", unrecorded=(
-                f"{s.decision.get('intent') or s.action}: no unique, verified locator "
-                f"({s.bundle_error or 'none recorded'})"))
         kind = _ACTIONS[s.action]
         d = s.decision
-        if human:
-            self.demonstrated.append(f"steps[{index}]")
-            self.notes.append(f"{where}: demonstrated by a person during discovery")
         if s.action == "gap":
             return self._gap(s, index, where)
         if kind != "key" and s.bundle is None:
@@ -527,7 +517,6 @@ class _Compiler:
             "provenance": {
                 "discovered_by": {"model": t.model, "run_id": t.run_id},
                 "compiled_at": now.isoformat(timespec="seconds"),
-                "demonstrated_steps": self.demonstrated,
             },
         }
         try:

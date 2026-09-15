@@ -1,4 +1,4 @@
-"""Regression coverage for the submission review: integration and authority boundaries."""
+"""Regression coverage at the boundaries between the replay engine and its extensions."""
 
 from pathlib import Path
 from types import SimpleNamespace
@@ -28,40 +28,20 @@ def cap_at(version="1.2.0", name="lookup_member_balance"):
     return load(REPO / "capabilities" / name / f"{version}.json")
 
 
-def test_unresolved_intents_are_isolated_between_tenants(tmp_path):
-    raw = cap_at("1.0.0", "open_sub_account").model_copy(
-        update={"overrides": {"alpha": {}, "beta": {}}}
-    )
-    raw = approve(
-        approve(raw, approver="review-probe", variant="alpha"),
-        approver="review-probe",
-        variant="beta",
-    )
+def test_unresolved_intents_are_isolated_between_application_origins(tmp_path):
+    """An operation attempted against one application instance says nothing about another."""
+    raw = approve(cap_at("1.0.0", "open_sub_account"), approver="review-probe")
     inputs = {"member_id": "12345", "account_type": "Money Market", "initial_deposit": "250.00"}
-    first = _Run(
-        raw,
-        inputs,
-        ReplayOptions(
-            variant="alpha",
-            base_url="http://127.0.0.1:18111",
-            state_db=tmp_path / "state.db",
-            evidence_root=tmp_path / "runs",
-        ),
-    )
-    second = _Run(
-        raw,
-        inputs,
-        ReplayOptions(
-            variant="beta",
-            base_url="http://127.0.0.1:18222",
-            state_db=tmp_path / "state.db",
-            evidence_root=tmp_path / "runs",
-        ),
-    )
+    first = _Run(raw, inputs, ReplayOptions(base_url="http://127.0.0.1:18111",
+                                          state_db=tmp_path / "state.db",
+                                          evidence_root=tmp_path / "runs"))
+    second = _Run(raw, inputs, ReplayOptions(base_url="http://127.0.0.1:18222",
+                                           state_db=tmp_path / "state.db",
+                                           evidence_root=tmp_path / "runs"))
     try:
         first._intent_begin("steps[7]", handed_over=True)
         second._check_unreconciled()
-        assert second.leftovers == [], "Tenant beta selected tenant alpha intent for reconciliation"
+        assert second.leftovers == [], "one origin's intent was selected for another's run"
     finally:
         first.ev.close()
         second.ev.close()
@@ -227,94 +207,6 @@ def test_agent_demo_lookup_works_with_its_fresh_ledger(tmp_path):
     assert "lookup_member_balance" in completed.stdout
 
 
-def test_successful_resume_closes_the_original_crash_record(tmp_path, monkeypatch):
-    from waypoint.artifact.schema import content_hash
-    from waypoint.replay.engine import resume
-    from waypoint.session.intents import inputs_hash
-    from waypoint.session.progress import ProgressStore
-
-    raw = cap_at()
-    inputs = {"member_id": "12345"}
-    progress = ProgressStore(StateStore(tmp_path / "state.db"))
-    progress.start(
-        run_id="dead-run",
-        capability_id=raw.capability_id,
-        version=raw.version,
-        variant="base",
-        content_hash=content_hash(raw),
-        inputs_hash=inputs_hash(raw.capability_id, inputs),
-        base_url="http://127.0.0.1",
-    )
-    monkeypatch.setattr(
-        _Run,
-        "execute",
-        lambda self: ReplayResult(
-            status="success",
-            capability_id=raw.capability_id,
-            version=raw.version,
-            run_id="resumed-run",
-        ),
-    )
-    result = resume(
-        raw,
-        inputs,
-        "dead-run",
-        ReplayOptions(resume_db=tmp_path / "state.db", evidence_root=tmp_path / "runs"),
-    )
-    assert result.status == "success"
-    assert progress.get("dead-run").status != "running", "Old run can still be resumed again"
-
-
-def test_operator_console_rejects_cross_origin_control_requests(tmp_path):
-    from waypoint.operator.console import create_console
-    from waypoint.session.escalation import InterventionStore
-    from waypoint.session.lease import LeaseStore
-
-    state_db = tmp_path / "state.db"
-    store = StateStore(state_db)
-    leases = LeaseStore(store)
-    token = leases.acquire("synthetic-run", "AGENT", "review-probe", 60)
-    leases.release(token)
-    queue = InterventionStore(store)
-    iv = queue.open(
-        session_id="synthetic-run",
-        run_id="synthetic-run",
-        capability_id="lookup_member_balance",
-        version="1.2.0",
-        reason_code="probe",
-        message="Synthetic review intervention",
-    )
-    client = create_console(state_db).test_client()
-    response = client.post(
-        f"/interventions/{iv.id}/take",
-        data={"operator": "review-probe"},
-        headers={"Origin": "https://untrusted.example", "Referer": "https://untrusted.example/"},
-    )
-    assert response.status_code in (400, 403), "Cross-origin POST changed control without a token"
-    assert queue.get(iv.id).status == "open"
-
-
-@pytest.mark.parametrize("variant,origin", [
-    ("alpha", "http://127.0.0.1:18222"),
-    ("beta", "http://127.0.0.1:18111"),
-])
-def test_intent_scope_separately_checks_origin_and_variant(tmp_path, variant, origin):
-    raw = cap_at("1.0.0", "open_sub_account").model_copy(
-        update={"overrides": {"alpha": {}, "beta": {}}})
-    inputs = {"member_id": "12345", "account_type": "Money Market", "initial_deposit": "250.00"}
-    first = _Run(raw, inputs, ReplayOptions(variant="alpha", base_url="http://127.0.0.1:18111",
-                                          state_db=tmp_path / "state.db", evidence_root=tmp_path))
-    second = _Run(raw, inputs, ReplayOptions(variant=variant, base_url=origin,
-                                           state_db=tmp_path / "state.db", evidence_root=tmp_path))
-    try:
-        first._intent_begin("steps[7]")
-        second._check_unreconciled()
-        assert not second.leftovers
-    finally:
-        first.ev.close()
-        second.ev.close()
-
-
 @pytest.mark.parametrize("legacy", [True, False])
 def test_legacy_or_changed_contract_intent_requires_operator(tmp_path, legacy):
     from waypoint.replay.engine import _Stop
@@ -331,33 +223,6 @@ def test_legacy_or_changed_contract_intent_requires_operator(tmp_path, legacy):
         assert stopped.value.detail.code == "reconciliation_required"
     finally:
         runner.ev.close()
-
-
-def test_concurrent_resume_claim_has_one_winner_and_recoverable_successor(tmp_path):
-    from concurrent.futures import ThreadPoolExecutor
-
-    from waypoint.session.progress import ProgressError, ProgressStore
-
-    progress = ProgressStore(StateStore(tmp_path / "state.db"))
-    progress.start(run_id="source", capability_id="cap", version="1.0.0", variant="base",
-                   content_hash="hash", inputs_hash="inputs", base_url="http://localhost")
-    progress.advance("source", 2)
-
-    def claim(successor):
-        try:
-            progress.claim("source", successor)
-            return successor
-        except ProgressError:
-            return None
-
-    with ThreadPoolExecutor(max_workers=2) as pool:
-        winners = [item for item in pool.map(claim, ["a", "b"]) if item]
-    assert len(winners) == 1
-    [winner] = winners
-    assert progress.get("source").resumed_by == winner
-    assert progress.get(winner).completed_index == 2
-    progress.claim(winner, "retry-after-successor-crash")
-    assert progress.get(winner).status == "done"
 
 
 def test_failed_assist_provider_also_consumes_budget(tmp_path, monkeypatch):
@@ -379,20 +244,6 @@ def test_failed_assist_provider_also_consumes_budget(tmp_path, monkeypatch):
         assert len(calls) == len(runner.assist_attempts) == 1
         assert runner.assisted == []
         assert "error" in runner.assist_attempts[0]
-    finally:
-        runner.ev.close()
-
-
-def test_resume_never_reconstructs_a_prefix_containing_a_mutation(tmp_path, monkeypatch):
-    raw = cap_at("1.0.0", "open_sub_account")
-    runner = _Run(raw, {}, ReplayOptions(state_db=tmp_path / "state.db", evidence_root=tmp_path))
-    monkeypatch.setattr(runner, "_observe", lambda *a, **kw: snapshot())
-    actions = []
-    monkeypatch.setattr(runner, "_step", lambda *a: actions.append(a))
-    try:
-        index, detail = runner._resume_point(None, len(raw.steps))
-        assert detail.code == "unrecognized_state_after_crash"
-        assert actions == []
     finally:
         runner.ev.close()
 

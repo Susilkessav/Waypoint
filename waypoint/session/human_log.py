@@ -105,9 +105,6 @@ class HumanRecorder:
         self.count = 0
         self.actions = 0
         """Records made by the person, excluding the control-transfer markers."""
-        self.suppress_clicks = 0
-        """Clicks about to be dispatched on a person's behalf (a demonstrated step re-sent
-        through the policy engine). Their click was already recorded when they made it."""
         self._installed = False
         self._pending: deque[_Seen] = deque()
         self._last_url: dict[tuple[str, ...], str] = {}
@@ -177,9 +174,6 @@ class HumanRecorder:
             self._last_url[where] = to_url
             return record
         if kind == "click":
-            if self.suppress_clicks:
-                self.suppress_clicks -= 1
-                return None
             tag, name = str(payload.get("tag", ""))[:12], str(payload.get("name", ""))
             if tag in ("td", "th") and not payload.get("clickable"):
                 name = f"‹cell text: {len(name)} chars›" if name else ""

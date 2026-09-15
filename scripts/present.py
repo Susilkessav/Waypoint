@@ -91,11 +91,17 @@ def main() -> int:
                            else "Click Confirm once; a lost response is expected")
             pause(f"In the browser: {instruction}. Then Enter = return control · q = abort")
             subprocess.run(command("return", False), cwd=REPO, env=env, check=True)
-            if active.wait(timeout=60) != expected:
+            try:
+                finished = active.wait(timeout=60)
+            except subprocess.TimeoutExpired:
+                raise RuntimeError(
+                    f"{action} is still waiting for a person: control was probably returned "
+                    "before the click. Start a fresh take with docs/present.sh.") from None
+            if finished != expected:
                 raise RuntimeError(f"{action} did not finish as expected; inspect its evidence")
             active = None
         print(f"\nRecording flow complete. Evidence: {directory}")
-        print("Optional extensions: uv run python scripts/feature_demo.py")
+        print("Optional: uv run python scripts/agent_demo.py --cassette evidence/agent/lookup.json")
         return 0
     except (KeyboardInterrupt, EOFError):
         print("\nPresenter stopped. Saved evidence remains available.")

@@ -17,8 +17,8 @@ exposes sanitized roles, labels and relationships. Internal references connect o
 browser elements. The fixture deliberately contains nested frames, duplicate links, changing
 row IDs and postbacks; business operations are performed through its UI.
 
-Separate operator commands and a local web console change SQLite leases, interventions and
-intents. The browser owner polls those records. This provides actual control transfer with a
+Separate operator commands change SQLite leases, interventions and intents. The browser owner
+polls those records. This provides actual control transfer with a
 small, inspectable process model; no daemon or distributed queue is needed for this scope.
 
 ## 2. Artifact schema
@@ -30,8 +30,8 @@ such as `$inputs.member_id` and `$secrets.meridian_password`; extraction locator
 label or relationship rather than the recorded balance.
 
 The compiler checks nominated outputs and transitions against observations, synthesizes locators
-while targets remain live, and marks weak checks or missing demonstrated actions as approval
-blockers. State signatures are inlined so later library edits cannot silently alter a release.
+while targets remain live, and marks weak checks, unreviewed literals and work a person did by hand
+as approval blockers. State signatures are inlined so later library edits cannot silently alter a release.
 Approval records a content hash and is revalidated at execution. Version allocation includes
 drafts; ordinary replay selects the highest approved release. Explicit structure makes review
 and change detection more reliable than an opaque recording.
@@ -66,15 +66,16 @@ implementation would map those concepts to Windows UIA or macOS accessibility. T
 stub describes that mapping; browser lifecycle and human-capture wiring would also need
 adaptation. Desktop execution is not implemented.
 
-Tenant variants apply sparse replacements to route allowlists, step targets and checkpoints,
-then revalidate the effective capability. Lookup 1.4.0 demonstrates `riverbank`, where Search
-is renamed Continue. Approval and confidence are per variant. Hashes cover the whole artifact,
-so editing any override requires renewed approvals: conservative, but easy to audit.
+Multi-tenant reuse is designed, not built. Many institutions run the same vendor product, so
+one artifact would carry sparse per-tenant overrides - a renamed control's target, a different
+checkpoint, a tenant's route allowlist - rather than being re-recorded. Each variant would be
+reviewed and approved separately over the merged content, and measured separately, because a
+change that is safe for one tenant says nothing about another. The schema reserves `overrides`
+for this. Drift per tenant shows up as locator tier degradation and falling confidence in the
+run ledger, which is already recorded per artifact.
 
-Operation intents include normalized application origin, variant and the reviewed contract hash.
-One tenant cannot reconcile another tenant's pending work. Legacy unscoped records and changed
-contracts require explicit operator reconciliation. Deployment selection remains explicit;
-confidence represents the configured variant, not every installation of a vendor's application.
+Operation intents record the normalized application origin and the reviewed contract hash, so
+an operation attempted against one instance is never reconciled in another's browser.
 
 ## 5. Escalation & handoff
 
@@ -85,18 +86,13 @@ operates that exact session, and returns it. Owner tokens and increasing lease g
 prevent stale automation from acting. Expiry and abort terminate conservatively.
 
 On return, outcomes, postconditions, the stopped checkpoint and declared resume points determine
-where execution may continue. Discovery captures supported human actions as reusable steps;
-unsupported or credential actions leave visible gaps that block approval.
+where execution may continue. During discovery the model continues from the screen the person left; what they did is
+logged and compiled into a visible gap that blocks approval until someone authors the step.
 
 Before an irreversible dispatch or handover, an intent is durably written. A read-only probe
 returns Completed, NotCompleted or Unknown. Adoption requires a unique authoritative record
 matching all operation inputs and a creation interval after the attempt; ambiguous evidence
 escalates. This handles a committed operation whose confirmation response was lost.
-
-Crash recovery persists completed steps without raw inputs. Resumption atomically retires the
-source and creates one linked successor. A fresh browser verifies state and may reconstruct an
-entirely safe prefix. Already completed mutations are never reconstructed. The retained demo
-terminates a worker, resumes successfully and refuses a second claim of its original ID.
 
 ## 6. Safety
 
@@ -105,25 +101,24 @@ GETs. Each authorized mutation consumes its authorization. A page computing high
 the reviewed label escalates. Perception classifies data before model exposure; a shared
 redactor handles evidence and screenshots. Full outputs go only to the caller.
 
-Credentials are injected into verified fields. Environment lookup is the default; an optional
-keychain broker shares the same authorization and sanitized-error behavior. Missing entries
-can fall back; locked/unavailable backends fail closed. The operator console validates local
-hosts, same-origin requests and session CSRF tokens, with local redirects.
+Credentials come from the environment through a broker that releases them only to a field whose
+label the spec authorizes, and never echoes a value in an error.
 
 These controls bound authority and exposure. They do not make a model immune to prompt
-injection, detect every possible sensitive value, authenticate local console users, or establish
-production compliance. Tests exercise concrete failure and redaction boundaries on the fixture.
+injection, detect every possible sensitive value, or establish production compliance. Tests exercise concrete failure and redaction boundaries on the fixture.
 
 ## 7. Cuts
 
-Desktop execution, hosted multi-user infrastructure, automatic process-death detection and
-browser reattachment are omitted. Reconciliation depends on authoritative UI evidence and
-available timestamp precision; it is not a universal exactly-once guarantee. Adoption is limited
-to a final operation. Tenant overrides do not redesign arbitrary workflows.
+Deliberately left out: desktop execution (the port is defined, the adapter is a stub), tenant
+variants (designed in §4), a graphical operator console (the CLI moves the same records), a
+credential vault (the environment broker is the seam), and resuming a run after its process
+dies (a fresh run reconciles any operation the dead one left open). Reconciliation depends on
+authoritative UI evidence and timestamp precision; it is not a universal exactly-once guarantee.
 
-Generated pytest executes the real engine, including negative cases. Generated Playwright page
-objects are explanatory code without equivalent guardrails. OS keychain behavior is covered
-with fake providers; real backend provisioning remains environment-specific. Live-model
-recordings are preserved, while reproducible demonstrations use cassettes or clearly labelled
-scripted actors. Further work should validate additional real application variants before adding
-infrastructure or broader autonomous repair.
+Discovery escalation logs what a person does but does not turn it into replayable steps; a
+reviewer authors those. Generated Playwright page objects are for reading, without the engine's
+guardrails; generated pytest runs the real engine. Live-model recordings are preserved, and
+reproducible demonstrations use cassettes or clearly labelled scripted operators.
+
+Next: validate one tenant variant against a second fixture before building override application,
+then the operator console, driven by what reviewers of real handoffs actually need.

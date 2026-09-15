@@ -23,7 +23,6 @@ is implemented and tested; the design reasoning behind them is in [REPORT.md](RE
 |---|---|---|
 | `waypoint replay` / `waypoint discover` | The browser; the only caller of `act()` | Serve requests |
 | `waypoint intervene` (operator) | Rows in SQLite: leases, interventions, intents | Touch the browser |
-| `waypoint console` (operator) | The same rows, in a browser view | Touch the run's browser |
 | `target_app` | The test fixture | Anything else |
 
 - **R-PROC-1** — The run that launched the browser owns it for its whole life. No other process attaches.
@@ -37,12 +36,6 @@ is implemented and tested; the design reasoning behind them is in [REPORT.md](RE
   holds no token at all.
 - **R-PROC-5** — An expired lease ends the run as `escalated/lease_timeout`; an intervention nobody takes
   ends it as `escalated/intervention_timeout`. No silent resumption.
-- **R-PROC-6** — The console is a view, not a second authority: every action calls the same store method
-  the equivalent `intervene` command calls, so the two interfaces cannot disagree about who holds
-  control. Because R-PROC-3 leaves no channel to expose, it can only move rows - taking control there
-  still means walking to the window the run opened. It carries no user authentication and binds to
-  localhost. Host validation applies to all requests; mutation requests require a session CSRF token and,
-  when supplied, a matching Origin. Redirects stay local.
 
 ## R-LOC — Locators
 
@@ -107,14 +100,10 @@ Classification is by effect, configured in [`waypoint/policy/policy.yaml`](waypo
 - **R-SENS-7** — An extraction locator keys on labels and relations ("the Savings row's Balance cell"),
   never on the recorded value or its redacted form. The compiler rejects one that does.
 - **R-SENS-8** — Credentials come from the `SecretBroker` at type time and never enter a snapshot,
-  transcript, prompt or artifact. Where they are *stored* is a lookup detail - the environment, or the OS
-  keychain with `--credentials keyring` - and the source never changes the rules above it: a credential
-  is released only to a field whose label the spec authorizes, and a failure to write one reports no
-  value, not even in a chained exception.
+  transcript, prompt or artifact. A credential is released only to a field whose label the spec
+  authorizes, and a failure to write one reports no value, not even in a chained exception.
 - **R-SENS-9** — Before an artifact is written, every string in it is scanned; a sensitive-looking hit
   fails compilation.
-
-A missing keychain entry may fall back to the environment. A locked or unavailable provider fails closed with a sanitized error; it does not silently fall back.
 
 ## R-REC — Irreversible actions and reconciliation
 
@@ -128,8 +117,8 @@ A missing keychain entry may fall back to the environment. A locked or unavailab
   values, several candidates or a time too close to call are `Unknown`.
 - **R-REC-4** — Immediately before an irreversible action is dispatched, after policy and approval, an
   intent row is written and flushed (`dispatching` → `dispatched` → `observed`/`reconciled`). Its attempt
-  time is immutable. An unresolved intent is scoped to normalized application origin and variant, and
-  bound to the reviewed contract hash. Another scope is never reconciled in this browser; legacy unscoped
+  time is immutable. An unresolved intent is scoped to the normalized application origin and bound to
+  the reviewed contract hash. Another scope is never reconciled in this browser; legacy unscoped
   or changed-contract records require operator reconciliation. Compatible unresolved intents are
   reconciled before new work, and one is written before an irreversible step is handed to a person.
 - **R-REC-5** — The `reconcile.probe` may only navigate and wait. It visits a read-only screen showing
@@ -155,18 +144,11 @@ An irreversible step may not retry without a reconcile block, and an unattended 
   control transfers, navigations, clicks (role, redacted name, frame), field changes (field and length,
   **never the characters**) and submits.
 
-- **R-RESUME-7** — During discovery, what a person demonstrates is captured as steps: each click is held
-  while its element is still on screen, a locator is synthesized from it, and it is then performed
-  through the policy engine like any other action. What cannot be captured - a credential, a control
-  perception does not expose, an action policy would not repeat - is recorded as a gap that blocks
-  approval.
-- **R-RESUME-8** — An operator explicitly resumes a run whose process is gone; nothing detects death
-  automatically. Progress is written before browser startup and closed on observed completion. Inputs are
-  resupplied and hash-checked; capability content, variant and origin must match. An atomic claim closes
-  the source and creates one linked successor, so concurrent or repeated claims cannot execute it twice.
-  A successor left running after another crash can itself be resumed. Fresh entry is verified; if the
-  return ladder cannot recognize the stopped state, only an entirely safe prefix may be reconstructed. A
-  prefix containing a mutation is never reconstructed. Unresolved intents are reconciled first.
+- **R-RESUME-7** — During discovery, a run that is going nowhere (an unchanged screen, two screens
+  alternating, refused actions, the step limit, or the model giving up) hands the live browser to a
+  person the same way. What they did is logged (R-RESUME-6) and recorded in the transcript as a gap: it
+  compiles into a step that blocks approval until someone authors it, so a draft never silently skips
+  work a person did.
 
 ## R-OUT — Outcomes and recovery
 
@@ -184,19 +166,12 @@ An irreversible step may not retry without a reconcile block, and an unattended 
 - **R-PKG-2** — Approval records a hash of the artifact's execution-relevant content. Replay recomputes
   it; any change makes the artifact unapproved.
 - **R-PKG-3** — Approval gates are recomputed from content at approval and at every replay. Approval is
-  blocked by a weak or unverified checkpoint, an unreviewed literal, a gap where a person acted and
-  nothing replayable was recorded (R-RESUME-7), a positional candidate without identity, an extraction
+  blocked by a weak or unverified checkpoint, an unreviewed literal, a gap where a person acted during
+  discovery (R-RESUME-7), a positional candidate without identity, an extraction
   keyed on its value, or an unattended irreversible step without a compliant reconcile.
-- **R-PKG-4** — Approval is per tenant variant, each with its own hash over the artifact with that
-  variant's overrides applied. An override maps a path the artifact already uses to name its parts
-  (`policy.allowed_routes`, `steps[N].target`, `steps[N].checkpoint`) onto replacement content; any other
-  path is refused. Merging re-runs every structural validator, so an override that would make the
-  capability invalid fails at merge, not at replay. Gates (R-PKG-3) and execution both use the merged
-  view: a variant can be blocked by a problem base does not have, and the policy engine enforces that
-  variant's route allowlist. Each variant's hash covers the whole artifact, not just its own slice, so
-  editing any part of the file - another tenant's override included - unapproves every variant (R-PKG-2
-  applied literally, deliberately: the reviewed unit is the file). Runs are recorded and scored per
-  variant (R-PKG-6).
+- **R-PKG-4** — *(Design; not built.)* Approval would be per tenant variant, each with its own hash
+  over the artifact with that variant's overrides applied. The schema reserves `overrides`; nothing
+  applies it.
 - **R-PKG-5** — A checkpoint the model nominates is accepted only if it holds after the action, asserts
   content (an element or text, not just a URL change), and — for steps that change the screen — is false
   on at least one other recorded screen. Otherwise it is marked `weak` or `unverified`, which blocks

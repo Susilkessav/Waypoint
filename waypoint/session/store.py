@@ -93,18 +93,6 @@ CREATE TABLE IF NOT EXISTS runs (
     at            REAL NOT NULL
 );
 CREATE INDEX IF NOT EXISTS runs_by_artifact ON runs (capability_id, version, content_hash, at);
-CREATE TABLE IF NOT EXISTS run_progress (
-    run_id          TEXT PRIMARY KEY,
-    capability_id   TEXT NOT NULL,
-    version         TEXT NOT NULL,
-    variant         TEXT NOT NULL,
-    content_hash    TEXT NOT NULL,
-    inputs_hash     TEXT NOT NULL,
-    base_url        TEXT NOT NULL,
-    completed_index INTEGER NOT NULL DEFAULT -1,
-    status          TEXT NOT NULL CHECK (status IN ('running', 'done')),
-    updated_at      REAL NOT NULL
-);
 """
 
 
@@ -132,7 +120,6 @@ def _migrate(db: sqlite3.Connection) -> None:
     additions = {
         "intents": {"scope": "TEXT", "contract_hash": "TEXT"},
         "runs": {"contract_ok": "INTEGER", "contract_reason": "TEXT"},
-        "run_progress": {"resumed_by": "TEXT", "resumed_from": "TEXT"},
     }
     for table, fields in additions.items():
         present = {row["name"] for row in db.execute(f"PRAGMA table_info({table})")}

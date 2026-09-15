@@ -1,5 +1,8 @@
 # Explaining Waypoint
 
+For hands-on testing, use the [complete manual walkthrough](manual-walkthrough.md): setup,
+commands, browser actions and expected results for each delivered feature.
+
 Waypoint separates **learning a workflow** from **executing a reviewed workflow**. A model is
 useful when discovering an unfamiliar UI. Repeating the learned workflow should have a typed
 contract, bounded behavior and inspectable checks. That distinction is the project's central
@@ -26,7 +29,7 @@ browser remains open for a person, and the engine verifies the state when contro
    policy before acting. Discovery observes again and records the transition.
 4. **Compilation builds the capability.** Locators are synthesized while elements still exist.
    Inputs become references; outputs use label/row relationships; checkpoints are validated.
-5. **Review approves a content hash.** Weak checks, missing demonstrated steps, unsafe extraction
+5. **Review approves a content hash.** Weak checks, gaps where a person acted, unsafe extraction
    locators and unsupported irreversible actions block approval.
 6. **Replay accepts typed arguments.** It establishes preconditions, executes reviewed steps,
    verifies checkpoints and returns outputs or a structured terminal result.
@@ -47,16 +50,13 @@ workflow inspectable without requiring the caller to understand the application'
 | Business outcomes | Named answers such as not-found are successful terminal results. | A caller can branch on a business answer instead of parsing error text. |
 | Bounded recovery | Recognized notices, delays and expired sessions have declared remedies and limits. | Known interruptions should be handled without unlimited retries or new model decisions. |
 | Human handoff | Quiesce, release lease, retain browser, take/return control, verify state. | The person must receive the real session, and automation must not resume on stale assumptions. |
-| Human demonstration | Supported discovery-time actions become locators and verified steps. | Help can make the learned workflow reusable; unrecordable actions remain visible approval gaps. |
+| Discovery escalation | A stuck discovery hands the live browser to a person; their work becomes a gap that blocks approval. | A draft must never silently skip work a person did; a reviewer authors that step. |
 | Reconciliation | Durable intents plus authoritative read-only UI probes. | A lost response can follow a successful commit; retrying blindly could duplicate it. |
-| Tenant variants | Sparse target/checkpoint/route overrides with separate approval and scoring. | Institutions can share a flow while reviewing their actual differences. |
 | Stability and confidence | Persist case verdicts, timing, drift, outcomes and consistency; score recent eligible runs. | One successful run is weak evidence of reliable reuse. |
 | Assisted relocation | One attempted safe-step element selection, deterministic validation, draft repair. | A narrow relocation can help with drift without granting a model general replay authority. |
 | Catalog | Approved capability schemas and invocation through the same engine. | An upstream agent selects business tools rather than inventing UI instructions. |
 | Generated pytest | Cases run through the engine, with fixture injections and confidence disabled for measurement. | Tests retain the real policy and outcome semantics; they can establish reliability. |
-| Progress and resume | Durable completed-step index, atomic source claim, linked successor, verified fresh-session entry. | A crash should be recoverable without two workers resuming the same source or repeating mutations. |
-| Operator console | Loopback queue and actions backed by the same stores as the CLI, protected against cross-origin forms. | An easier interface should preserve the existing control model. |
-| Secret providers | Environment or OS keychain lookup, then injection into an authorized field. | Storage choice should not alter where a credential may be released. |
+| Credentials | Environment lookup, then injection only into a field whose label is authorized. | A credential never reaches a prompt, transcript, artifact or unintended field. |
 
 ## Explain the difficult boundaries with examples
 
@@ -70,11 +70,6 @@ records if the response is lost. Completed means adopt, not click again. NotComp
 positive evidence; Unknown escalates. This is conditional reconciliation, not a universal
 exactly-once promise.
 
-**Tenant isolation:** intents belong to a normalized origin and variant, with a contract hash.
-A pending riverbank operation cannot be settled using base's browser. Legacy records without
-that identity require operator reconciliation; a changed artifact cannot silently supply a new
-probe for an old contract.
-
 **Confidence:** stable means at least five eligible runs, all contracts kept and no assistance
 or recovery. The score is a conservative statistical lower bound, not the percentage of green
 runs. A 0.5 bar is used in the fixture demonstration so a small sample can demonstrate gating;
@@ -87,12 +82,6 @@ the requested action or value, introduce a URL, or repair an irreversible step. 
 choice or provider error still spends the one-attempt budget. A saved assist recording must
 match the screen and one unique control before the usual checks apply.
 
-**Crash recovery:** the original process must actually be gone; an operator chooses to resume.
-The system claims its progress row once and creates a linked successor before starting work.
-A fresh browser may repeat only a fully safe prefix from verified entry conditions. It cannot
-reconstruct a prefix containing a mutation. Unresolved intents are reconciled before new work.
-If another crash happens immediately after the claim, the linked successor is the recovery ID.
-
 ## What the demonstrations prove
 
 The [recording script](demo-script.md) follows discovery → artifact review → refusal → approval
@@ -100,28 +89,22 @@ The [recording script](demo-script.md) follows discovery → artifact review →
 The newly generated artifact is used unchanged for the two-member reuse proof. Hardened
 artifacts supply the separately authored exceptional behavior.
 
-[Feature evidence](../evidence/features/README.md) additionally shows a renamed tenant control,
-a protected console controlling a catalog-invoked session, a captured human step reused for a
-different member, matching-screen assisted playback, and a real worker exit followed by success.
-These are scripted fixture demonstrations, not fresh model calls or a deployment validation.
-Two saved live discovery recordings and saved agent/assist exchanges retain actual model
+The showcase runs use a scripted operator and say so. Two saved live discovery recordings and saved agent/assist exchanges retain actual model
 provenance. [The evidence index](../evidence/README.md) keeps those categories separate.
 
 ## Limits to explain plainly
 
 - Only the Chromium adapter executes. The desktop interface and mapping design are provided,
   but desktop lifecycle and capture integration are unfinished.
-- The console is a local operator tool without user authentication; it does not remotely drive
-  the replay browser. Catalog invocation is synchronous. A returned escalation describes a
-  stopped run, not an open browser still waiting for a person.
-- Confidence is scoped to content and variant, not every tenant deployment origin. Use a
-  separate state database where deployment-specific measurement isolation is needed.
+- The operator interface is the `waypoint intervene` CLI; there is no graphical console.
+  Catalog invocation is synchronous. A returned escalation describes a stopped run.
+- Tenant variants are designed (REPORT §4), not built. Confidence is scoped to an artifact's
+  content; use a separate state database where deployment-specific measurement is needed.
 - Redaction uses bindings, structure, labels and patterns. Unlabelled sensitive content and
   hostile instructions in otherwise permitted UI text remain application-specific risks.
-- The keychain adapter is tested with fake backends; actual OS provisioning is a local concern.
 - Generated Playwright page objects are for reading/debugging and lack engine guardrails.
-- There is no hosted service, automatic process-death detector, browser reattachment or general
-  autonomous repair of an arbitrary workflow.
+- There is no hosted service, credential vault, resumption of a run whose process died, or
+  general autonomous repair of an arbitrary workflow.
 
 ## A short code tour
 

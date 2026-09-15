@@ -126,9 +126,7 @@ def create_app() -> Flask:
     @_requires_login
     def console_content() -> Any:
         return render_template("search_form.html",
-                               submit=chaos.submit_label(
-                                   "Continue" if os.environ.get("WAYPOINT_TENANT") == "riverbank"
-                                   else "Search", "drift_search"))
+                               submit=chaos.submit_label("Search", "drift_search"))
 
     @app.route("/console/search", methods=["GET", "POST"])
     @_requires_login

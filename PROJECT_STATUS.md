@@ -1,53 +1,37 @@
-# Submission feature inventory
+# Feature inventory
 
-The submission implements the core discovery → compile → review → replay workflow, including
-real same-session human handoff, typed outcomes and irreversible reconciliation. The local
-fixture is the validated application. Desktop and hosted infrastructure are deliberate cuts.
+The submission implements the core discovery → compile → review → replay workflow, with real
+same-session human handoff, typed outcomes and irreversible reconciliation, plus four small
+extensions. The local fixture is the validated application.
 
 | Area | Delivered behavior | Evidence or regression coverage |
 |---|---|---|
-| Live discovery | Structured goal-driven exploration, policy checks, compile feedback | Two [genuine live recordings](evidence/README.md) |
-| Compilation and approval | Typed references, validated checkpoints, stable versions and content-bound gates | `tests/test_discovery.py`, `test_submission_regressions.py`, `test_approval_queue.py` |
-| Deterministic replay | Semantic/anchored targets, identity checks, four result statuses | Replay showcases and browser tests |
-| Outcomes and recovery | Missing member, permission denial, bounded notice/session recovery, hard failure | `capabilities/lookup_member_balance/cases.yaml`, full generated-case tests |
-| Human replay handoff | Lease take/return, same live session, redacted action log, verified return | `showcase-handoff-ambiguous`, `tests/test_handoff.py` |
-| Discovery demonstration | Supported operator clicks compile into reusable steps; gaps block approval | [Demonstration and reuse](evidence/features/README.md), `tests/test_discovery_handoff.py` |
-| Irreversible reconciliation | Durable scoped intents, authoritative probes, adoption without duplicate submission | Lost-response showcase, `tests/test_irreversible.py`, scope regressions |
-| Tenant reuse | Delivered 1.4.0 riverbank override, per-variant approval and confidence | [Changed tenant](evidence/features/README.md), `tests/test_variants.py` |
-| Catalog | Approved tools, Anthropic/OpenAI schemas, variant selection, invocation and handoff | Fresh agent-demo regression, catalog/console demonstration |
-| Stability | Stored case verdicts, consistency, per-step drift/timing, confidence gates | `tests/test_stability.py`, `test_ledger.py`, `test_feature_boundaries.py` |
-| Assisted relocation | One attempted safe-step choice, checked cassette, proposed draft | Saved live cassette, [reproduced assist](evidence/features/README.md), rejection/budget tests |
-| Generated pytest | Full case set including injections; approved confidence-gated artifacts | `tests/test_codegen.py` executes complete generated files |
-| Crash recovery | Atomic source claim, linked successor, safe-prefix reconstruction | [Actual worker exit and resume](evidence/features/README.md), resume/concurrency tests |
-| Operator console | Shared-store control actions with Host/Origin/CSRF protection | Console tests and catalog-to-console handoff |
-| Credentials | Authorized field injection, environment/keychain providers, sanitized failure | Secret-provider tests; real OS backend provisioning remains unverified |
-| Submission materials | Reproducible presenter, shortened seven-section report, evidence and checklist | [SUBMISSION.md](SUBMISSION.md) |
+| Live discovery | Goal-driven exploration, policy checks, compile feedback while the page is open | Two [genuine live recordings](evidence/README.md), `tests/test_discovery.py` |
+| Compilation and approval | Typed references, verified checkpoints, versions and content-bound gates | `tests/test_compiler.py`, `tests/test_approval_queue.py`, `tests/test_schema.py` |
+| Deterministic replay | Semantic and anchored targets, identity checks, four result statuses | Replay showcases, `tests/test_replay.py` |
+| Outcomes and recovery | Missing member, permission denial, bounded notice/session recovery, hard failure | `capabilities/lookup_member_balance/cases.yaml`, `tests/test_recovery.py` |
+| Human handoff | Lease take/return on the same live session, redacted action log, verified return | `showcase-handoff-ambiguous`, `tests/test_handoff.py` |
+| Discovery escalation | A stuck discovery hands the browser to a person; what they did becomes a gap that blocks approval | `tests/test_discovery_handoff.py`, `tests/test_stuck.py` |
+| Irreversible reconciliation | Durable origin-scoped intents, authoritative probes, adoption without resubmission | Lost-response and stale-receipt showcases, `tests/test_irreversible.py` |
+| Stability and confidence | Repeated case sweeps, output consistency, per-step drift and timing, an optional confidence bar | [Stability reports](evidence/stability), `tests/test_stability.py`, `tests/test_ledger.py` |
+| Agent catalog | Approved capabilities as typed tools; invocation by name | [Agent recording](evidence/agent/lookup.json), `tests/test_catalog.py` |
+| Assisted relocation | One checked model choice for a renamed control on a safe step, with a proposed draft | `showcase-assisted-drift`, `tests/test_assist.py` |
+| Code generation | A regression test that runs the engine, and a readable Playwright page object | `tests/test_codegen.py` |
 
 ## Artifact lineage
 
 | Artifact | Purpose |
 |---|---|
-| lookup 1.0.0 | Original handwritten foundation; the recording also creates a separate isolated 1.0.0 draft. |
-| lookup 1.1.0 | Retained live-discovered draft; provenance is preserved. |
-| lookup 1.2.0 | Reviewed lookup with business outcomes and recovery; core showcase release. |
-| lookup 1.3.0 | Reviewed confidence bar and optional assisted relocation; original live assist release. |
-| lookup 1.4.0 | 1.3.0 plus the reviewed riverbank control override; base behavior is unchanged. |
-| open_sub_account 1.0.0 | Live-derived workflow hardened with reviewed reconciliation. |
-
-Adding an override changes the reviewed content, so 1.4.0 has fresh base and riverbank approvals.
-Its confidence history starts empty. The fresh agent demo measures the current release before
-advertising it; it does not bypass the catalog's gate. The small demonstration threshold is not
-presented as a production reliability recommendation.
+| lookup 1.0.0 | Original handwritten foundation. |
+| lookup 1.1.0 | Retained live-discovered draft; provenance preserved. |
+| lookup 1.2.0 | Reviewed lookup with business outcomes and recovery; the core showcase release. |
+| lookup 1.3.0 | 1.2.0 plus a confidence bar (0.5) and optional assisted relocation. |
+| open_sub_account 1.0.0 | Live-derived workflow hardened with a reviewed reconciliation probe. |
 
 ## Deliberate limits
 
-Working Chromium execution does not imply desktop support. The desktop adapter is a stub and
-extension design. There is no hosted multi-user service or remote browser-control channel.
-Resume requires an operator to know the old process is gone. Reconciliation depends on the UI's
-authoritative data and timestamp precision. Redaction is rule-based, not exhaustive detection.
-Generated page objects lack the engine's execution guarantees. Keychain tests use fake providers.
-
-Milestones A and B are implemented. The retained C extensions are demonstrated above; C is no
-longer described as wholly skipped. D is the final verification and packaging recorded in
-[SUBMISSION.md](SUBMISSION.md). [PROJECT_REVIEW.md](PROJECT_REVIEW.md) records the resolution of
-the eight review findings. PLAN.md remains historical and is excluded from the submission.
+Desktop execution is a stub behind the `Surface` port. Tenant variants are designed (REPORT §4)
+but not built. There is no graphical operator console, credential vault, hosted service, or
+resumption of a run whose process died; a fresh run reconciles any operation left open.
+Reconciliation depends on the UI's authoritative data and timestamp precision. Redaction is
+rule-based, not exhaustive detection. Generated page objects lack the engine's guarantees.

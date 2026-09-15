@@ -1,13 +1,13 @@
-"""Discovery that gets stuck asks a person, and what they demonstrate becomes a step.
+"""Discovery that gets stuck asks a person, on the same live browser (REPORT.md §5).
 
 The brief's escalation requirement covers being stuck during discovery, not only during
-replay (REPORT.md §5). Here a scripted decider gives up at the search results - it "cannot
-see" how to open the member's record - and a stand-in operator clicks View on the live
-page. Control returns, the model finishes, and the compiled artifact is replayed for a
-*different* member: the person's click has to generalize, or it was never a step.
+replay. Here a scripted decider gives up at the search results - it "cannot see" which View
+link is the member's - and a stand-in operator takes control, opens the record and hands
+back. The model finishes from the screen the person left.
 
-Gaps are the other half: what a person does that cannot be recorded as a replayable step
-compiles into a visible hole that blocks approval, rather than a flow with a silent jump.
+What the person did is not turned into a replayable step. It is logged, and it compiles into
+a visible gap that blocks approval until someone authors the step, so a draft never silently
+skips work a person did.
 """
 
 from __future__ import annotations
@@ -22,7 +22,6 @@ from waypoint.compiler.compile import compile_transcript
 from waypoint.discovery.agent import DiscoveryOptions, InputBinding, discover
 from waypoint.discovery.decisions import Decision
 from waypoint.policy.secrets import SecretBroker
-from waypoint.replay.engine import ReplayOptions, replay
 from waypoint.session.escalation import Intervention, InterventionStore
 from waypoint.session.handoff import HandoffSettings
 from waypoint.session.store import StateStore
@@ -80,17 +79,15 @@ def open_record(member_id: str, db: Path) -> Any:
 
     def human(surface: WebSurface, iv: Intervention) -> None:
         frame = next(f for f in surface.page.frames if f.name == "content")
-        view = frame.locator(f'a[id$="_lnkView"][href$="member_id={member_id}"]')
-        if view.count():  # a second handoff would be from somewhere else entirely
-            view.click()
+        frame.locator(f'a[id$="_lnkView"][href$="member_id={member_id}"]').click()
+        frame.wait_for_url(f"**/console/member?member_id={member_id}")
         store.give_back(iv.id)
 
     return human
 
 
-def test_a_person_demonstrates_the_step_and_it_replays_for_another_member(
-    live_server: str, tmp_path: Path
-) -> None:
+def test_a_stuck_discovery_is_finished_with_a_persons_help(live_server: str,
+                                                          tmp_path: Path) -> None:
     db = tmp_path / "state.db"
     notify, seen = taker(db)
     decider = _CannotOpenTheRecord()
@@ -99,82 +96,33 @@ def test_a_person_demonstrates_the_step_and_it_replays_for_another_member(
 
     t = result.transcript
     assert t.ending == "finished", t.ending_detail
-    assert decider.gave_up == 1, "the model asked once and then carried on"
+    assert decider.gave_up == 1, "the model asked once, then carried on from the new screen"
 
     [iv] = seen
     assert (iv.reason_code, iv.capability_id) == ("discovery_gave_up", "lookup_member_balance")
+    assert iv.screenshot and Path(iv.screenshot).exists(), "the operator sees where it stopped"
     [handoff] = result.handoffs
-    assert handoff["operator"] == "tester"
-    assert handoff["demonstrated_steps"] == ["A person clicked link 'View'"]
+    assert handoff["operator"] == "tester" and handoff["human_actions"] >= 1
+    assert handoff["gap_recorded"] is True
 
-    demonstrated = [s for s in t.steps if s.performed_by == "human"]
-    assert len(demonstrated) == 1
-    step = demonstrated[0]
-    assert step.ok and step.bundle is not None and step.bundle_error is None
-    assert step.decision["expect"]["elements"], "a checkpoint was nominated from the screen"
-
-    report = compile_transcript(t, version="1.0.0")
-    cap = report.capability
-    assert cap.provenance.demonstrated_steps, "the reviewer can see which steps a person made"
-    [where] = cap.provenance.demonstrated_steps
-    index = int(where.removeprefix("steps[").removesuffix("]"))
-    assert cap.steps[index].action == "click"
-    assert not any("could not be recorded" in g for g in report.open_gates)
-
-    # The proof: recorded on 12345 by a person, replayed for 67890 by the engine.
-    out = replay(approve(cap, approver="test"), {"member_id": "67890"}, ReplayOptions(
-        base_url=live_server, evidence_root=tmp_path / "replays",
-        secrets=SecretBroker(environ=CREDENTIALS)))
-    assert out.status == "success", out.failure
-    assert out.telemetry["steps"] == len(cap.steps)
+    actions = Path(result.run_dir) / "human" / "actions.jsonl"
+    assert actions.exists() and "click" in actions.read_text(), "what the person did is logged"
 
 
-class _CannotSignOn(ScriptedDecider):
-    """Gives up at the sign-on screen, so a person signs in by hand."""
-
-    def __init__(self) -> None:
-        self.gave_up = 0
-
-    def decide(self, ctx: Any) -> Decision:
-        if any(e.role == "button" and e.name == "Sign On" for _, e in ctx.elements):
-            self.gave_up += 1
-            return Decision("give_up", reason="I will not handle this sign-on")
-        return super().decide(ctx)
-
-
-def test_what_cannot_be_recorded_becomes_a_gap_that_blocks_approval(
-    live_server: str, tmp_path: Path
-) -> None:
-    """A person typing a password is real work that must never be captured (R-SENS-8).
-
-    The run keeps going, but the artifact carries the hole where they typed it, and that
-    hole blocks approval until someone authors the step.
-    """
+def test_what_a_person_did_compiles_into_a_gap_that_blocks_approval(live_server: str,
+                                                                    tmp_path: Path) -> None:
     db = tmp_path / "state.db"
     notify, _ = taker(db)
-    store = InterventionStore(StateStore(db))
-
-    def human(surface: WebSurface, iv: Intervention) -> None:
-        page = surface.page
-        page.locator("#ctl00_txtUserId").fill("operator1")
-        page.locator("#ctl00_txtUserId").blur()
-        page.locator("#ctl00_txtPassword").fill("changeme")
-        page.locator("#ctl00_txtPassword").blur()
-        page.locator("#ctl00_btnSignOn").click()
-        store.give_back(iv.id)
-
-    result = discover(_CannotSignOn(), options(live_server, tmp_path / "runs", db, human,
-                                               notify=notify))
+    result = discover(_CannotOpenTheRecord(), options(live_server, tmp_path / "runs", db,
+                                                      open_record("12345", db), notify=notify))
     t = result.transcript
-    gaps = [s for s in t.steps if s.action == "gap"]
-    assert gaps, [(s.action, s.decision.get("intent")) for s in t.steps]
-    assert all(s.performed_by == "human" for s in gaps)
-    assert any("credential" in (s.unrecorded or "") for s in gaps), [s.unrecorded for s in gaps]
-    assert not any("changeme" in (s.unrecorded or "") for s in gaps), "never the value"
+    [gap] = [s for s in t.steps if s.action == "gap"]
+    assert gap.unrecorded and "tester" in gap.unrecorded
 
     report = compile_transcript(t, version="1.0.0")
-    blocking = [g for g in report.open_gates if "could not be recorded" in g]
-    assert blocking, report.open_gates
+    gated = [s for s in report.capability.steps if s.unrecorded_human_action]
+    assert len(gated) == 1 and gated[0].action == "wait_for"
+    assert any("could not be recorded" in g for g in report.open_gates), report.open_gates
     with pytest.raises(ApprovalBlocked):
         approve(report.capability, approver="test")
 

@@ -24,7 +24,7 @@ from __future__ import annotations
 
 import re
 from collections.abc import Mapping, Sequence
-from dataclasses import dataclass, replace
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Literal
 
@@ -133,10 +133,9 @@ class Unavailable(RuntimeError):
 
 
 class Catalog:
-    def __init__(self, root: Path, ledger: Ledger | None = None, *, variant: str = "base") -> None:
+    def __init__(self, root: Path, ledger: Ledger | None = None) -> None:
         self.root = Path(root)
         self.ledger = ledger
-        self.variant = variant
 
     # ------------------------------------------------------------- listing
 
@@ -150,7 +149,7 @@ class Catalog:
                 cap = load(path)
             except Exception:  # noqa: BLE001 - a broken file is not a callable capability
                 continue
-            if not approval_status(cap, self.variant).approved:
+            if not approval_status(cap).approved:
                 continue
             entry = Entry(cap, path, self._confidence(cap))
             current = found.get(cap.capability_id)
@@ -163,7 +162,7 @@ class Catalog:
             path = self.root / name / f"{version}.json"
             if path.exists():
                 cap = load(path)
-                if approval_status(cap, self.variant).approved:
+                if approval_status(cap).approved:
                     return Entry(cap, path, self._confidence(cap))
         else:
             for entry in self.entries():
@@ -178,7 +177,7 @@ class Catalog:
         return [tool_definition(e, fmt) for e in self.entries() if e.available]
 
     def _confidence(self, cap: Capability) -> Confidence:
-        return self.ledger.confidence(cap, self.variant) if self.ledger is not None else score([])
+        return self.ledger.confidence(cap) if self.ledger is not None else score([])
 
     # ---------------------------------------------------------- invocation
 
@@ -195,8 +194,7 @@ class Catalog:
         problems = validate_inputs(entry.capability, values)
         if problems:
             raise ValueError("; ".join(problems))
-        opt = options or ReplayOptions()
-        return replay(entry.capability, values, replace(opt, variant=self.variant))
+        return replay(entry.capability, values, options or ReplayOptions())
 
 
 def _semver(version: str) -> tuple[int, int, int, int, str]:

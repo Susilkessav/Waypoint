@@ -151,21 +151,20 @@ class Ledger:
             db.execute("UPDATE runs SET contract_ok = ?, contract_reason = ? WHERE run_id = ?",
                        (ok, reason, run_id))
 
-    def runs(self, capability_id: str, version: str, hash_: str, *, variant: str = "base",
+    def runs(self, capability_id: str, version: str, hash_: str, *,
              limit: int = 50, include_injected: bool = False) -> list[RunRecord]:
-        sql = ("SELECT * FROM runs WHERE capability_id = ? AND version = ? AND variant = ? "
+        sql = ("SELECT * FROM runs WHERE capability_id = ? AND version = ? "
                "AND content_hash = ?"
                + ("" if include_injected else " AND injected IS NULL")
                + " ORDER BY at DESC LIMIT ?")
         with self.store.connect() as db:
-            rows = db.execute(sql, (capability_id, version, variant, hash_, limit)).fetchall()
+            rows = db.execute(sql, (capability_id, version, hash_, limit)).fetchall()
         return [RunRecord(**{**dict(row), "contract_ok":
                              None if row["contract_ok"] is None else bool(row["contract_ok"])})
                 for row in rows]
 
-    def confidence(self, cap: Capability, variant: str = "base", *, limit: int = 50) -> Confidence:
-        return score(self.runs(cap.capability_id, cap.version, content_hash(cap, variant),
-                               variant=variant, limit=limit))
+    def confidence(self, cap: Capability, *, limit: int = 50) -> Confidence:
+        return score(self.runs(cap.capability_id, cap.version, content_hash(cap), limit=limit))
 
 
 def score(runs: Sequence[RunRecord]) -> Confidence:
@@ -206,7 +205,7 @@ def record_for(result: ReplayResult, cap: Capability, *, inputs_hash: str, kind:
         capability_id=result.capability_id,
         version=result.version,
         variant=result.variant,
-        content_hash=content_hash(cap, result.variant),
+        content_hash=content_hash(cap),
         status=result.status,
         code=result.failure.code if result.failure else None,
         outcome=result.outcome,
