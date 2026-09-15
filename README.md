@@ -42,69 +42,7 @@ from `uv run`.
 
 ## Demo path
 
-For recording, run:
-
-```bash
-docs/present.sh
-```
-
-The presenter starts its own fixture, uses a new private state directory, and advances when you
-press Enter. It shows the artifact before asking you to approve it. At handoff, it tells you
-when to take control, what to click in the actual browser, and when to return control. It stops
-on unexpected results and stops its fixture on exit. The [recording script](docs/demo-script.md)
-provides matching narration. Optional [slides](docs/demo-slides.html) introduce the project.
-
-For a manual demonstration, open two terminals in this repository:
-
-```bash
-# RUN terminal: create a fresh take first
-./demo prepare
-```
-
-```bash
-# APP terminal: leave this running
-./demo app
-```
-
-Then, in RUN, execute these in order:
-
-```bash
-./demo discover
-./demo review
-./demo draft
-./demo approve
-./demo replay
-./demo other
-./demo missing
-./demo recover
-./demo failure
-```
-
-`discover` reuses decisions from the saved genuine Claude discovery against the live fixture;
-it is an offline reproduction, not a new model run. It writes an isolated **1.0.0 draft**.
-`draft` deliberately exits **1** because approval is missing. Review the displayed artifact
-before `approve`. Both `replay` and `other` execute that exact generated artifact:
-
-| Scene | Expected result |
-|---|---|
-| `replay`: member 12345 | `success`: savings $4,281.19, active |
-| `other`: member 67890 | `success`: savings $912.04, dormant |
-| `missing` | `business_outcome`: `member_not_found`, exit 0 |
-| `recover` | `success` with a recorded maintenance-notice recovery |
-| `failure` | `failure`: `hard_failure`, exit 1 |
-
-The exceptional lookup scenes use separately reviewed **1.2.0**, whose artifact declares
-outcomes and recovery. This is distinct from the newly discovered flow.
-
-For a real human handoff, run `./demo handoff` in RUN. When it pauses, use a third OPERATOR
-terminal to run `./demo take`, click **View** in member **12345**'s row in the run's browser,
-then run `./demo return`. The engine checks the resulting screen before continuing.
-
-For the irreversible case, run `./demo commit`, take control the same way, click **Confirm
-once**, then return control. The fixture loses the confirmation response; Waypoint checks the
-account grid and adopts the committed result. It does not click Confirm again. This scene uses
-`open_sub_account` **1.0.0**. Use `./demo abort` to end a pending handoff and `./demo evidence` to
-locate the saved files. Stop APP with Control-C when finished.
+([Video Demo](https://drive.google.com/file/d/1HSwJ11_rhc8vmlNVBEno1IjAmITxPHPv/view?usp=sharing))
 
 ## Feature demonstrations
 
