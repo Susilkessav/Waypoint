@@ -1,6 +1,6 @@
 """Intervention requests: what a human is asked to do, and the state of that ask.
 
-An intervention carries enough to act on without a transcript (PLAN.md 3.6): which
+An intervention carries enough to act on without a transcript (REPORT.md §5): which
 capability and version, which step and why it stopped, what was expected against
 what was observed, and where the redacted screenshot and snapshot are. Taking and
 returning control change the intervention *and* the lease in one transaction, so

@@ -1,0 +1,13 @@
+{"at": "2026-09-15T15:27:27.354+00:00", "event": "action", "where": "entry", "action": "navigate", "ok": true}
+{"at": "2026-09-15T15:27:27.466+00:00", "event": "action", "where": "preconditions[0].remedy[0]", "intent": "Enter the operator user ID", "action": "type", "tier": 3, "attempt": 1, "ok": true, "navigated": false, "duration_ms": 46}
+{"at": "2026-09-15T15:27:27.481+00:00", "event": "checkpoint_met", "where": "preconditions[0].remedy[0]", "signature": "user_id_filled"}
+{"at": "2026-09-15T15:27:27.579+00:00", "event": "action", "where": "preconditions[0].remedy[1]", "intent": "Enter the operator password", "action": "type", "tier": 3, "attempt": 1, "ok": true, "navigated": false, "duration_ms": 61}
+{"at": "2026-09-15T15:27:27.599+00:00", "event": "checkpoint_met", "where": "preconditions[0].remedy[1]", "signature": "password_filled"}
+{"at": "2026-09-15T15:27:27.981+00:00", "event": "action", "where": "preconditions[0].remedy[2]", "intent": "Sign on", "action": "click", "tier": 1, "attempt": 1, "ok": true, "navigated": true, "duration_ms": 345}
+{"at": "2026-09-15T15:27:28.011+00:00", "event": "checkpoint_met", "where": "preconditions[0].remedy[2]", "signature": "authenticated"}
+{"at": "2026-09-15T15:27:28.030+00:00", "event": "precondition_met", "where": "preconditions[0]", "signature": "authenticated"}
+{"at": "2026-09-15T15:27:28.146+00:00", "event": "action", "where": "steps[0]", "intent": "Enter the member ID in the search form", "action": "type", "tier": 3, "attempt": 1, "ok": true, "navigated": false, "duration_ms": 49}
+{"at": "2026-09-15T15:27:28.170+00:00", "event": "checkpoint_met", "where": "steps[0]", "signature": "search_field_populated"}
+{"at": "2026-09-15T15:27:28.562+00:00", "event": "action", "where": "steps[1]", "intent": "Run the member search", "action": "click", "tier": 1, "attempt": 1, "ok": true, "navigated": true, "duration_ms": 331}
+{"at": "2026-09-15T15:27:28.593+00:00", "event": "outcome", "where": "steps[1]", "outcome": "member_not_found", "outcome_class": "business"}
+{"at": "2026-09-15T15:27:28.664+00:00", "event": "finished", "status": "business_outcome", "outcome": "member_not_found"}

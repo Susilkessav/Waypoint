@@ -1,6 +1,6 @@
 """A Surface over native desktop applications - deliberately not implemented.
 
-The seam is the deliverable (PLAN.md section 3.2). This class exists to prove the
+The seam is the deliverable (REPORT.md §7). This class exists to prove the
 Surface port can be implemented by something other than a browser: it satisfies
 the same Protocol as the web adapter, and each method documents the operating
 system accessibility calls it would make.
@@ -25,7 +25,7 @@ from waypoint.surface.ports import Action, ActionResult, Evidence, Quiescence, U
 if TYPE_CHECKING:
     from waypoint.surface.ports import Surface
 
-_SEAM = "DesktopSurface is a documented seam, not an implementation (PLAN.md section 3.2)."
+_SEAM = "DesktopSurface is a documented seam, not an implementation (REPORT.md §7)."
 
 
 class DesktopSurface:

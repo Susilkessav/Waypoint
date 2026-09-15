@@ -1,0 +1,17 @@
+{"at": "2026-09-15T15:27:53.936+00:00", "event": "action", "where": "entry", "action": "navigate", "ok": true}
+{"at": "2026-09-15T15:27:54.062+00:00", "event": "action", "where": "steps[0]", "intent": "Enter the operator User ID", "action": "type", "tier": 3, "attempt": 1, "ok": true, "navigated": false, "duration_ms": 47}
+{"at": "2026-09-15T15:27:54.079+00:00", "event": "checkpoint_met", "where": "steps[0]", "signature": "step0_enter_the_operator_user_id"}
+{"at": "2026-09-15T15:27:54.181+00:00", "event": "action", "where": "steps[1]", "intent": "Enter the operator Password", "action": "type", "tier": 3, "attempt": 1, "ok": true, "navigated": false, "duration_ms": 68}
+{"at": "2026-09-15T15:27:54.201+00:00", "event": "checkpoint_met", "where": "steps[1]", "signature": "step1_enter_the_operator_password"}
+{"at": "2026-09-15T15:27:54.583+00:00", "event": "action", "where": "steps[2]", "intent": "Sign on", "action": "click", "tier": 1, "attempt": 1, "ok": true, "navigated": true, "duration_ms": 343}
+{"at": "2026-09-15T15:27:54.613+00:00", "event": "checkpoint_met", "where": "steps[2]", "signature": "step2_sign_on"}
+{"at": "2026-09-15T15:27:54.727+00:00", "event": "action", "where": "steps[3]", "intent": "Enter the member ID", "action": "type", "tier": 1, "attempt": 1, "ok": true, "navigated": false, "duration_ms": 46}
+{"at": "2026-09-15T15:27:54.749+00:00", "event": "checkpoint_met", "where": "steps[3]", "signature": "step3_enter_the_member_id"}
+{"at": "2026-09-15T15:27:55.124+00:00", "event": "action", "where": "steps[4]", "intent": "Run the search", "action": "click", "tier": 1, "attempt": 1, "ok": true, "navigated": true, "duration_ms": 327}
+{"at": "2026-09-15T15:27:55.208+00:00", "event": "checkpoint_met", "where": "steps[4]", "signature": "step4_run_the_search"}
+{"at": "2026-09-15T15:27:55.743+00:00", "event": "action", "where": "steps[5]", "intent": "A person clicked link 'View'", "action": "click", "tier": 3, "attempt": 1, "ok": true, "navigated": true, "duration_ms": 343}
+{"at": "2026-09-15T15:27:55.785+00:00", "event": "checkpoint_met", "where": "steps[5]", "signature": "step5_a_person_clicked_link_view"}
+{"at": "2026-09-15T15:27:56.230+00:00", "event": "action", "where": "steps[6]", "intent": "Open the Accounts tab", "action": "click", "tier": 1, "attempt": 1, "ok": true, "navigated": true, "duration_ms": 356}
+{"at": "2026-09-15T15:27:56.290+00:00", "event": "checkpoint_met", "where": "steps[6]", "signature": "step6_open_the_accounts_tab"}
+{"at": "2026-09-15T15:27:56.339+00:00", "event": "outputs_extracted", "names": []}
+{"at": "2026-09-15T15:27:56.457+00:00", "event": "finished", "status": "success"}

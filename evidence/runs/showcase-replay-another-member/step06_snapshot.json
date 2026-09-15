@@ -1,9 +1,9 @@
 {
-  "url": "http://127.0.0.1:55524/console",
+  "url": "http://127.0.0.1:53129/console",
   "title": "Meridian Servicing Console",
   "elements": [
     {
-      "ref": "fabc7d19041dg26-e1",
+      "ref": "1ade41a49983g26-e1",
       "role": "LayoutTableCell",
       "name": "Servicing",
       "value": null,
@@ -23,7 +23,7 @@
       "name_sensitivity": "public"
     },
     {
-      "ref": "fabc7d19041dg26-e2",
+      "ref": "1ade41a49983g26-e2",
       "role": "link",
       "name": "Member Search",
       "value": null,
@@ -43,7 +43,7 @@
       "name_sensitivity": "public"
     },
     {
-      "ref": "fabc7d19041dg26-e3",
+      "ref": "1ade41a49983g26-e3",
       "role": "LayoutTableCell",
       "name": "Transactions",
       "value": null,
@@ -63,7 +63,7 @@
       "name_sensitivity": "public"
     },
     {
-      "ref": "fabc7d19041dg26-e4",
+      "ref": "1ade41a49983g26-e4",
       "role": "LayoutTableCell",
       "name": "Reports",
       "value": null,
@@ -83,7 +83,7 @@
       "name_sensitivity": "public"
     },
     {
-      "ref": "fabc7d19041dg26-e5",
+      "ref": "1ade41a49983g26-e5",
       "role": "link",
       "name": "Sign Off",
       "value": null,
@@ -103,7 +103,7 @@
       "name_sensitivity": "public"
     },
     {
-      "ref": "fabc7d19041dg26-e6",
+      "ref": "1ade41a49983g26-e6",
       "role": "LayoutTableCell",
       "name": "Member Profile",
       "value": null,
@@ -123,7 +123,7 @@
       "name_sensitivity": "public"
     },
     {
-      "ref": "fabc7d19041dg26-e7",
+      "ref": "1ade41a49983g26-e7",
       "role": "LayoutTableCell",
       "name": "Member ID",
       "value": null,
@@ -145,7 +145,7 @@
       "name_sensitivity": "public"
     },
     {
-      "ref": "fabc7d19041dg26-e8",
+      "ref": "1ade41a49983g26-e8",
       "role": "LayoutTableCell",
       "name": "‹$inputs.member_id›",
       "value": null,
@@ -167,7 +167,7 @@
       "name_sensitivity": "internal"
     },
     {
-      "ref": "fabc7d19041dg26-e9",
+      "ref": "1ade41a49983g26-e9",
       "role": "LayoutTableCell",
       "name": "Name",
       "value": null,
@@ -189,7 +189,7 @@
       "name_sensitivity": "public"
     },
     {
-      "ref": "fabc7d19041dg26-e10",
+      "ref": "1ade41a49983g26-e10",
       "role": "LayoutTableCell",
       "name": "‹redacted:14 chars›",
       "value": null,
@@ -211,7 +211,7 @@
       "name_sensitivity": "pii"
     },
     {
-      "ref": "fabc7d19041dg26-e11",
+      "ref": "1ade41a49983g26-e11",
       "role": "LayoutTableCell",
       "name": "Branch",
       "value": null,
@@ -233,7 +233,7 @@
       "name_sensitivity": "public"
     },
     {
-      "ref": "fabc7d19041dg26-e12",
+      "ref": "1ade41a49983g26-e12",
       "role": "LayoutTableCell",
       "name": "BR-014",
       "value": null,
@@ -255,7 +255,7 @@
       "name_sensitivity": "public"
     },
     {
-      "ref": "fabc7d19041dg26-e13",
+      "ref": "1ade41a49983g26-e13",
       "role": "LayoutTableCell",
       "name": "Status",
       "value": null,
@@ -277,7 +277,7 @@
       "name_sensitivity": "public"
     },
     {
-      "ref": "fabc7d19041dg26-e14",
+      "ref": "1ade41a49983g26-e14",
       "role": "LayoutTableCell",
       "name": "dormant",
       "value": null,
@@ -299,7 +299,7 @@
       "name_sensitivity": "public"
     },
     {
-      "ref": "fabc7d19041dg26-e15",
+      "ref": "1ade41a49983g26-e15",
       "role": "cell",
       "name": "Summary",
       "value": null,
@@ -322,7 +322,7 @@
       "name_sensitivity": "public"
     },
     {
-      "ref": "fabc7d19041dg26-e16",
+      "ref": "1ade41a49983g26-e16",
       "role": "cell",
       "name": "Accounts",
       "value": null,
@@ -345,7 +345,7 @@
       "name_sensitivity": "public"
     },
     {
-      "ref": "fabc7d19041dg26-e17",
+      "ref": "1ade41a49983g26-e17",
       "role": "cell",
       "name": "Notes",
       "value": null,
@@ -368,7 +368,7 @@
       "name_sensitivity": "public"
     },
     {
-      "ref": "fabc7d19041dg26-e18",
+      "ref": "1ade41a49983g26-e18",
       "role": "LayoutTableCell",
       "name": "Joined",
       "value": null,
@@ -390,7 +390,7 @@
       "name_sensitivity": "public"
     },
     {
-      "ref": "fabc7d19041dg26-e19",
+      "ref": "1ade41a49983g26-e19",
       "role": "LayoutTableCell",
       "name": "‹redacted›",
       "value": null,
@@ -412,7 +412,7 @@
       "name_sensitivity": "pii"
     },
     {
-      "ref": "fabc7d19041dg26-e20",
+      "ref": "1ade41a49983g26-e20",
       "role": "LayoutTableCell",
       "name": "Review flag",
       "value": null,
@@ -434,7 +434,7 @@
       "name_sensitivity": "public"
     },
     {
-      "ref": "fabc7d19041dg26-e21",
+      "ref": "1ade41a49983g26-e21",
       "role": "LayoutTableCell",
       "name": "none",
       "value": null,
@@ -456,7 +456,7 @@
       "name_sensitivity": "public"
     },
     {
-      "ref": "fabc7d19041dg26-e22",
+      "ref": "1ade41a49983g26-e22",
       "role": "link",
       "name": "Mark for Review",
       "value": null,
@@ -476,7 +476,7 @@
       "name_sensitivity": "public"
     },
     {
-      "ref": "fabc7d19041dg26-e23",
+      "ref": "1ade41a49983g26-e23",
       "role": "link",
       "name": "Open sub-account",
       "value": null,
@@ -496,7 +496,7 @@
       "name_sensitivity": "public"
     },
     {
-      "ref": "fabc7d19041dg26-e24",
+      "ref": "1ade41a49983g26-e24",
       "role": "link",
       "name": "",
       "value": null,
@@ -516,7 +516,7 @@
       "name_sensitivity": "public"
     },
     {
-      "ref": "fabc7d19041dg26-e25",
+      "ref": "1ade41a49983g26-e25",
       "role": "link",
       "name": "Return to search",
       "value": null,
@@ -543,21 +543,21 @@
       [
         "main"
       ],
-      "http://127.0.0.1:55524/console"
+      "http://127.0.0.1:53129/console"
     ],
     [
       [
         "main",
         "nav"
       ],
-      "http://127.0.0.1:55524/console/nav"
+      "http://127.0.0.1:53129/console/nav"
     ],
     [
       [
         "main",
         "content"
       ],
-      "http://127.0.0.1:55524/console/member?member_id=‹$inputs.member_id›"
+      "http://127.0.0.1:53129/console/member?member_id=‹$inputs.member_id›"
     ]
   ]
 }

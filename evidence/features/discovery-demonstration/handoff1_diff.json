@@ -1,0 +1,24 @@
+{
+  "intervention": "a76a1d1d58",
+  "before": {
+    "url": "http://127.0.0.1:53113/console",
+    "hash": "04051adf3b7872ca",
+    "frames": [
+      "http://127.0.0.1:53113/console",
+      "http://127.0.0.1:53113/console/nav",
+      "http://127.0.0.1:53113/console/search"
+    ]
+  },
+  "after": {
+    "url": "http://127.0.0.1:53113/console",
+    "hash": "04051adf3b7872ca",
+    "frames": [
+      "http://127.0.0.1:53113/console",
+      "http://127.0.0.1:53113/console/nav",
+      "http://127.0.0.1:53113/console/search"
+    ]
+  },
+  "screen_changed": false,
+  "human_actions": 1,
+  "demonstrated": 1
+}

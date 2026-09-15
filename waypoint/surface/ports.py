@@ -1,11 +1,11 @@
 """The Surface port - the seam between perceiving/acting on an application and
-everything above it (PLAN.md sections 4.1 and 3.7).
+everything above it (REPORT.md §1, §4).
 
 Discovery, the compiler and replay speak only the types in this module. The web
 adapter and the desktop stub implement the same Protocol; that shared contract is
 the answer to "how would this extend to a desktop app?".
 
-Two snapshot types exist on purpose (PLAN.md R-SENS-6):
+Two snapshot types exist on purpose (R-SENS-6):
 
 * ``RawSnapshot`` carries real values. It lives only inside a Surface, in memory;
   it is never serialized or logged, and is discarded on the next ``observe()``.
@@ -39,7 +39,7 @@ def max_sensitivity(*levels: Sensitivity) -> Sensitivity:
 ActionKind = Literal[
     "navigate", "click", "type", "select", "key", "wait_for", "read", "assert", "dismiss", "finish"
 ]
-#: The closed action set (PLAN.md section 4.4). Closed on purpose: page content
+#: The closed action set (REPORT.md §6). Closed on purpose: page content
 #: can never become a novel operation.
 ACTION_KINDS: frozenset[str] = frozenset(get_args(ActionKind))
 
@@ -112,7 +112,7 @@ class UIElement:
 
 @dataclass(frozen=True)
 class UISnapshot:
-    """Sanitized for the model and for evidence on disk (PLAN.md R-SENS-3)."""
+    """Sanitized for the model and for evidence on disk (R-SENS-3)."""
 
     url: str
     title: str
@@ -172,7 +172,7 @@ class Evidence:
 class Surface(Protocol):
     """What every surface - web, desktop, anything - must offer.
 
-    Control-lease enforcement (PLAN.md R-PROC-4) is the adapter's: ``WebSurface``
+    Control-lease enforcement (R-PROC-4) is the adapter's: ``WebSurface``
     checks its ``lease_guard`` before every action.
     """
 

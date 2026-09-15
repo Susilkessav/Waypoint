@@ -1,4 +1,4 @@
-"""Per-run evidence on disk (PLAN.md 3.5, R-SENS-5).
+"""Per-run evidence on disk (R-SENS-5).
 
     evidence/runs/<run_id>/
       artifact.json          the exact artifact that ran - the contract, verbatim

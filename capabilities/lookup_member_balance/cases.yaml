@@ -1,0 +1,44 @@
+# What this capability is expected to do, for `waypoint stability` and generated tests.
+#
+# Each case declares inputs and the result they must produce. A case that "succeeds" where
+# a business outcome was due counts as a failure, so the sweep measures the contract, not
+# just the absence of crashes. Cases with `inject` exercise the fixture's failure
+# injections: they are reported but never counted towards confidence (R-PKG-6).
+cases:
+  - name: found
+    inputs: {member_id: "12345"}
+    expect_status: success
+
+  - name: another-member
+    inputs: {member_id: "67890"}
+    expect_status: success
+
+  - name: no-such-member
+    inputs: {member_id: "00000"}
+    expect_status: business_outcome
+    expect_outcome: member_not_found
+
+  - name: not-authorized
+    inputs: {member_id: "99999"}
+    expect_status: business_outcome
+    expect_outcome: not_authorized
+
+  - name: maintenance-notice
+    inputs: {member_id: "12345"}
+    inject: interstitial
+    expect_status: success
+
+  - name: session-expired
+    inputs: {member_id: "12345"}
+    inject: session
+    expect_status: success
+
+  - name: server-error
+    inputs: {member_id: "12345"}
+    inject: "500"
+    expect_status: failure
+
+  - name: wrong-member-shown
+    inputs: {member_id: "12345"}
+    inject: wrong_member
+    expect_status: escalated

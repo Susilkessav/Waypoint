@@ -1,4 +1,4 @@
-"""Draft to approved, bound to content (PLAN.md R-PKG-2, R-PKG-3).
+"""Draft to approved, bound to content (R-PKG-2, R-PKG-3).
 
 Approval is a human decision about *these exact contents*. It records a content
 hash; ``approval_status()`` recomputes that hash and every gate each time it is
@@ -27,13 +27,22 @@ class ApprovalStatus:
 
 
 def approval_status(cap: Capability, variant: str = "base") -> ApprovalStatus:
-    """Approved only if flagged approved, unchanged since, and still passing every gate."""
+    """Approved only if flagged approved, unchanged since, and still passing every gate.
+
+    An override that will not merge is reported as a reason, not raised: a malformed variant
+    is exactly the kind of thing a reviewer looking at the queue needs to be told about, and
+    it must not take the other variants' answers down with it.
+    """
     reasons: list[str] = []
+    try:
+        current = content_hash(cap, variant)
+    except ValueError as exc:
+        return ApprovalStatus(False, (f"variant {variant!r} cannot be applied: {exc}",))
     if cap.provenance.approval.get(variant) != "approved":
         reasons.append(f"variant {variant!r} is not approved")
-    elif cap.provenance.approval_hash.get(variant) != content_hash(cap, variant):
+    elif cap.provenance.approval_hash.get(variant) != current:
         reasons.append("content changed since approval: hash mismatch (R-PKG-2)")
-    reasons += approval_gates(cap)
+    reasons += approval_gates(cap, variant)
     return ApprovalStatus(approved=not reasons, reasons=tuple(reasons))
 
 
@@ -46,14 +55,18 @@ def approve(
     now: datetime | None = None,
 ) -> Capability:
     """Return an approved copy, or raise ApprovalBlocked listing every open gate."""
-    gates = approval_gates(cap)
+    try:
+        gates = approval_gates(cap, variant)
+        stamp = content_hash(cap, variant)
+    except ValueError as exc:  # an override that will not merge is a blocked approval
+        raise ApprovalBlocked([f"variant {variant!r} cannot be applied: {exc}"]) from None
     if gates:
         raise ApprovalBlocked(gates)
     prov = cap.provenance
     stamped = prov.model_copy(
         update={
             "approval": {**prov.approval, variant: "approved"},
-            "approval_hash": {**prov.approval_hash, variant: content_hash(cap, variant)},
+            "approval_hash": {**prov.approval_hash, variant: stamp},
             "approved_by": approver,
             "approved_at": (now or datetime.now(UTC)).isoformat(timespec="seconds"),
             "approval_note": note,

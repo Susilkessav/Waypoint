@@ -1,8 +1,9 @@
-"""Local state shared by the replay process and the operator CLI (PLAN.md 4.2).
+"""Local state shared by the replay process and the operator CLI (R-PROC).
 
-One SQLite file holds the three things two processes must agree on: who may act
-(``leases``), what a human has been asked to do (``interventions``), and which
-irreversible actions were about to happen (``intents``). The replay process owns the
+One SQLite file holds what two processes must agree on: who may act (``leases``), what a
+human has been asked to do (``interventions``), and which irreversible actions were about
+to happen (``intents``). It also keeps the ``runs`` ledger - one row per replay, the
+evidence a capability's confidence is computed from (REPORT.md §3). The replay process owns the
 browser; ``waypoint intervene`` only ever touches this file (R-PROC-1..3).
 
 WAL mode lets the paused replay poll while the CLI writes. Writes use
@@ -70,6 +71,40 @@ CREATE TABLE IF NOT EXISTS intents (
                       ('completed', 'not_completed', 'confirmed_after_handoff'))
 );
 CREATE INDEX IF NOT EXISTS intents_by_operation ON intents (capability_id, inputs_hash, state);
+CREATE TABLE IF NOT EXISTS runs (
+    run_id        TEXT PRIMARY KEY,
+    capability_id TEXT NOT NULL,
+    version       TEXT NOT NULL,
+    variant       TEXT NOT NULL,
+    content_hash  TEXT NOT NULL,
+    status        TEXT NOT NULL,
+    code          TEXT,
+    outcome       TEXT,
+    inputs_hash   TEXT NOT NULL,
+    kind          TEXT NOT NULL,
+    injected      TEXT,
+    duration_ms   INTEGER NOT NULL,
+    steps         INTEGER NOT NULL,
+    degraded      INTEGER NOT NULL DEFAULT 0,
+    recoveries    INTEGER NOT NULL DEFAULT 0,
+    handoffs      INTEGER NOT NULL DEFAULT 0,
+    assisted      INTEGER NOT NULL DEFAULT 0,
+    outputs_hash  TEXT,
+    at            REAL NOT NULL
+);
+CREATE INDEX IF NOT EXISTS runs_by_artifact ON runs (capability_id, version, content_hash, at);
+CREATE TABLE IF NOT EXISTS run_progress (
+    run_id          TEXT PRIMARY KEY,
+    capability_id   TEXT NOT NULL,
+    version         TEXT NOT NULL,
+    variant         TEXT NOT NULL,
+    content_hash    TEXT NOT NULL,
+    inputs_hash     TEXT NOT NULL,
+    base_url        TEXT NOT NULL,
+    completed_index INTEGER NOT NULL DEFAULT -1,
+    status          TEXT NOT NULL CHECK (status IN ('running', 'done')),
+    updated_at      REAL NOT NULL
+);
 """
 
 
@@ -93,6 +128,17 @@ def _migrate(db: sqlite3.Connection) -> None:
     if "attempted_at_trusted" not in columns:
         db.execute("ALTER TABLE intents ADD COLUMN attempted_at_trusted INTEGER NOT NULL "
                    "DEFAULT 0")
+    # Nullable scope marks legacy intents as unknown, never as belonging to a guessed tenant.
+    additions = {
+        "intents": {"scope": "TEXT", "contract_hash": "TEXT"},
+        "runs": {"contract_ok": "INTEGER", "contract_reason": "TEXT"},
+        "run_progress": {"resumed_by": "TEXT", "resumed_from": "TEXT"},
+    }
+    for table, fields in additions.items():
+        present = {row["name"] for row in db.execute(f"PRAGMA table_info({table})")}
+        for name, declaration in fields.items():
+            if name not in present:
+                db.execute(f"ALTER TABLE {table} ADD COLUMN {name} {declaration}")
 
 
 class StateStore:
@@ -102,7 +148,13 @@ class StateStore:
         self.path.parent.mkdir(parents=True, exist_ok=True)
         with self.connect() as db:
             db.executescript(SCHEMA)
-            _migrate(db)
+            db.execute("BEGIN IMMEDIATE")
+            try:
+                _migrate(db)
+            except BaseException:
+                db.execute("ROLLBACK")
+                raise
+            db.execute("COMMIT")
 
     @contextmanager
     def connect(self) -> Iterator[sqlite3.Connection]:

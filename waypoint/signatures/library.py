@@ -1,4 +1,4 @@
-"""Authoring convenience: a shared library of signatures (PLAN.md R-PKG-1).
+"""Authoring convenience: a shared library of signatures (R-PKG-1).
 
 Nothing reads this at replay. Authors and the compiler *copy* definitions into each
 artifact's own ``signatures`` block, so a later edit to the library cannot change

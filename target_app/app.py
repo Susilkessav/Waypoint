@@ -1,12 +1,12 @@
 """Flask application factory for the Meridian Servicing Console fixture.
 
-Hostility is the point (PLAN.md section 7.1). The console is a frameset with a
+Hostility is the point (RULES.md, The test fixture). The console is a frameset with a
 nested iframe, laid out in tables; grid element IDs encode row position and so
 shift when the grid re-sorts; tabs are `__doPostBack` links that never change
 the URL; form labels are adjacent table cells rather than `<label for>`; one
 control has no accessible name at all; and one state-changing action is a GET.
 Each of those exists to defeat a specific naive automation strategy, and each is
-the fixture for a named test in PLAN.md section 9.
+the fixture for a named test in tests/.
 """
 
 from __future__ import annotations
@@ -74,7 +74,8 @@ def create_app() -> Flask:
         """Whatever stands between the operator and a sub-account screen, or None.
 
         Slowness, a lapsed sign-on, a notice page and a refused member are all *answers*
-        the application gives; each is a fixture for a different class in PLAN.md 7.2.
+        the application gives; each is a fixture for a different
+        class in RULES.md's injection table.
         """
         time.sleep(chaos.delay_seconds())
         if chaos.session_lapses_now():
@@ -124,7 +125,10 @@ def create_app() -> Flask:
     @app.get("/console/content")
     @_requires_login
     def console_content() -> Any:
-        return render_template("search_form.html")
+        return render_template("search_form.html",
+                               submit=chaos.submit_label(
+                                   "Continue" if os.environ.get("WAYPOINT_TENANT") == "riverbank"
+                                   else "Search", "drift_search"))
 
     @app.route("/console/search", methods=["GET", "POST"])
     @_requires_login
@@ -194,7 +198,7 @@ def create_app() -> Flask:
         The control is called "Mark for Review", which no irreversible-verb list
         would flag, and it is a link rather than a button. Only inspecting the
         resolved route reveals that it changes state - the fixture for T21
-        (PLAN.md R-RISK-3).
+        (R-RISK-3).
         """
         member_id = (request.args.get("member_id") or "").strip()
         if get_member(member_id) is None:
@@ -261,7 +265,7 @@ def create_app() -> Flask:
     @app.get("/console/subaccount/confirm")
     @_requires_login
     def subaccount_confirm() -> Any:
-        """The mutation, behind a GET (PLAN.md R-RISK-3)."""
+        """The mutation, behind a GET (R-RISK-3)."""
         member_id = (request.args.get("member_id") or "").strip()
         obstacle = _obstacles(member_id)
         if obstacle is not None:

@@ -1,4 +1,4 @@
-"""The Surface port is implementable by something other than a browser (PLAN.md 3.7)."""
+"""The Surface port is implementable by something other than a browser (REPORT.md §4)."""
 
 from __future__ import annotations
 

@@ -1,47 +1,47 @@
-{"at": "2026-09-14T06:10:02.009+00:00", "event": "lease", "holder": "AGENT", "generation": 1}
-{"at": "2026-09-14T06:10:02.344+00:00", "event": "action", "where": "entry", "action": "navigate", "ok": true}
-{"at": "2026-09-14T06:10:02.470+00:00", "event": "action", "where": "preconditions[0].remedy[0]", "intent": "Enter the operator user ID", "action": "type", "tier": 3, "attempt": 1, "ok": true, "navigated": false, "duration_ms": 50}
-{"at": "2026-09-14T06:10:02.489+00:00", "event": "checkpoint_met", "where": "preconditions[0].remedy[0]", "signature": "user_id_filled"}
-{"at": "2026-09-14T06:10:02.521+00:00", "event": "step_captured", "where": "preconditions[0].remedy[0]", "screenshot": "step01.png", "snapshot": "step01_snapshot.json"}
-{"at": "2026-09-14T06:10:02.614+00:00", "event": "action", "where": "preconditions[0].remedy[1]", "intent": "Enter the operator password", "action": "type", "tier": 3, "attempt": 1, "ok": true, "navigated": false, "duration_ms": 54}
-{"at": "2026-09-14T06:10:02.631+00:00", "event": "checkpoint_met", "where": "preconditions[0].remedy[1]", "signature": "password_filled"}
-{"at": "2026-09-14T06:10:02.661+00:00", "event": "step_captured", "where": "preconditions[0].remedy[1]", "screenshot": "step02.png", "snapshot": "step02_snapshot.json"}
-{"at": "2026-09-14T06:10:03.038+00:00", "event": "action", "where": "preconditions[0].remedy[2]", "intent": "Sign on", "action": "click", "tier": 1, "attempt": 1, "ok": true, "navigated": true, "duration_ms": 343}
-{"at": "2026-09-14T06:10:03.087+00:00", "event": "checkpoint_met", "where": "preconditions[0].remedy[2]", "signature": "authenticated"}
-{"at": "2026-09-14T06:10:03.146+00:00", "event": "step_captured", "where": "preconditions[0].remedy[2]", "screenshot": "step03.png", "snapshot": "step03_snapshot.json"}
-{"at": "2026-09-14T06:10:03.169+00:00", "event": "precondition_met", "where": "preconditions[0]", "signature": "authenticated"}
-{"at": "2026-09-14T06:10:03.622+00:00", "event": "action", "where": "steps[0]", "intent": "Enter the member ID to search for the member record", "action": "type", "tier": 1, "attempt": 1, "ok": true, "navigated": false, "duration_ms": 46}
-{"at": "2026-09-14T06:10:03.649+00:00", "event": "checkpoint_met", "where": "steps[0]", "signature": "step3_enter_the_member_id_to_search_fo"}
-{"at": "2026-09-14T06:10:03.704+00:00", "event": "step_captured", "where": "steps[0]", "screenshot": "step04.png", "snapshot": "step04_snapshot.json"}
-{"at": "2026-09-14T06:10:04.102+00:00", "event": "action", "where": "steps[1]", "intent": "Click Search to find the member record", "action": "click", "tier": 1, "attempt": 1, "ok": true, "navigated": true, "duration_ms": 334}
-{"at": "2026-09-14T06:10:04.216+00:00", "event": "checkpoint_met", "where": "steps[1]", "signature": "step4_click_search_to_find_the_member_"}
-{"at": "2026-09-14T06:10:04.376+00:00", "event": "step_captured", "where": "steps[1]", "screenshot": "step05.png", "snapshot": "step05_snapshot.json"}
-{"at": "2026-09-14T06:10:04.893+00:00", "event": "action", "where": "steps[2]", "intent": "Click View to open the member's details page", "action": "click", "tier": 3, "attempt": 1, "ok": true, "navigated": true, "duration_ms": 329}
-{"at": "2026-09-14T06:10:04.944+00:00", "event": "checkpoint_met", "where": "steps[2]", "signature": "step5_click_view_to_open_the_member_s_"}
-{"at": "2026-09-14T06:10:05.015+00:00", "event": "step_captured", "where": "steps[2]", "screenshot": "step06.png", "snapshot": "step06_snapshot.json"}
-{"at": "2026-09-14T06:10:05.443+00:00", "event": "action", "where": "steps[3]", "intent": "Click Open sub-account to start creating a new sub-account", "action": "click", "tier": 1, "attempt": 1, "ok": true, "navigated": true, "duration_ms": 335}
-{"at": "2026-09-14T06:10:05.496+00:00", "event": "checkpoint_met", "where": "steps[3]", "signature": "step6_click_open_sub_account_to_start_"}
-{"at": "2026-09-14T06:10:05.555+00:00", "event": "step_captured", "where": "steps[3]", "screenshot": "step07.png", "snapshot": "step07_snapshot.json"}
-{"at": "2026-09-14T06:10:05.687+00:00", "event": "action", "where": "steps[4]", "intent": "Select the account type from the dropdown", "action": "select", "tier": 1, "attempt": 1, "ok": true, "navigated": false, "duration_ms": 40}
-{"at": "2026-09-14T06:10:05.736+00:00", "event": "checkpoint_met", "where": "steps[4]", "signature": "step7_select_the_account_type_from_the"}
-{"at": "2026-09-14T06:10:05.806+00:00", "event": "step_captured", "where": "steps[4]", "screenshot": "step08.png", "snapshot": "step08_snapshot.json"}
-{"at": "2026-09-14T06:10:05.911+00:00", "event": "action", "where": "steps[5]", "intent": "Enter the initial deposit amount for the new sub-account", "action": "type", "tier": 1, "attempt": 1, "ok": true, "navigated": false, "duration_ms": 32}
-{"at": "2026-09-14T06:10:05.952+00:00", "event": "checkpoint_met", "where": "steps[5]", "signature": "step8_enter_the_initial_deposit_amount"}
-{"at": "2026-09-14T06:10:06.005+00:00", "event": "step_captured", "where": "steps[5]", "screenshot": "step09.png", "snapshot": "step09_snapshot.json"}
-{"at": "2026-09-14T06:10:06.400+00:00", "event": "action", "where": "steps[6]", "intent": "Click Review to review the sub-account details before creating it", "action": "click", "tier": 1, "attempt": 1, "ok": true, "navigated": true, "duration_ms": 329}
-{"at": "2026-09-14T06:10:06.436+00:00", "event": "checkpoint_met", "where": "steps[6]", "signature": "step5_click_view_to_open_the_member_s_"}
-{"at": "2026-09-14T06:10:06.497+00:00", "event": "step_captured", "where": "steps[6]", "screenshot": "step10.png", "snapshot": "step10_snapshot.json"}
-{"at": "2026-09-14T06:10:06.567+00:00", "event": "action", "where": "steps[7]", "intent": "Click Confirm to create the sub-account with the specified details", "action": "click", "tier": 1, "attempt": 1, "ok": false, "error_code": "approval_required", "error": "risky_action", "navigated": false, "duration_ms": 0}
-{"at": "2026-09-14T06:10:06.568+00:00", "event": "intent", "where": "steps[7]", "intent_id": "9ec92d4824cb", "state": "dispatching", "handed_over": true}
-{"at": "2026-09-14T06:10:06.673+00:00", "event": "intervention_opened", "intervention": "a121aa1a42", "reason": "approval_required", "step": "steps[7]"}
-{"at": "2026-09-14T06:10:06.678+00:00", "event": "lease", "holder": "NONE", "generation": 2}
-{"at": "2026-09-14T06:10:06.783+00:00", "event": "lease", "holder": "HUMAN", "generation": 3, "operator": "showcase-operator"}
-{"at": "2026-09-14T06:10:06.913+00:00", "event": "lease", "holder": "AGENT", "generation": 5}
-{"at": "2026-09-14T06:10:06.951+00:00", "event": "control_returned", "intervention": "a121aa1a42", "ladder": "unrecognized"}
-{"at": "2026-09-14T06:10:06.951+00:00", "event": "reconcile_started", "where": "steps[7]", "attempted_at": "2026-09-14T06:10:06.568+00:00"}
-{"at": "2026-09-14T06:10:07.271+00:00", "event": "action", "where": "steps[7].reconcile.probe[0]", "intent": "Open this member's accounts grid (read-only)", "action": "navigate", "attempt": 1, "ok": true, "navigated": true, "duration_ms": 318}
-{"at": "2026-09-14T06:10:07.326+00:00", "event": "checkpoint_met", "where": "steps[7].reconcile.probe[0]", "signature": "accounts_listed_for_member"}
-{"at": "2026-09-14T06:10:07.374+00:00", "event": "reconcile_verdict", "where": "steps[7]", "verdict": "not_completed", "reason": "the authoritative screen for these inputs shows no such record"}
-{"at": "2026-09-14T06:10:07.465+00:00", "event": "intent", "where": "steps[7]", "intent_id": "9ec92d4824cb", "state": "reconciled"}
-{"at": "2026-09-14T06:10:07.540+00:00", "event": "approval_required", "reason": "risky_action", "risk": "irreversible"}
-{"at": "2026-09-14T06:10:07.564+00:00", "event": "finished", "status": "escalated", "code": "not_completed_after_handoff"}
+{"at": "2026-09-15T15:27:53.777+00:00", "event": "lease", "holder": "AGENT", "generation": 1}
+{"at": "2026-09-15T15:27:54.103+00:00", "event": "action", "where": "entry", "action": "navigate", "ok": true}
+{"at": "2026-09-15T15:27:54.227+00:00", "event": "action", "where": "preconditions[0].remedy[0]", "intent": "Enter the operator user ID", "action": "type", "tier": 3, "attempt": 1, "ok": true, "navigated": false, "duration_ms": 48}
+{"at": "2026-09-15T15:27:54.252+00:00", "event": "checkpoint_met", "where": "preconditions[0].remedy[0]", "signature": "user_id_filled"}
+{"at": "2026-09-15T15:27:54.315+00:00", "event": "step_captured", "where": "preconditions[0].remedy[0]", "screenshot": "step01.png", "snapshot": "step01_snapshot.json"}
+{"at": "2026-09-15T15:27:54.410+00:00", "event": "action", "where": "preconditions[0].remedy[1]", "intent": "Enter the operator password", "action": "type", "tier": 3, "attempt": 1, "ok": true, "navigated": false, "duration_ms": 56}
+{"at": "2026-09-15T15:27:54.425+00:00", "event": "checkpoint_met", "where": "preconditions[0].remedy[1]", "signature": "password_filled"}
+{"at": "2026-09-15T15:27:54.456+00:00", "event": "step_captured", "where": "preconditions[0].remedy[1]", "screenshot": "step02.png", "snapshot": "step02_snapshot.json"}
+{"at": "2026-09-15T15:27:54.828+00:00", "event": "action", "where": "preconditions[0].remedy[2]", "intent": "Sign on", "action": "click", "tier": 1, "attempt": 1, "ok": true, "navigated": true, "duration_ms": 342}
+{"at": "2026-09-15T15:27:54.856+00:00", "event": "checkpoint_met", "where": "preconditions[0].remedy[2]", "signature": "authenticated"}
+{"at": "2026-09-15T15:27:54.889+00:00", "event": "step_captured", "where": "preconditions[0].remedy[2]", "screenshot": "step03.png", "snapshot": "step03_snapshot.json"}
+{"at": "2026-09-15T15:27:54.908+00:00", "event": "precondition_met", "where": "preconditions[0]", "signature": "authenticated"}
+{"at": "2026-09-15T15:27:55.346+00:00", "event": "action", "where": "steps[0]", "intent": "Enter the member ID to search for the member record", "action": "type", "tier": 1, "attempt": 1, "ok": true, "navigated": false, "duration_ms": 46}
+{"at": "2026-09-15T15:27:55.381+00:00", "event": "checkpoint_met", "where": "steps[0]", "signature": "step3_enter_the_member_id_to_search_fo"}
+{"at": "2026-09-15T15:27:55.432+00:00", "event": "step_captured", "where": "steps[0]", "screenshot": "step04.png", "snapshot": "step04_snapshot.json"}
+{"at": "2026-09-15T15:27:55.831+00:00", "event": "action", "where": "steps[1]", "intent": "Click Search to find the member record", "action": "click", "tier": 1, "attempt": 1, "ok": true, "navigated": true, "duration_ms": 330}
+{"at": "2026-09-15T15:27:55.921+00:00", "event": "checkpoint_met", "where": "steps[1]", "signature": "step4_click_search_to_find_the_member_"}
+{"at": "2026-09-15T15:27:56.054+00:00", "event": "step_captured", "where": "steps[1]", "screenshot": "step05.png", "snapshot": "step05_snapshot.json"}
+{"at": "2026-09-15T15:27:56.565+00:00", "event": "action", "where": "steps[2]", "intent": "Click View to open the member's details page", "action": "click", "tier": 3, "attempt": 1, "ok": true, "navigated": true, "duration_ms": 334}
+{"at": "2026-09-15T15:27:56.604+00:00", "event": "checkpoint_met", "where": "steps[2]", "signature": "step5_click_view_to_open_the_member_s_"}
+{"at": "2026-09-15T15:27:56.676+00:00", "event": "step_captured", "where": "steps[2]", "screenshot": "step06.png", "snapshot": "step06_snapshot.json"}
+{"at": "2026-09-15T15:27:57.122+00:00", "event": "action", "where": "steps[3]", "intent": "Click Open sub-account to start creating a new sub-account", "action": "click", "tier": 1, "attempt": 1, "ok": true, "navigated": true, "duration_ms": 332}
+{"at": "2026-09-15T15:27:57.158+00:00", "event": "checkpoint_met", "where": "steps[3]", "signature": "step6_click_open_sub_account_to_start_"}
+{"at": "2026-09-15T15:27:57.232+00:00", "event": "step_captured", "where": "steps[3]", "screenshot": "step07.png", "snapshot": "step07_snapshot.json"}
+{"at": "2026-09-15T15:27:57.342+00:00", "event": "action", "where": "steps[4]", "intent": "Select the account type from the dropdown", "action": "select", "tier": 1, "attempt": 1, "ok": true, "navigated": false, "duration_ms": 35}
+{"at": "2026-09-15T15:27:57.373+00:00", "event": "checkpoint_met", "where": "steps[4]", "signature": "step7_select_the_account_type_from_the"}
+{"at": "2026-09-15T15:27:57.432+00:00", "event": "step_captured", "where": "steps[4]", "screenshot": "step08.png", "snapshot": "step08_snapshot.json"}
+{"at": "2026-09-15T15:27:57.545+00:00", "event": "action", "where": "steps[5]", "intent": "Enter the initial deposit amount for the new sub-account", "action": "type", "tier": 1, "attempt": 1, "ok": true, "navigated": false, "duration_ms": 33}
+{"at": "2026-09-15T15:27:57.583+00:00", "event": "checkpoint_met", "where": "steps[5]", "signature": "step8_enter_the_initial_deposit_amount"}
+{"at": "2026-09-15T15:27:57.658+00:00", "event": "step_captured", "where": "steps[5]", "screenshot": "step09.png", "snapshot": "step09_snapshot.json"}
+{"at": "2026-09-15T15:27:58.093+00:00", "event": "action", "where": "steps[6]", "intent": "Click Review to review the sub-account details before creating it", "action": "click", "tier": 1, "attempt": 1, "ok": true, "navigated": true, "duration_ms": 331}
+{"at": "2026-09-15T15:27:58.128+00:00", "event": "checkpoint_met", "where": "steps[6]", "signature": "step5_click_view_to_open_the_member_s_"}
+{"at": "2026-09-15T15:27:58.182+00:00", "event": "step_captured", "where": "steps[6]", "screenshot": "step10.png", "snapshot": "step10_snapshot.json"}
+{"at": "2026-09-15T15:27:58.267+00:00", "event": "action", "where": "steps[7]", "intent": "Click Confirm to create the sub-account with the specified details", "action": "click", "tier": 1, "attempt": 1, "ok": false, "error_code": "approval_required", "error": "risky_action", "navigated": false, "duration_ms": 0}
+{"at": "2026-09-15T15:27:58.268+00:00", "event": "intent", "where": "steps[7]", "intent_id": "cef1fdab42cc", "state": "dispatching", "handed_over": true}
+{"at": "2026-09-15T15:27:58.366+00:00", "event": "intervention_opened", "intervention": "8dbd870830", "reason": "approval_required", "step": "steps[7]"}
+{"at": "2026-09-15T15:27:58.370+00:00", "event": "lease", "holder": "NONE", "generation": 2}
+{"at": "2026-09-15T15:27:58.475+00:00", "event": "lease", "holder": "HUMAN", "generation": 3, "operator": "showcase-operator"}
+{"at": "2026-09-15T15:27:58.606+00:00", "event": "lease", "holder": "AGENT", "generation": 5}
+{"at": "2026-09-15T15:27:58.642+00:00", "event": "control_returned", "intervention": "8dbd870830", "ladder": "unrecognized"}
+{"at": "2026-09-15T15:27:58.642+00:00", "event": "reconcile_started", "where": "steps[7]", "attempted_at": "2026-09-15T15:27:58.267+00:00"}
+{"at": "2026-09-15T15:27:58.968+00:00", "event": "action", "where": "steps[7].reconcile.probe[0]", "intent": "Open this member's accounts grid (read-only)", "action": "navigate", "attempt": 1, "ok": true, "navigated": true, "duration_ms": 325}
+{"at": "2026-09-15T15:27:59.026+00:00", "event": "checkpoint_met", "where": "steps[7].reconcile.probe[0]", "signature": "accounts_listed_for_member"}
+{"at": "2026-09-15T15:27:59.066+00:00", "event": "reconcile_verdict", "where": "steps[7]", "verdict": "not_completed", "reason": "the authoritative screen for these inputs shows no such record"}
+{"at": "2026-09-15T15:27:59.150+00:00", "event": "intent", "where": "steps[7]", "intent_id": "cef1fdab42cc", "state": "reconciled"}
+{"at": "2026-09-15T15:27:59.216+00:00", "event": "approval_required", "reason": "risky_action", "risk": "irreversible"}
+{"at": "2026-09-15T15:27:59.239+00:00", "event": "finished", "status": "escalated", "code": "not_completed_after_handoff"}

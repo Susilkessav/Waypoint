@@ -4,7 +4,7 @@ The target app is a fixture. If Waypoint ever imports it, the claim that the
 engine is independent of any one surface is false, and every generalisation
 argument in REPORT.md collapses. This test is the mechanical guard on that.
 
-See PLAN.md section 5.1.
+See README.md, Repository tour.
 """
 
 from __future__ import annotations

@@ -1,6 +1,6 @@
 """The return ladder: where a run may continue once a human hands control back.
 
-PLAN.md R-RESUME-3 and R-RESUME-4. Pure - an artifact, the rendered inputs, the
+R-RESUME-3 and R-RESUME-4. Pure - an artifact, the rendered inputs, the
 sanitized screen after the handoff, and the index of the step that escalated - so
 every rung is unit-testable (T8, T9). The first rung that holds wins:
 

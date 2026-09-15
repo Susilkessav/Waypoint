@@ -1,0 +1,22 @@
+{
+  "question": "What is member 67890's savings balance?",
+  "model": "claude-haiku-4-5",
+  "calls": [
+    {
+      "capability": "lookup_member_balance",
+      "arguments": {
+        "member_id": "67890"
+      },
+      "result": {
+        "status": "success",
+        "capability": "lookup_member_balance",
+        "version": "1.2.0",
+        "outputs": {
+          "savings_balance": "$912.04",
+          "account_status": "dormant"
+        }
+      }
+    }
+  ],
+  "answer": "Member 67890's savings balance is $912.04, and their account status is dormant."
+}

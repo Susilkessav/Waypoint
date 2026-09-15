@@ -1,4 +1,4 @@
-"""Who may act on the live session (PLAN.md R-PROC-4, R-PROC-5).
+"""Who may act on the live session (R-PROC-4, R-PROC-5).
 
 A lease has a holder (AGENT, HUMAN or NONE), an owner token naming the specific
 process or operator that holds it, and a generation that increments on *every*

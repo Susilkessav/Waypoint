@@ -1,5 +1,5 @@
 .DEFAULT_GOAL := help
-.PHONY: help install lock app operator test test-all lint fmt clean
+.PHONY: help install lock app operator console test test-all lint fmt clean
 
 help:  ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
@@ -17,6 +17,9 @@ app:  ## Run the target app on :8080 (blocking)
 
 operator:  ## Operator CLI (see: waypoint intervene --help)
 	uv run waypoint intervene
+
+console:  ## Operator queue in a browser on :8765 (blocking)
+	uv run waypoint console
 
 test:  ## Run tests, excluding those that need a live LLM
 	uv run pytest -m "not llm" -q

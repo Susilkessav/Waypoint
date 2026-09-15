@@ -1,4 +1,4 @@
-"""Deterministic failure injection (PLAN.md section 7.2).
+"""Deterministic failure injection (RULES.md, The test fixture).
 
 An injection is set with `?inject=<name>` on any console URL and is then held in
 the session until `?inject=none`. Session scope rather than per-request query
@@ -41,7 +41,8 @@ SUPPORTED = frozenset(
         "interstitial",  # a notice stands in the way, once         -> recoverable
         "session",  # the sign-on lapses mid-flow, once             -> recoverable
         "validation",  # the application refuses the input          -> business outcome
-        "drift",  # the submit control is renamed                   -> tier degradation
+        "drift",  # the sub-account submit control is renamed
+        "drift_search",  # the search control is renamed                   -> tier degradation
         "commit_then_drop",  # committed, response lost             -> tests R-REC-3
         "stale_confirmation",  # an older, unrelated confirmation   -> tests R-REC-2
         "resubmit",  # commit, then 307 back to itself, once        -> one approval, one request
@@ -90,7 +91,7 @@ def duplicates_view_link(member: Member, searched_member_id: str) -> bool:
     """True when this row should render two identical View links.
 
     Makes the anchored locator match more than one element, which must resolve
-    to Ambiguous and escalate rather than pick one (PLAN.md R-LOC-2).
+    to Ambiguous and escalate rather than pick one (R-LOC-2).
     """
     return is_active("ambiguous") and member.member_id == searched_member_id
 
@@ -100,7 +101,7 @@ def displayed_member_id(requested: str) -> str:
 
     Under ``wrong_member`` it is the next member of the same branch: the right screen
     for the wrong person. A checkpoint asking only "is this a Member Profile?" would
-    pass; one that asserts *which* member must not (PLAN.md R-RESUME-5, T7).
+    pass; one that asserts *which* member must not (R-RESUME-5, T7).
     """
     if not is_active("wrong_member"):
         return requested
@@ -145,9 +146,13 @@ def refuses_input() -> bool:
     return is_active("validation")
 
 
-def submit_label(default: str) -> str:
-    """Under `drift` the control keeps its id and loses its name: tier 1 stops matching."""
-    return "Continue" if is_active("drift") else default
+def submit_label(default: str, injection: str = "drift") -> str:
+    """A submit control keeps its id and loses its name: tier 1 stops matching.
+
+    Two injections, so drift can be shown on a read-only flow (`drift_search`, the member
+    search) without disturbing the one that commits (`drift`, the sub-account form).
+    """
+    return "Continue" if is_active(injection) else default
 
 
 def drops_response_after_commit() -> bool:

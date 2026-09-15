@@ -3,7 +3,7 @@
 Search returns the searched member's whole *branch roster* rather than a single
 row. That is deliberate and load-bearing: it guarantees the results grid always
 holds eight rows whose View links share one accessible name, which is the
-constraint that forces anchored relative locators (PLAN.md R-LOC-1, R-LOC-5)
+constraint that forces anchored relative locators (R-LOC-1, R-LOC-5)
 instead of nth-child indexing. Legacy servicing consoles genuinely behave this
 way - you search, and the grid shows the member in branch context.
 """
@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-# Sentinel IDs used by the chaos table (PLAN.md section 7.2).
+# Sentinel IDs used by the chaos table (RULES.md, The test fixture).
 NO_RECORDS_MEMBER_ID = "00000"
 RESTRICTED_MEMBER_ID = "99999"  # permission-denied banner arrives in B1
 

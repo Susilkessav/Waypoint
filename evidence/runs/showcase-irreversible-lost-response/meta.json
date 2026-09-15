@@ -1,5 +1,5 @@
 {
-  "run_id": "20260914T060955Z-eb7f91",
+  "run_id": "20260915T152747Z-038dc1",
   "capability_id": "open_sub_account",
   "version": "1.0.0",
   "variant": "base",
@@ -11,6 +11,6 @@
     "account_type": "Money Market",
     "initial_deposit": "‹$inputs.initial_deposit›"
   },
-  "origin": "http://127.0.0.1:55524",
-  "started_at": "2026-09-14T06:09:55+00:00"
+  "origin": "http://127.0.0.1:53129",
+  "started_at": "2026-09-15T15:27:47+00:00"
 }

@@ -1,4 +1,4 @@
-"""The replay result contract (PLAN.md 6.5, R-OUT-2).
+"""The replay result contract (R-OUT-2).
 
 Four statuses, not two. ``business_outcome`` is a *successful* run that returns a
 named, expected answer - "no such member" - which the caller switches on; it exits

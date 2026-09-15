@@ -142,7 +142,7 @@ def test_view_link_ids_encode_row_position(console: Console) -> None:
     """IDs number the row, not the member, so re-sorting repoints every one of them.
 
     This is precisely why a tier-4 structural locator needs an identity assertion
-    (PLAN.md R-LOC-5): after a re-sort the same path selects a different person.
+    (R-LOC-5): after a re-sort the same path selects a different person.
     """
 
     def row_index_of(html: str, member_id: str) -> int:
@@ -229,7 +229,7 @@ def test_mark_for_review_is_a_mutating_get(console: Console) -> None:
 
 
 def test_seeded_balances_match_the_documented_demo_path(console: Console) -> None:
-    """PLAN.md section 11 quotes these values; keep them true."""
+    """README.md's demo path quotes these values; keep them true."""
     assert "$4,281.19" in console.get("/console/member/accounts?member_id=12345")
     assert "$912.04" in console.get("/console/member/accounts?member_id=67890")
 
@@ -363,12 +363,13 @@ def test_inject_stale_confirmation_shows_somebody_elses_receipt(console: Console
 
 
 def test_every_documented_injection_is_implemented() -> None:
-    """PLAN.md section 7.2 is the list; this fails when one of them is only a plan."""
+    """RULES.md's injection table is the list; this fails when one of them is only a plan."""
     from target_app.chaos import SUPPORTED
 
     assert SUPPORTED == {
         "ambiguous", "row_missing", "reorder", "wrong_member", "slow", "500", "interstitial",
-        "session", "validation", "drift", "commit_then_drop", "stale_confirmation", "resubmit",
+        "session", "validation", "drift", "drift_search", "commit_then_drop",
+        "stale_confirmation", "resubmit",
     }
 
 

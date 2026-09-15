@@ -1,9 +1,9 @@
 {
-  "url": "http://127.0.0.1:55524/console?inject=‹redacted›",
+  "url": "http://127.0.0.1:53129/console?inject=‹redacted›",
   "title": "Meridian Servicing Console",
   "elements": [
     {
-      "ref": "fd633320d418g42-e1",
+      "ref": "40b8583f13c7g42-e1",
       "role": "LayoutTableCell",
       "name": "Servicing",
       "value": null,
@@ -23,7 +23,7 @@
       "name_sensitivity": "public"
     },
     {
-      "ref": "fd633320d418g42-e2",
+      "ref": "40b8583f13c7g42-e2",
       "role": "link",
       "name": "Member Search",
       "value": null,
@@ -43,7 +43,7 @@
       "name_sensitivity": "public"
     },
     {
-      "ref": "fd633320d418g42-e3",
+      "ref": "40b8583f13c7g42-e3",
       "role": "LayoutTableCell",
       "name": "Transactions",
       "value": null,
@@ -63,7 +63,7 @@
       "name_sensitivity": "public"
     },
     {
-      "ref": "fd633320d418g42-e4",
+      "ref": "40b8583f13c7g42-e4",
       "role": "LayoutTableCell",
       "name": "Reports",
       "value": null,
@@ -83,7 +83,7 @@
       "name_sensitivity": "public"
     },
     {
-      "ref": "fd633320d418g42-e5",
+      "ref": "40b8583f13c7g42-e5",
       "role": "link",
       "name": "Sign Off",
       "value": null,
@@ -103,7 +103,7 @@
       "name_sensitivity": "public"
     },
     {
-      "ref": "fd633320d418g42-e6",
+      "ref": "40b8583f13c7g42-e6",
       "role": "LayoutTableCell",
       "name": "Review Sub-Account",
       "value": null,
@@ -123,7 +123,7 @@
       "name_sensitivity": "public"
     },
     {
-      "ref": "fd633320d418g42-e7",
+      "ref": "40b8583f13c7g42-e7",
       "role": "StaticText",
       "name": "Please review. Opening the sub-account cannot be undone from this console.",
       "value": null,
@@ -143,7 +143,7 @@
       "name_sensitivity": "public"
     },
     {
-      "ref": "fd633320d418g42-e8",
+      "ref": "40b8583f13c7g42-e8",
       "role": "LayoutTableCell",
       "name": "Member ID",
       "value": null,
@@ -165,7 +165,7 @@
       "name_sensitivity": "public"
     },
     {
-      "ref": "fd633320d418g42-e9",
+      "ref": "40b8583f13c7g42-e9",
       "role": "LayoutTableCell",
       "name": "‹$inputs.member_id›",
       "value": null,
@@ -187,7 +187,7 @@
       "name_sensitivity": "internal"
     },
     {
-      "ref": "fd633320d418g42-e10",
+      "ref": "40b8583f13c7g42-e10",
       "role": "LayoutTableCell",
       "name": "Account type",
       "value": null,
@@ -209,7 +209,7 @@
       "name_sensitivity": "public"
     },
     {
-      "ref": "fd633320d418g42-e11",
+      "ref": "40b8583f13c7g42-e11",
       "role": "LayoutTableCell",
       "name": "‹redacted:12 chars›",
       "value": null,
@@ -231,7 +231,7 @@
       "name_sensitivity": "internal"
     },
     {
-      "ref": "fd633320d418g42-e12",
+      "ref": "40b8583f13c7g42-e12",
       "role": "LayoutTableCell",
       "name": "Initial deposit",
       "value": null,
@@ -253,7 +253,7 @@
       "name_sensitivity": "public"
     },
     {
-      "ref": "fd633320d418g42-e13",
+      "ref": "40b8583f13c7g42-e13",
       "role": "LayoutTableCell",
       "name": "$‹$inputs.initial_deposit›",
       "value": null,
@@ -275,7 +275,7 @@
       "name_sensitivity": "pii"
     },
     {
-      "ref": "fd633320d418g42-e14",
+      "ref": "40b8583f13c7g42-e14",
       "role": "link",
       "name": "Confirm",
       "value": null,
@@ -295,7 +295,7 @@
       "name_sensitivity": "public"
     },
     {
-      "ref": "fd633320d418g42-e15",
+      "ref": "40b8583f13c7g42-e15",
       "role": "link",
       "name": "Amend",
       "value": null,
@@ -315,7 +315,7 @@
       "name_sensitivity": "public"
     },
     {
-      "ref": "fd633320d418g42-e16",
+      "ref": "40b8583f13c7g42-e16",
       "role": "link",
       "name": "",
       "value": null,
@@ -342,21 +342,21 @@
       [
         "main"
       ],
-      "http://127.0.0.1:55524/console?inject=‹redacted›"
+      "http://127.0.0.1:53129/console?inject=‹redacted›"
     ],
     [
       [
         "main",
         "nav"
       ],
-      "http://127.0.0.1:55524/console/nav"
+      "http://127.0.0.1:53129/console/nav"
     ],
     [
       [
         "main",
         "content"
       ],
-      "http://127.0.0.1:55524/console/subaccount/review"
+      "http://127.0.0.1:53129/console/subaccount/review"
     ]
   ]
 }

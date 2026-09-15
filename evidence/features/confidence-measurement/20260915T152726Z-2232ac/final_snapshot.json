@@ -1,0 +1,210 @@
+{
+  "url": "http://127.0.0.1:53113/console",
+  "title": "Meridian Servicing Console",
+  "elements": [
+    {
+      "ref": "113f1ff6d55fg18-e1",
+      "role": "LayoutTableCell",
+      "name": "Servicing",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "nav"
+      ],
+      "bbox": [
+        8,
+        8,
+        164,
+        27
+      ],
+      "anchors": [],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    },
+    {
+      "ref": "113f1ff6d55fg18-e2",
+      "role": "link",
+      "name": "Member Search",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "nav"
+      ],
+      "bbox": [
+        12,
+        39,
+        126,
+        19
+      ],
+      "anchors": [],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    },
+    {
+      "ref": "113f1ff6d55fg18-e3",
+      "role": "LayoutTableCell",
+      "name": "Transactions",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "nav"
+      ],
+      "bbox": [
+        8,
+        62,
+        164,
+        27
+      ],
+      "anchors": [],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    },
+    {
+      "ref": "113f1ff6d55fg18-e4",
+      "role": "LayoutTableCell",
+      "name": "Reports",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "nav"
+      ],
+      "bbox": [
+        8,
+        89,
+        164,
+        27
+      ],
+      "anchors": [],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    },
+    {
+      "ref": "113f1ff6d55fg18-e5",
+      "role": "link",
+      "name": "Sign Off",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "nav"
+      ],
+      "bbox": [
+        12,
+        147,
+        65,
+        19
+      ],
+      "anchors": [],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    },
+    {
+      "ref": "113f1ff6d55fg18-e6",
+      "role": "LayoutTableCell",
+      "name": "Member Search Results",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "content"
+      ],
+      "bbox": [
+        189,
+        8,
+        1083,
+        22
+      ],
+      "anchors": [],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    },
+    {
+      "ref": "113f1ff6d55fg18-e7",
+      "role": "cell",
+      "name": "No records found",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "content"
+      ],
+      "bbox": [
+        190,
+        44,
+        302,
+        33
+      ],
+      "anchors": [],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    },
+    {
+      "ref": "113f1ff6d55fg18-e8",
+      "role": "cell",
+      "name": "No member exists with ID \"‹$inputs.member_id›\".",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "content"
+      ],
+      "bbox": [
+        190,
+        77,
+        302,
+        33
+      ],
+      "anchors": [],
+      "sensitivity": "public",
+      "name_sensitivity": "internal"
+    },
+    {
+      "ref": "113f1ff6d55fg18-e9",
+      "role": "link",
+      "name": "Return to search",
+      "value": null,
+      "enabled": true,
+      "frame_path": [
+        "main",
+        "content"
+      ],
+      "bbox": [
+        189,
+        124,
+        92,
+        13
+      ],
+      "anchors": [],
+      "sensitivity": "public",
+      "name_sensitivity": "public"
+    }
+  ],
+  "text_digest": "Servicing | Member Search | Transactions | Reports | Sign Off | Member Search Results | No records found | No member exists with ID \"‹$inputs.member_id›\". | Return to search",
+  "hash": "ad63c1d92d7817ba",
+  "frame_urls": [
+    [
+      [
+        "main"
+      ],
+      "http://127.0.0.1:53113/console"
+    ],
+    [
+      [
+        "main",
+        "nav"
+      ],
+      "http://127.0.0.1:53113/console/nav"
+    ],
+    [
+      [
+        "main",
+        "content"
+      ],
+      "http://127.0.0.1:53113/console/search"
+    ]
+  ]
+}

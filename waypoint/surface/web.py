@@ -640,7 +640,7 @@ class WebSurface:
     # ------------------------------------------------------ raw and evidence
 
     def extract_raw(self, ref: str) -> str | None:
-        """Real value of ``ref`` from the latest snapshot (PLAN.md R-SENS-6).
+        """Real value of ``ref`` from the latest snapshot (R-SENS-6).
 
         The replay engine calls this to fill a caller's outputs. Nothing that logs,
         prompts or persists may call it.

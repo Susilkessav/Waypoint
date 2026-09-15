@@ -1,4 +1,4 @@
-"""Transcript -> draft capability (PLAN.md 6.10).
+"""Transcript -> draft capability (REPORT.md §2).
 
 Transcripts are evidence; artifacts are contracts, and a reviewer should never have to
 read a transcript to approve a capability. The compiler has exactly three declared
@@ -25,7 +25,7 @@ from __future__ import annotations
 
 import re
 from collections.abc import Mapping
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import UTC, datetime
 from typing import Any
 
@@ -45,7 +45,7 @@ _PLACEHOLDER = re.compile(r"^‹\$inputs\.([a-z][a-z0-9_]*)›$")
 _MANGLED = re.compile(r"^(?:‹|\\u2039|\\n2039|\n2039)(.+?)(?:›|\\u203a|\\n203a|\n203a)$", re.S)
 _BARE_INPUT = re.compile(r"^\$inputs\.[a-z][a-z0-9_]*$")
 _REDACTED = re.compile(r"‹redacted(?::\d+ chars)?›|‹secret›")
-_ACTIONS = {"click": "click", "type": "type", "select": "select", "key": "key"}
+_ACTIONS = {"click": "click", "type": "type", "select": "select", "key": "key", "gap": "wait_for"}
 _RISKS = {"safe", "secret_write", "unknown", "irreversible"}
 
 
@@ -149,6 +149,41 @@ def nominated_predicates(
     return preds
 
 
+_DIFF_ROLES = ("heading", "columnheader", "tab", "link", "button", "LayoutTableCell", "cell",
+               "StaticText")
+
+
+def diff_expectation(pre: UISnapshot, post: UISnapshot, rendered: Mapping[str, str],
+                     limit: int = 2) -> dict[str, Any]:
+    """A checkpoint nomination for a step nobody nominated one for: what the step made appear.
+
+    A person demonstrating a step during discovery says nothing about what it should
+    achieve, so the elements present after it and absent before it stand in for the
+    model's expectation. An input's placeholder first, since it asserts *which* record
+    (R-RESUME-5), then headings and table headers, which describe a screen rather than one
+    record's data. Redacted data is never nominated. The nomination goes through the
+    same promotion gate as the model's (R-PKG-5), so a poor one blocks approval instead of
+    passing silently.
+    """
+    before = {(e.role, e.name) for e in pre.elements}
+    picks: list[tuple[int, int, dict[str, str]]] = []
+    for i, e in enumerate(post.elements):
+        if not e.name or (e.role, e.name) in before or _REDACTED.search(e.name):
+            continue
+        placeholder = _PLACEHOLDER.match(e.name)
+        if placeholder and placeholder.group(1) not in rendered:
+            continue
+        if e.role not in _DIFF_ROLES and not placeholder:
+            continue
+        # An input's placeholder first: it asserts *which* record, which is what stops a
+        # step passing on the wrong member's screen (R-RESUME-5). Then screen furniture.
+        rank = -1 if placeholder else (
+            _DIFF_ROLES.index(e.role) if e.role in _DIFF_ROLES else len(_DIFF_ROLES))
+        picks.append((rank, i, {"role": e.role, "name": e.name, "anchor": ""}))
+    chosen = [p for _, _, p in sorted(picks)[:limit]]
+    return {"elements": chosen, "text": ""} if chosen else {}
+
+
 def nomination_holds(
     expect: dict[str, Any], snapshot: UISnapshot, rendered: Mapping[str, str]
 ) -> bool:
@@ -199,6 +234,7 @@ class _Compiler:
             self.keyed["final"] = snapshot_from_dict(t.finish.snapshot)
         self.signatures: dict[str, Signature] = {}
         self.extra_inputs: dict[str, dict[str, Any]] = {}
+        self.demonstrated: list[str] = []
         finish = t.finish.outputs if t.finish is not None else {}
         self.output_values = frozenset(
             str((entry.get("element") or {}).get("name") or "")
@@ -292,8 +328,19 @@ class _Compiler:
 
     def _step(self, s: Step, index: int) -> dict[str, Any]:
         where = f"turn {s.turn}"
+        human = s.performed_by == "human"
+        if human and s.action != "gap" and s.action != "key" and s.bundle is None:
+            # A person's click with no replayable locator is still a place a person acted.
+            s = replace(s, action="gap", unrecorded=(
+                f"{s.decision.get('intent') or s.action}: no unique, verified locator "
+                f"({s.bundle_error or 'none recorded'})"))
         kind = _ACTIONS[s.action]
         d = s.decision
+        if human:
+            self.demonstrated.append(f"steps[{index}]")
+            self.notes.append(f"{where}: demonstrated by a person during discovery")
+        if s.action == "gap":
+            return self._gap(s, index, where)
         if kind != "key" and s.bundle is None:
             raise CompileError(
                 [
@@ -369,6 +416,35 @@ class _Compiler:
             out["resume_point"] = True
             self.notes.append(f"{where}: proposed as a resume point - confirm at approval")
         return out
+
+    def _gap(self, s: Step, index: int, where: str) -> dict[str, Any]:
+        """Where a person acted and nothing replayable was recorded: a visible, blocking hole.
+
+        The step waits for the screen the person reached, so a reviewer sees where the flow
+        continues, and ``unrecorded_human_action`` blocks approval until the step is authored.
+        """
+        intent = s.decision.get("intent") or "A person acted here"
+        post_key = self._post_key(s.turn)
+        post = self.keyed.get(post_key) if post_key else None
+        preds = self._nominated(s.decision.get("expect") or {}, post, where)
+        preds += self._identity(post, preds, where)
+        if not preds:  # nothing to wait for: an honest check that cannot pass unreviewed
+            preds = [Predicate(text_contains="‹a step a person performed›")]
+        sig = Signature(description=f"After: {intent}",
+                        match=preds[0] if len(preds) == 1 else Predicate(all=tuple(preds)))
+        verified, discriminating = self._verify(sig, post_key)
+        self.notes.append(f"{where}: a person's action could not be recorded ({s.unrecorded}) - "
+                          "blocks approval until the step is authored")
+        return {
+            "intent": intent,
+            "action": "wait_for",
+            "checkpoint": {
+                "signature": self._name(f"step{index}_{_slug(intent)}", sig),
+                "weak": verified and not discriminating,
+                "unverified": not verified,
+            },
+            "unrecorded_human_action": s.unrecorded or "not recorded",
+        }
 
     def _outputs(self, reasons: list[str]) -> dict[str, Any]:
         assert self.t.finish is not None
@@ -451,6 +527,7 @@ class _Compiler:
             "provenance": {
                 "discovered_by": {"model": t.model, "run_id": t.run_id},
                 "compiled_at": now.isoformat(timespec="seconds"),
+                "demonstrated_steps": self.demonstrated,
             },
         }
         try:

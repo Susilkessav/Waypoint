@@ -1,4 +1,4 @@
-"""The discovery loop: a goal in, a transcript out (PLAN.md 3.1, 6.10).
+"""The discovery loop: a goal in, a transcript out (REPORT.md §2).
 
 observe -> decide -> act, on the same surface, policy engine and redactor replay uses.
 The decider (a live model, or a cassette of one) only ever *proposes*; this loop owns
@@ -9,7 +9,7 @@ every side effect:
 * Values are resolved here too. ``$inputs.x`` and ``$secrets.x`` are the only forms the
   model is asked to use; a literal equal to a bound value is rewritten to its reference
   (and noted), and any other literal is typed but recorded only by length - it blocks
-  approval until a human decides what it should be (PLAN.md 6.10).
+  approval until a human decides what it should be (REPORT.md §2).
 * Every action goes through ``WebSurface.act``, so the policy engine sits under it
   exactly as in replay. Discovery is attended: a risky action is put to the operator's
   approval callback, and with no operator it is refused.
@@ -21,7 +21,14 @@ every side effect:
   problem could no longer be fixed.
 
 The run stops on finish, give_up, a refusal, a cassette mismatch, the step limit, or a
-screen that has not changed for ``stuck_after`` turns.
+screen that is going nowhere - unchanged for ``stuck_after`` turns, alternating between
+two states, or refusing the last few actions.
+
+With ``handoff`` on, being stuck is not the end (REPORT.md §5): discovery opens an
+intervention and hands the live browser to a person, exactly as replay does. What they
+demonstrate is captured as steps (``demonstration.py``), the model is told what they did,
+and the run carries on from the screen they left. An action policy will not let the model
+take - an irreversible one, unattended - routes to the same queue instead of a prompt.
 """
 
 from __future__ import annotations
@@ -37,6 +44,7 @@ from urllib.parse import urlsplit
 from waypoint.compiler.compile import finish_problems, locator_problem, nomination_holds
 from waypoint.discovery.cassette import CassetteMismatch, Decider, DecisionContext
 from waypoint.discovery.decisions import Decision
+from waypoint.discovery.demonstration import DemonstrationCapture
 from waypoint.discovery.transcript import (
     BindingSpec,
     FinishRecord,
@@ -49,6 +57,7 @@ from waypoint.evidence import EvidenceWriter
 from waypoint.policy.engine import PolicyConfig, PolicyEngine, RequireApproval, RunContext
 from waypoint.policy.redactor import Redactor, binding_placeholder
 from waypoint.policy.secrets import SecretBroker
+from waypoint.session.handoff import ControlSession, HandoffEnded, HandoffSettings, Request
 from waypoint.surface.ports import (
     Action,
     ActionKind,
@@ -82,6 +91,8 @@ class DiscoveryOptions:
     secret_names: Sequence[str] = ("meridian_user", "meridian_password")
     max_steps: int = 20
     stuck_after: int = 3
+    blocked_after: int = 3
+    """Actions refused or rejected in a row before the run counts as going nowhere."""
     finish_corrections: int = 2
     """How many times a finish that would not compile goes back to the model to fix."""
     evidence_root: Path = Path("evidence/runs")
@@ -89,6 +100,12 @@ class DiscoveryOptions:
     secrets: SecretBroker | None = None
     approve: Callable[[RequireApproval, Action], bool] | None = None
     """The attending operator. None refuses every action that needs approval."""
+    handoff: bool = False
+    """Being stuck opens an intervention and waits for a person on the live browser."""
+    handoff_settings: HandoffSettings | None = None
+    max_handoffs: int = 2
+    turns_after_handoff: int = 10
+    """Model turns granted after a person helps, when the step limit was what stopped it."""
 
 
 @dataclass(frozen=True)
@@ -96,6 +113,18 @@ class DiscoveryResult:
     transcript: Transcript
     run_dir: Path
     transcript_path: Path
+    handoffs: tuple[dict[str, Any], ...] = ()
+
+
+_ENDINGS: dict[str, Any] = {
+    "discovery_stuck": "stuck",
+    "discovery_oscillating": "stuck",
+    "discovery_blocked": "blocked",
+    "discovery_step_limit": "max_steps",
+    "discovery_gave_up": "gave_up",
+    "approval_required": "blocked",
+}
+"""How a run ends when nobody can help: the reason a person would have been asked for."""
 
 
 class _Reject(Exception):
@@ -141,6 +170,15 @@ class _Discovery:
         self.run_id = EvidenceWriter.new_run_id()
         self.ev = EvidenceWriter(options.evidence_root, self.run_id, self.redactor)
         self.corrections = 0
+        self.seq = 0
+        """Turn numbers, shared by the model's decisions and a person's demonstrated steps."""
+        self.model_turns = 0
+        self.control: ControlSession | None = None
+        self.demo: DemonstrationCapture | None = None
+        self.handoff_log: list[dict[str, Any]] = []
+        if options.handoff:
+            self.control = ControlSession(self.run_id, self.redactor, self.ev,
+                                          options.handoff_settings or HandoffSettings())
         self.transcript = Transcript(
             run_id=self.run_id,
             capability_id=options.capability_id,
@@ -171,7 +209,18 @@ class _Discovery:
                 secrets=self.opt.secrets or SecretBroker(),
                 approve=self.opt.approve or (lambda _verdict, _action: False),
             ) as surface:
-                self._loop(surface)
+                if self.control is not None:
+                    self.control.take(surface)
+                    self.demo = DemonstrationCapture(
+                        surface, self.control, self.control.recorder_for(surface),
+                        self.transcript.steps.append,
+                        self._next_turn, self._value, self.values, self.rendered, self.ev.event)
+                    self.control.while_waiting = self.demo.process
+                try:
+                    self._loop(surface)
+                finally:
+                    if self.control is not None:
+                        self.control.release()
                 self._capture(surface)
         except Exception as exc:  # the transcript and evidence must survive any failure
             self._end("error", self.redactor.error(exc))
@@ -186,12 +235,28 @@ class _Discovery:
             self.ev.close()
         path = self.ev.dir / "transcript.json"
         self.transcript.save(path)
-        return DiscoveryResult(self.transcript, self.ev.dir, path)
+        return DiscoveryResult(self.transcript, self.ev.dir, path, tuple(self.handoff_log))
 
     def _end(self, ending: Any, detail: str = "") -> None:
         if self.transcript.ending is None:
             self.transcript.ending = ending
             self.transcript.ending_detail = detail
+
+    def _next_turn(self) -> int:
+        turn, self.seq = self.seq, self.seq + 1
+        return turn
+
+    def _going_nowhere(self, unchanged: int, recent: list[str], failures: int
+                       ) -> tuple[str, str] | None:
+        """Why this run is not progressing, in the words the operator queue will show."""
+        if unchanged >= self.opt.stuck_after:
+            return "discovery_stuck", f"the screen did not change for {unchanged} turns"
+        if (len(recent) == 4 and recent[0] == recent[2] and recent[1] == recent[3]
+                and recent[0] != recent[1]):
+            return "discovery_oscillating", "the screen is alternating between two states"
+        if failures >= self.opt.blocked_after:
+            return "discovery_blocked", f"{failures} actions in a row could not be performed"
+        return None
 
     def _loop(self, surface: WebSurface) -> None:
         opened = surface.act(Action("navigate", url=self.opt.entry, intent="Open the entry page"))
@@ -199,18 +264,39 @@ class _Discovery:
             self._end("error", f"could not open the entry page: {opened.error}")
             return
         last_result: str | None = "Opened the entry page."
-        previous_hash, unchanged, acted = None, 0, False
-        for turn in range(self.opt.max_steps):
+        previous_hash, unchanged, acted, failures = None, 0, False, 0
+        recent: list[str] = []
+        budget = self.opt.max_steps
+        while True:
+            if self.model_turns >= budget:
+                helped = self._help(surface, "discovery_step_limit",
+                                    f"stopped after {self.model_turns} turns short of the goal")
+                if helped is None:
+                    self._end("max_steps", f"stopped after {self.model_turns} turns")
+                    return
+                budget = self.model_turns + self.opt.turns_after_handoff
+                last_result, unchanged, failures, acted = helped, 0, 0, False
+                recent.clear()
+                continue
             snap = surface.observe()
             if self.transcript.steps and self.transcript.steps[-1].post_hash is None:
                 self.transcript.steps[-1].post_hash = snap.hash
                 last_result = self._unmet(self.transcript.steps[-1], snap, last_result)
             if acted:  # only an action can change the screen; a correction is not one
                 unchanged = unchanged + 1 if snap.hash == previous_hash else 0
+                recent.append(snap.hash)
+                del recent[:-4]
             previous_hash = snap.hash
-            if unchanged >= self.opt.stuck_after:
-                self._end("stuck", f"the screen did not change for {unchanged} turns")
-                return
+            nowhere = self._going_nowhere(unchanged, recent, failures)
+            if nowhere is not None:
+                helped = self._help(surface, *nowhere)
+                if helped is None:
+                    self._end(_ENDINGS[nowhere[0]], nowhere[1])
+                    return
+                last_result, unchanged, failures, acted = helped, 0, 0, False
+                recent.clear()
+                continue
+            turn = self._next_turn()
             ids = tuple((f"e{i}", e) for i, e in enumerate(snap.elements, 1))
             ctx = DecisionContext(
                 turn=turn, goal=self.goal, snapshot=snap, elements=ids,
@@ -222,12 +308,19 @@ class _Discovery:
             except CassetteMismatch as exc:
                 self._end("error", str(exc))
                 return
+            self.model_turns += 1
             self.ev.event("decision", turn=turn, decision=decision.kind, intent=decision.intent,
                           element=decision.element, reason=decision.reason or None)
             if decision.kind == "give_up":
                 refused = decision.reason.startswith("model_refusal")
-                self._end("refused" if refused else "gave_up", decision.reason)
-                return
+                helped = (None if refused else
+                          self._help(surface, "discovery_gave_up", decision.reason))
+                if helped is None:
+                    self._end("refused" if refused else "gave_up", decision.reason)
+                    return
+                last_result, unchanged, failures, acted = helped, 0, 0, False
+                recent.clear()
+                continue
             if decision.kind == "recheck":
                 last_result, acted = self._recheck(decision, snap), False
                 continue
@@ -238,7 +331,53 @@ class _Discovery:
                 last_result, acted = feedback, False
                 continue
             last_result, acted = self._act(surface, turn, decision, dict(ids), snap), True
-        self._end("max_steps", f"stopped after {self.opt.max_steps} turns")
+            step = self.transcript.steps[-1]
+            failures = 0 if step.ok else failures + 1
+            if not step.ok and step.error_code == "approval_required":
+                # Attended, but nobody at the terminal: the same queue replay uses (R-RISK).
+                helped = self._help(surface, "approval_required",
+                                    f"needs a person: {decision.intent}")
+                if helped is not None:
+                    last_result, unchanged, failures, acted = helped, 0, 0, False
+                    recent.clear()
+
+    # ------------------------------------------------------------- handoff
+
+    def _help(self, surface: WebSurface, code: str, message: str) -> str | None:
+        """Hand the live browser to a person. None when nobody can be asked."""
+        if self.control is None or len(self.handoff_log) >= self.opt.max_handoffs:
+            return None
+        intent = next((s.decision.get("intent") for s in reversed(self.transcript.steps)
+                       if s.decision.get("intent")), None)
+        self.ev.event("escalation", reason=code, detail=message, turn=self.seq)
+        if self.demo is not None:
+            self.demo.begin()
+        try:
+            returned = self.control.hand_over(surface, Request(
+                capability_id=self.opt.capability_id, version="discovery", reason_code=code,
+                message=message, step=f"turn {self.seq}", intent=intent,
+            ))
+        except HandoffEnded as ended:
+            if self.demo is not None:
+                self.demo.accepting = False
+            self._end("blocked", f"{ended.code}: {ended.message}")
+            return None
+        demonstrated = self.demo.end(surface) if self.demo is not None else []
+        self.control.write_diff(returned, demonstrated=len(demonstrated))
+        self.handoff_log.append({
+            "intervention": returned.intervention.id, "reason": code,
+            "turn": returned.intervention.step, "operator": returned.intervention.operator,
+            "human_actions": returned.human_actions,
+            "demonstrated_steps": [s.decision.get("intent") for s in demonstrated],
+        })
+        self.ev.event("control_returned", intervention=returned.intervention.id,
+                      demonstrated=len(demonstrated), human_actions=returned.human_actions)
+        did = [str(s.decision.get("intent") or s.action) for s in demonstrated]
+        what = ("A person took control and: " + "; ".join(did) + ".") if did else (
+            f"A person took control and made {returned.human_actions} change(s) that could "
+            "not be recorded as steps.")
+        return (what + " Control is back with you. Do not repeat what they did - look at the "
+                "screen below and carry on towards the goal.")
 
     # ---------------------------------------------------------------- steps
 

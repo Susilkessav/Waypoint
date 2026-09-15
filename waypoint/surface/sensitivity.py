@@ -1,4 +1,4 @@
-"""Sensitivity classification at perception time (PLAN.md R-SENS-1, R-SENS-2).
+"""Sensitivity classification at perception time (R-SENS-1, R-SENS-2).
 
 The Surface runs this on every element *before* any snapshot leaves it - before
 the model, the evidence writer or the transcript. That is what makes redaction
@@ -84,7 +84,7 @@ MIN_SUBSTRING_BINDING_LEN = 3
 
 @dataclass(frozen=True)
 class Binding:
-    """A declared, named input value (PLAN.md section 6.10), e.g. member_id=12345."""
+    """A declared, named input value (REPORT.md §2), e.g. member_id=12345."""
 
     name: str
     value: str

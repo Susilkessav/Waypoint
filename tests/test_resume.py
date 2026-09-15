@@ -1,4 +1,4 @@
-"""The return ladder on real recorded screens (PLAN.md R-RESUME-3, R-RESUME-4).
+"""The return ladder on real recorded screens (R-RESUME-3, R-RESUME-4).
 
 T8 - resume targets only declared resume points.
 T9 - a resume point's checkpoint rejects an empty form.

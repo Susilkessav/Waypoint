@@ -1,4 +1,4 @@
-"""What the discovery model may decide - and nothing else (PLAN.md 4.4).
+"""What the discovery model may decide - and nothing else (REPORT.md §6).
 
 The model acts only by calling one of these tools, each a strict JSON schema, so a
 decision is either schema-valid or rejected: there is no free-form command string

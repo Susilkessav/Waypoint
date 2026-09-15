@@ -6,7 +6,7 @@ artifact deterministically with no model in the decision loop. When replay meets
 a state it does not recognise, control transfers to a human on the same live
 session.
 
-Execution rules are specified in PLAN.md section 6 and referenced from code by
+Execution rules are specified in RULES.md and referenced from code by
 their stable IDs (R-LOC-5, R-REC-3, ...).
 """
 

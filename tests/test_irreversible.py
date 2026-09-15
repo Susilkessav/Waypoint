@@ -27,7 +27,7 @@ import pytest
 from waypoint.artifact.approval import approve
 from waypoint.artifact.schema import Capability
 from waypoint.policy.secrets import SecretBroker
-from waypoint.replay.engine import ReplayOptions, replay
+from waypoint.replay.engine import ReplayOptions, _Run, replay
 from waypoint.replay.result import ReplayResult
 from waypoint.session.escalation import Intervention, InterventionStore
 from waypoint.session.intents import Intent, IntentStore, inputs_hash
@@ -102,11 +102,15 @@ def intents(tmp_path: Path) -> IntentStore:
     return IntentStore(StateStore(tmp_path / "state.db"))
 
 
-def left_by_a_crashed_run(tmp_path: Path) -> Intent:
+def left_by_a_crashed_run(tmp_path: Path, origin: str) -> Intent:
     store = intents(tmp_path)
-    intent = store.begin(run_id="crashed-run", capability_id="open_sub_account",
-                         version="1.0.0", step=CONFIRM,
-                         inputs_digest=inputs_hash("open_sub_account", INPUTS))
+    runner = _Run(artifact(), INPUTS, ReplayOptions(
+        base_url=origin, state_db=tmp_path / "state.db", evidence_root=tmp_path / "seed"))
+    try:
+        runner._intent_begin(CONFIRM)
+        intent = store.get(runner.open_intents[CONFIRM])
+    finally:
+        runner.ev.close()
     store.advance(intent.id, "dispatched")
     return intent
 
@@ -159,7 +163,7 @@ def test_t12_a_probe_screen_that_proves_nothing_escalates(fresh_app, tmp_path) -
 
 def test_t13_an_operation_a_crashed_run_completed_is_adopted_without_running(
         fresh_app, tmp_path) -> None:
-    left = left_by_a_crashed_run(tmp_path)
+    left = left_by_a_crashed_run(tmp_path, fresh_app)
     App(fresh_app).open_one_behind_the_engines_back()  # the crashed run's commit landed
     asked: list[str] = []
     result = run(artifact(), fresh_app, tmp_path, asked=asked)
@@ -171,7 +175,7 @@ def test_t13_an_operation_a_crashed_run_completed_is_adopted_without_running(
 
 
 def test_t13_an_operation_a_crashed_run_never_completed_runs_once(fresh_app, tmp_path) -> None:
-    left = left_by_a_crashed_run(tmp_path)
+    left = left_by_a_crashed_run(tmp_path, fresh_app)
     asked: list[str] = []
     result = run(artifact(), fresh_app, tmp_path, asked=asked)
     assert result.status == "success", result.failure
@@ -248,7 +252,7 @@ def test_an_earlier_account_for_the_same_member_and_type_is_not_adopted(fresh_ap
     deposit does not, so it is not this operation, and the $250 account is opened once."""
     app = App(fresh_app)
     app.open_one_behind_the_engines_back(cents=10000)
-    left = left_by_a_crashed_run(tmp_path)
+    left = left_by_a_crashed_run(tmp_path, fresh_app)
     asked: list[str] = []
     result = run(artifact(), fresh_app, tmp_path, asked=asked)
     assert result.status == "success", result.failure
@@ -305,6 +309,6 @@ def test_a_migrated_intent_is_not_reconciled_by_its_untrusted_time(fresh_app, tm
     asked: list[str] = []
     result = run(artifact(), fresh_app, tmp_path, asked=asked)
     assert result.status == "escalated" and result.failure is not None
-    assert result.failure.code == "reconciliation_unknown"
+    assert result.failure.code == "reconciliation_required", "legacy origin is unknown too"
     assert asked == [] and App(fresh_app).sub_accounts() == ["SA-12345-01"]
     assert intents(tmp_path).get("legacy1").state == "dispatched"

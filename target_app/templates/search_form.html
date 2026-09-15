@@ -13,7 +13,10 @@
       <td><input type="text" name="ctl00$MainContent$txtMemberId"
                  id="ctl00_MainContent_txtMemberId" size="12" maxlength="5"></td></tr>
   <tr><td></td>
-      <td><input type="submit" id="ctl00_MainContent_btnSearch" value="Search"></td></tr>
+      <!-- Under inject=drift_search this keeps its id and loses its name, exactly as the
+           sub-account submit does: the recorded tier-1 locator stops matching. -->
+      <td><input type="submit" id="ctl00_MainContent_btnSearch"
+                 value="{{ submit }}"></td></tr>
 </table>
 </form>
 </body>

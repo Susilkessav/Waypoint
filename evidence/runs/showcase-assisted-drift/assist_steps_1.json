@@ -1,0 +1,32 @@
+{
+  "where": "steps[1]",
+  "model": "claude-haiku-4-5",
+  "code": "locator_not_found",
+  "chose": "e10",
+  "reason": "The recorded \"Search\" button is now labeled \"Continue\" and serves the same function to run the member search with the entered member ID.",
+  "accepted": true,
+  "check": "role and record identity match what was recorded",
+  "recorded": {
+    "role": "button",
+    "name": "Search",
+    "label": null,
+    "anchor": null,
+    "recorded_tier": 1
+  },
+  "offered": [
+    "e1 LayoutTableCell 'Servicing'",
+    "e2 link 'Member Search'",
+    "e3 LayoutTableCell 'Transactions'",
+    "e4 LayoutTableCell 'Reports'",
+    "e5 link 'Sign Off'",
+    "e6 LayoutTableCell 'Member Search'",
+    "e7 LayoutTableCell 'Member ID'",
+    "e8 textbox ''",
+    "e9 StaticText '‹$inputs.member_id›'",
+    "e10 button 'Continue'"
+  ],
+  "usage": {
+    "input_tokens": 1234,
+    "output_tokens": 73
+  }
+}

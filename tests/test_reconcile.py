@@ -1,4 +1,4 @@
-"""The three-way verdict and the gates around it (PLAN.md R-REC-1..5, R-PKG-3). No browser.
+"""The three-way verdict and the gates around it (R-REC-1..5, R-PKG-3). No browser.
 
 T12 - neither condition holds -> Unknown, never a guess either way.
 Review findings: an earlier account sharing member and type is not this operation; a blank

@@ -1,0 +1,15 @@
+{"at": "2026-09-15T15:27:31.749+00:00", "event": "action", "where": "entry", "action": "navigate", "ok": true}
+{"at": "2026-09-15T15:27:31.866+00:00", "event": "action", "where": "preconditions[0].remedy[0]", "intent": "Enter the operator user ID", "action": "type", "tier": 3, "attempt": 1, "ok": true, "navigated": false, "duration_ms": 49}
+{"at": "2026-09-15T15:27:31.890+00:00", "event": "checkpoint_met", "where": "preconditions[0].remedy[0]", "signature": "user_id_filled"}
+{"at": "2026-09-15T15:27:31.999+00:00", "event": "action", "where": "preconditions[0].remedy[1]", "intent": "Enter the operator password", "action": "type", "tier": 3, "attempt": 1, "ok": true, "navigated": false, "duration_ms": 61}
+{"at": "2026-09-15T15:27:32.016+00:00", "event": "checkpoint_met", "where": "preconditions[0].remedy[1]", "signature": "password_filled"}
+{"at": "2026-09-15T15:27:32.389+00:00", "event": "action", "where": "preconditions[0].remedy[2]", "intent": "Sign on", "action": "click", "tier": 1, "attempt": 1, "ok": true, "navigated": true, "duration_ms": 338}
+{"at": "2026-09-15T15:27:32.419+00:00", "event": "checkpoint_met", "where": "preconditions[0].remedy[2]", "signature": "authenticated"}
+{"at": "2026-09-15T15:27:32.443+00:00", "event": "precondition_met", "where": "preconditions[0]", "signature": "authenticated"}
+{"at": "2026-09-15T15:27:32.560+00:00", "event": "action", "where": "steps[0]", "intent": "Enter the member ID in the search form", "action": "type", "tier": 3, "attempt": 1, "ok": true, "navigated": false, "duration_ms": 47}
+{"at": "2026-09-15T15:27:32.583+00:00", "event": "checkpoint_met", "where": "steps[0]", "signature": "search_field_populated"}
+{"at": "2026-09-15T15:27:32.968+00:00", "event": "action", "where": "steps[1]", "intent": "Run the member search", "action": "click", "tier": 1, "attempt": 1, "ok": true, "navigated": true, "duration_ms": 333}
+{"at": "2026-09-15T15:27:33.034+00:00", "event": "checkpoint_met", "where": "steps[1]", "signature": "member_in_results"}
+{"at": "2026-09-15T15:27:33.485+00:00", "event": "action", "where": "steps[2]", "intent": "Open the matching member's record - the View link in THIS member's row", "action": "click", "tier": 3, "attempt": 1, "ok": true, "navigated": true, "duration_ms": 335}
+{"at": "2026-09-15T15:27:33.510+00:00", "event": "outcome", "where": "steps[2]", "outcome": "not_authorized", "outcome_class": "business"}
+{"at": "2026-09-15T15:27:33.583+00:00", "event": "finished", "status": "business_outcome", "outcome": "not_authorized"}

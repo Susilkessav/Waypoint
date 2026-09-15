@@ -1,5 +1,5 @@
 # Shared signatures for the Meridian Servicing Console. An authoring convenience
-# only: artifacts carry their own copies (PLAN.md R-PKG-1), and replay never reads
+# only: artifacts carry their own copies (R-PKG-1), and replay never reads
 # this file. Every signature asserts on-screen content (R-PKG-5), and every one
 # scoped to a member asserts WHICH member via an input reference (R-RESUME-5).
 

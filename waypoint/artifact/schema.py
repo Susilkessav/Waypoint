@@ -1,4 +1,4 @@
-"""The capability artifact: a typed, versioned, reviewable contract (PLAN.md 6.8, 6.9).
+"""The capability artifact: a typed, versioned, reviewable contract (REPORT.md §2, R-PKG).
 
 Two kinds of rule live here, deliberately separated:
 
@@ -195,7 +195,10 @@ class Step(_Model):
     timeout_ms: int = Field(default=5000, ge=100, le=60_000)
     reconcile: Reconcile | None = None
     unreviewed_literal: bool = False
-    """Set by the compiler for a typed literal matching no binding (PLAN.md 6.10)."""
+    """Set by the compiler for a typed literal matching no binding (REPORT.md §2)."""
+    unrecorded_human_action: str | None = Field(default=None, exclude_if=lambda v: v is None)
+    """Set by the compiler where a person acted during discovery in a way that could not be
+    recorded as a replayable step. It blocks approval until someone authors the step."""
 
     @model_validator(mode="after")
     def _shape(self) -> Self:
@@ -280,6 +283,13 @@ class ArtifactPolicy(_Model):
     allowed_routes: tuple[str, ...] = ("/", "/console", "/console/*")
     max_steps: int = Field(default=25, ge=1, le=100)
     unattended: bool = True
+    assisted_fallback: bool = Field(default=False, exclude_if=lambda v: not v)
+    """Reviewed at approval: may one safe step, once per run, ask a model which control to
+    use when its recorded locator no longer finds it (REPORT.md §3)? Off unless declared."""
+    min_confidence: float | None = Field(default=None, ge=0.0, le=1.0,
+                                         exclude_if=lambda v: v is None)
+    """Reviewed at approval: the measured reliability an unattended run must have before
+    this capability may be invoked without a person (REPORT.md §3). None asks for no bar."""
 
 
 class Provenance(_Model):
@@ -293,6 +303,8 @@ class Provenance(_Model):
     approval_note: str | None = None
     approval_gates: dict[str, int] | None = None
     """A cache tools may write for display. Never read by any decision (R-PKG-3)."""
+    demonstrated_steps: tuple[str, ...] = Field(default=(), exclude_if=lambda v: not v)
+    """Steps a person performed during discovery rather than the model, for the reviewer."""
 
 
 # ------------------------------------------------------------------- capability
@@ -471,8 +483,56 @@ def _reconcile_problems(cap: Capability, where: str, step: Step) -> list[str]:
     return problems
 
 
-def approval_gates(cap: Capability) -> list[str]:
-    """Every reason this artifact may not be approved, recomputed from content."""
+_STEP_OVERRIDE = re.compile(r"^steps\[(\d+)\]\.(target|checkpoint)$")
+"""Patchable override paths (R-PKG-4): the same ``where`` strings ``all_steps``/``bundles``
+already use elsewhere, kept deliberately narrow to what REPORT.md §4 describes - relocating a
+control that a vendor version renamed or moved, and a per-tenant route allowlist."""
+
+
+def _apply_patch(body: dict[str, Any], path: str, value: Any) -> None:
+    if path == "policy.allowed_routes":
+        body.setdefault("policy", {})["allowed_routes"] = value
+        return
+    if m := _STEP_OVERRIDE.match(path):
+        index, field = int(m.group(1)), m.group(2)
+        try:
+            body["steps"][index][field] = value
+        except IndexError:
+            raise ValueError(f"override path {path!r} names a step that does not exist") from None
+        return
+    raise ValueError(f"override path {path!r} is not patchable")
+
+
+def apply_overrides(cap: Capability, variant: str) -> Capability:
+    """The effective capability a tenant variant actually runs (R-PKG-4).
+
+    ``variant == "base"`` returns ``cap`` itself - not an equivalent copy, the same object -
+    so every other function that merges before using ``cap`` is a no-op for base callers and
+    every artifact approved before this existed keeps its exact hash and gate results.
+
+    Otherwise the artifact is dumped to JSON, the variant's declared patches are applied to
+    that dict, and the result is re-validated as a ``Capability`` - so an override that makes
+    the artifact structurally invalid (e.g. a ``type`` step left with no ``target``) fails
+    loudly here rather than misbehaving during replay.
+    """
+    if variant == "base":
+        return cap
+    if variant not in cap.overrides:
+        raise ValueError(f"unknown variant {variant!r}")
+    body = cap.model_dump(mode="json", by_alias=True)
+    for path, value in cap.overrides[variant].items():
+        _apply_patch(body, path, value)
+    return Capability.model_validate(body)
+
+
+def approval_gates(cap: Capability, variant: str = "base") -> list[str]:
+    """Every reason this artifact may not be approved, recomputed from content.
+
+    Runs against the variant's effective (merged) capability, so an override that introduces
+    a problem - a positional locator with no identity, a weak checkpoint - blocks approval of
+    that variant even when base is clean.
+    """
+    cap = apply_overrides(cap, variant)
     reasons: list[str] = []
     for where, step in cap.all_steps():
         cp = step.checkpoint
@@ -484,6 +544,9 @@ def approval_gates(cap: Capability) -> list[str]:
             reasons.append(f"{where}: checkpoint {cp.signature!r} asserts nothing on screen")
         if step.unreviewed_literal:
             reasons.append(f"{where}: unreviewed literal")
+        if step.unrecorded_human_action:
+            reasons.append(f"{where}: a person acted here during discovery and it could not be "
+                           f"recorded as a step ({step.unrecorded_human_action})")
         if step.risk == "irreversible" and cap.policy.unattended:
             reasons += _reconcile_problems(cap, where, step)
     for where, bundle in cap.bundles():
@@ -501,12 +564,15 @@ def approval_gates(cap: Capability) -> list[str]:
 
 
 def content_hash(cap: Capability, variant: str = "base") -> str:
-    """What approval binds to: every execution-relevant key, canonically serialized."""
-    if variant != "base":
-        if variant not in cap.overrides:
-            raise ValueError(f"unknown variant {variant!r}")
-        raise NotImplementedError("per-tenant override application arrives in milestone C1")
-    body = cap.model_dump(mode="json", by_alias=True, exclude={"provenance"})
+    """What approval binds to: every execution-relevant key, canonically serialized.
+
+    Fields added after schema 1.0.0 are left out of the dump while unset (``exclude_if``),
+    so adding one does not silently unapprove artifacts approved before it existed. Computed
+    over the variant's effective (merged) capability (R-PKG-4), so an edit to that variant's
+    override - or to shared base content - both invalidate its approval.
+    """
+    effective = apply_overrides(cap, variant)
+    body = effective.model_dump(mode="json", by_alias=True, exclude={"provenance"})
     canonical = json.dumps(body, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
     return "sha256:" + hashlib.sha256(canonical.encode()).hexdigest()
 
@@ -525,11 +591,13 @@ def _semver_key(path: Path) -> tuple[int, int, int, int, str]:
 
 
 def locate(root: Path, capability_id: str, version: str | None = None, *,
-           release: bool = True) -> Path:
+           release: bool = True, variant: str = "base") -> Path:
     """``capabilities/<id>/<semver>.json`` - the given version, else the highest release.
 
     ``release=False`` means the newest version whatever its state - what a reviewer about to
-    approve means, where replay means the version in service.
+    approve means, where replay means the version in service. ``variant`` picks the highest
+    version approved *for that variant* (R-PKG-4): a version where only base is approved does
+    not count as in service for a tenant whose own approval is still open.
     """
     folder = root / capability_id
     if version is not None:
@@ -546,7 +614,7 @@ def locate(root: Path, capability_id: str, version: str | None = None, *,
 
     def approved(path: Path) -> bool:
         try:
-            return approval_status(load(path)).approved
+            return approval_status(load(path), variant).approved
         except (ValueError, OSError):
             return False
 

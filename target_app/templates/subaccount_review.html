@@ -14,7 +14,7 @@ Please review. Opening the sub-account cannot be undone from this console.
 </table>
 <br>
 <!-- Confirm is a GET. It commits. No verb list would call this link dangerous;
-     only the route it resolves to says so (PLAN.md R-RISK-3). -->
+     only the route it resolves to says so (R-RISK-3). -->
 <a id="ctl00_MainContent_lnkConfirm"
    href="/console/subaccount/confirm?member_id={{ member.member_id }}&type={{ kind|urlencode }}&cents={{ cents }}">Confirm</a>
 &nbsp;
@@ -22,7 +22,7 @@ Please review. Opening the sub-account cannot be undone from this console.
    href="/console/subaccount/new?member_id={{ member.member_id }}">Amend</a>
 &nbsp;
 <!-- No text, no title, no alt, no aria-label - and it deletes this member's most
-     recent sub-account (PLAN.md R-RISK-5). An empty accessible name is 'unknown',
+     recent sub-account (R-RISK-5). An empty accessible name is 'unknown',
      never 'safe'. -->
 <a id="ctl00_MainContent_lnkDiscard"
    href="/console/subaccount/delete?member_id={{ member.member_id }}"><img

@@ -61,11 +61,18 @@ def test_installed_console_script_runs_outside_the_repo(tmp_path: Path) -> None:
     assert result.stdout.strip() == waypoint.__version__
 
 
-def test_unimplemented_command_exits_loudly(tmp_path: Path) -> None:
-    """A stub must fail visibly rather than appear to succeed."""
+def test_a_command_group_without_a_subcommand_shows_its_help(tmp_path: Path) -> None:
+    """Nothing in the CLI may look like it worked when it did nothing."""
     result = _run_console_script("catalog", cwd=tmp_path)
     assert result.returncode == 2
-    assert "not implemented" in result.stderr.lower()
+    assert "list" in result.stdout and "invoke" in result.stdout
+
+
+def test_the_catalog_offers_nothing_where_there_are_no_capabilities(tmp_path: Path) -> None:
+    """Outside a repository there is nothing approved, and that is said plainly."""
+    result = _run_console_script("catalog", "list", cwd=tmp_path)
+    assert result.returncode == 0
+    assert "no approved capabilities" in result.stdout
 
 
 def test_live_server_health(live_server: str) -> None:

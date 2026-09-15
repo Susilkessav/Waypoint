@@ -1,25 +1,25 @@
-{"at": "2026-09-14T06:09:20.659+00:00", "event": "action", "where": "entry", "action": "navigate", "ok": true}
-{"at": "2026-09-14T06:09:20.786+00:00", "event": "action", "where": "preconditions[0].remedy[0]", "intent": "Enter the operator user ID", "action": "type", "tier": 3, "attempt": 1, "ok": true, "navigated": false, "duration_ms": 52}
-{"at": "2026-09-14T06:09:20.801+00:00", "event": "checkpoint_met", "where": "preconditions[0].remedy[0]", "signature": "user_id_filled"}
-{"at": "2026-09-14T06:09:20.831+00:00", "event": "step_captured", "where": "preconditions[0].remedy[0]", "screenshot": "step01.png", "snapshot": "step01_snapshot.json"}
-{"at": "2026-09-14T06:09:20.921+00:00", "event": "action", "where": "preconditions[0].remedy[1]", "intent": "Enter the operator password", "action": "type", "tier": 3, "attempt": 1, "ok": true, "navigated": false, "duration_ms": 55}
-{"at": "2026-09-14T06:09:20.938+00:00", "event": "checkpoint_met", "where": "preconditions[0].remedy[1]", "signature": "password_filled"}
-{"at": "2026-09-14T06:09:20.973+00:00", "event": "step_captured", "where": "preconditions[0].remedy[1]", "screenshot": "step02.png", "snapshot": "step02_snapshot.json"}
-{"at": "2026-09-14T06:09:21.359+00:00", "event": "action", "where": "preconditions[0].remedy[2]", "intent": "Sign on", "action": "click", "tier": 1, "attempt": 1, "ok": true, "navigated": true, "duration_ms": 349}
-{"at": "2026-09-14T06:09:21.396+00:00", "event": "checkpoint_met", "where": "preconditions[0].remedy[2]", "signature": "authenticated"}
-{"at": "2026-09-14T06:09:21.432+00:00", "event": "step_captured", "where": "preconditions[0].remedy[2]", "screenshot": "step03.png", "snapshot": "step03_snapshot.json"}
-{"at": "2026-09-14T06:09:21.455+00:00", "event": "precondition_met", "where": "preconditions[0]", "signature": "authenticated"}
-{"at": "2026-09-14T06:09:21.579+00:00", "event": "action", "where": "steps[0]", "intent": "Enter the member ID in the search form", "action": "type", "tier": 3, "attempt": 1, "ok": true, "navigated": false, "duration_ms": 47}
-{"at": "2026-09-14T06:09:21.603+00:00", "event": "checkpoint_met", "where": "steps[0]", "signature": "search_field_populated"}
-{"at": "2026-09-14T06:09:21.641+00:00", "event": "step_captured", "where": "steps[0]", "screenshot": "step04.png", "snapshot": "step04_snapshot.json"}
-{"at": "2026-09-14T06:09:22.019+00:00", "event": "action", "where": "steps[1]", "intent": "Run the member search", "action": "click", "tier": 1, "attempt": 1, "ok": true, "navigated": true, "duration_ms": 329}
-{"at": "2026-09-14T06:09:22.134+00:00", "event": "checkpoint_met", "where": "steps[1]", "signature": "member_in_results"}
-{"at": "2026-09-14T06:09:22.293+00:00", "event": "step_captured", "where": "steps[1]", "screenshot": "step05.png", "snapshot": "step05_snapshot.json"}
-{"at": "2026-09-14T06:09:22.793+00:00", "event": "action", "where": "steps[2]", "intent": "Open the matching member's record - the View link in THIS member's row", "action": "click", "tier": 3, "attempt": 1, "ok": true, "navigated": true, "duration_ms": 331}
-{"at": "2026-09-14T06:09:22.839+00:00", "event": "checkpoint_met", "where": "steps[2]", "signature": "member_detail_loaded"}
-{"at": "2026-09-14T06:09:22.909+00:00", "event": "step_captured", "where": "steps[2]", "screenshot": "step06.png", "snapshot": "step06_snapshot.json"}
-{"at": "2026-09-14T06:09:23.356+00:00", "event": "action", "where": "steps[3]", "intent": "Open the Accounts tab (a WebForms postback)", "action": "click", "tier": 1, "attempt": 1, "ok": true, "navigated": true, "duration_ms": 353}
-{"at": "2026-09-14T06:09:23.432+00:00", "event": "checkpoint_met", "where": "steps[3]", "signature": "accounts_tab_loaded"}
-{"at": "2026-09-14T06:09:23.542+00:00", "event": "step_captured", "where": "steps[3]", "screenshot": "step07.png", "snapshot": "step07_snapshot.json"}
-{"at": "2026-09-14T06:09:23.744+00:00", "event": "outputs_extracted", "names": ["account_status", "savings_balance"]}
-{"at": "2026-09-14T06:09:23.868+00:00", "event": "finished", "status": "success"}
+{"at": "2026-09-15T15:27:13.350+00:00", "event": "action", "where": "entry", "action": "navigate", "ok": true}
+{"at": "2026-09-15T15:27:13.479+00:00", "event": "action", "where": "preconditions[0].remedy[0]", "intent": "Enter the operator user ID", "action": "type", "tier": 3, "attempt": 1, "ok": true, "navigated": false, "duration_ms": 49}
+{"at": "2026-09-15T15:27:13.496+00:00", "event": "checkpoint_met", "where": "preconditions[0].remedy[0]", "signature": "user_id_filled"}
+{"at": "2026-09-15T15:27:13.532+00:00", "event": "step_captured", "where": "preconditions[0].remedy[0]", "screenshot": "step01.png", "snapshot": "step01_snapshot.json"}
+{"at": "2026-09-15T15:27:13.621+00:00", "event": "action", "where": "preconditions[0].remedy[1]", "intent": "Enter the operator password", "action": "type", "tier": 3, "attempt": 1, "ok": true, "navigated": false, "duration_ms": 58}
+{"at": "2026-09-15T15:27:13.639+00:00", "event": "checkpoint_met", "where": "preconditions[0].remedy[1]", "signature": "password_filled"}
+{"at": "2026-09-15T15:27:13.673+00:00", "event": "step_captured", "where": "preconditions[0].remedy[1]", "screenshot": "step02.png", "snapshot": "step02_snapshot.json"}
+{"at": "2026-09-15T15:27:14.057+00:00", "event": "action", "where": "preconditions[0].remedy[2]", "intent": "Sign on", "action": "click", "tier": 1, "attempt": 1, "ok": true, "navigated": true, "duration_ms": 349}
+{"at": "2026-09-15T15:27:14.087+00:00", "event": "checkpoint_met", "where": "preconditions[0].remedy[2]", "signature": "authenticated"}
+{"at": "2026-09-15T15:27:14.122+00:00", "event": "step_captured", "where": "preconditions[0].remedy[2]", "screenshot": "step03.png", "snapshot": "step03_snapshot.json"}
+{"at": "2026-09-15T15:27:14.147+00:00", "event": "precondition_met", "where": "preconditions[0]", "signature": "authenticated"}
+{"at": "2026-09-15T15:27:14.262+00:00", "event": "action", "where": "steps[0]", "intent": "Enter the member ID in the search form", "action": "type", "tier": 3, "attempt": 1, "ok": true, "navigated": false, "duration_ms": 44}
+{"at": "2026-09-15T15:27:14.285+00:00", "event": "checkpoint_met", "where": "steps[0]", "signature": "search_field_populated"}
+{"at": "2026-09-15T15:27:14.324+00:00", "event": "step_captured", "where": "steps[0]", "screenshot": "step04.png", "snapshot": "step04_snapshot.json"}
+{"at": "2026-09-15T15:27:14.711+00:00", "event": "action", "where": "steps[1]", "intent": "Run the member search", "action": "click", "tier": 1, "attempt": 1, "ok": true, "navigated": true, "duration_ms": 336}
+{"at": "2026-09-15T15:27:14.807+00:00", "event": "checkpoint_met", "where": "steps[1]", "signature": "member_in_results"}
+{"at": "2026-09-15T15:27:14.956+00:00", "event": "step_captured", "where": "steps[1]", "screenshot": "step05.png", "snapshot": "step05_snapshot.json"}
+{"at": "2026-09-15T15:27:15.493+00:00", "event": "action", "where": "steps[2]", "intent": "Open the matching member's record - the View link in THIS member's row", "action": "click", "tier": 3, "attempt": 1, "ok": true, "navigated": true, "duration_ms": 341}
+{"at": "2026-09-15T15:27:15.542+00:00", "event": "checkpoint_met", "where": "steps[2]", "signature": "member_detail_loaded"}
+{"at": "2026-09-15T15:27:15.617+00:00", "event": "step_captured", "where": "steps[2]", "screenshot": "step06.png", "snapshot": "step06_snapshot.json"}
+{"at": "2026-09-15T15:27:16.061+00:00", "event": "action", "where": "steps[3]", "intent": "Open the Accounts tab (a WebForms postback)", "action": "click", "tier": 1, "attempt": 1, "ok": true, "navigated": true, "duration_ms": 359}
+{"at": "2026-09-15T15:27:16.119+00:00", "event": "checkpoint_met", "where": "steps[3]", "signature": "accounts_tab_loaded"}
+{"at": "2026-09-15T15:27:16.226+00:00", "event": "step_captured", "where": "steps[3]", "screenshot": "step07.png", "snapshot": "step07_snapshot.json"}
+{"at": "2026-09-15T15:27:16.427+00:00", "event": "outputs_extracted", "names": ["account_status", "savings_balance"]}
+{"at": "2026-09-15T15:27:16.532+00:00", "event": "finished", "status": "success"}

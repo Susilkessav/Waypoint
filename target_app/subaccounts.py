@@ -1,4 +1,4 @@
-"""Sub-accounts opened during a session - the irreversible half of the fixture (PLAN.md 7.1).
+"""Sub-accounts opened during a session - the irreversible half of the fixture.
 
 Opening one is the operation Milestone B has to reconcile rather than repeat. Three
 properties make it the right fixture:

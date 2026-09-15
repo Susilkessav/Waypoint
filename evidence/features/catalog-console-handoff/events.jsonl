@@ -1,0 +1,22 @@
+{"at": "2026-09-15T15:27:45.807+00:00", "event": "lease", "holder": "AGENT", "generation": 1}
+{"at": "2026-09-15T15:27:46.142+00:00", "event": "action", "where": "entry", "action": "navigate", "ok": true}
+{"at": "2026-09-15T15:27:46.261+00:00", "event": "action", "where": "preconditions[0].remedy[0]", "intent": "Enter the operator user ID", "action": "type", "tier": 3, "attempt": 1, "ok": true, "navigated": false, "duration_ms": 48}
+{"at": "2026-09-15T15:27:46.280+00:00", "event": "checkpoint_met", "where": "preconditions[0].remedy[0]", "signature": "user_id_filled"}
+{"at": "2026-09-15T15:27:46.388+00:00", "event": "action", "where": "preconditions[0].remedy[1]", "intent": "Enter the operator password", "action": "type", "tier": 3, "attempt": 1, "ok": true, "navigated": false, "duration_ms": 68}
+{"at": "2026-09-15T15:27:46.411+00:00", "event": "checkpoint_met", "where": "preconditions[0].remedy[1]", "signature": "password_filled"}
+{"at": "2026-09-15T15:27:46.789+00:00", "event": "action", "where": "preconditions[0].remedy[2]", "intent": "Sign on", "action": "click", "tier": 1, "attempt": 1, "ok": true, "navigated": true, "duration_ms": 342}
+{"at": "2026-09-15T15:27:46.832+00:00", "event": "checkpoint_met", "where": "preconditions[0].remedy[2]", "signature": "authenticated"}
+{"at": "2026-09-15T15:27:46.865+00:00", "event": "precondition_met", "where": "preconditions[0]", "signature": "authenticated"}
+{"at": "2026-09-15T15:27:47.324+00:00", "event": "action", "where": "steps[0]", "intent": "Enter the member ID in the search form", "action": "type", "tier": 3, "attempt": 1, "ok": true, "navigated": false, "duration_ms": 47}
+{"at": "2026-09-15T15:27:47.349+00:00", "event": "checkpoint_met", "where": "steps[0]", "signature": "search_field_populated"}
+{"at": "2026-09-15T15:27:47.756+00:00", "event": "action", "where": "steps[1]", "intent": "Run the member search", "action": "click", "tier": 1, "attempt": 1, "ok": true, "navigated": true, "duration_ms": 350}
+{"at": "2026-09-15T15:27:47.836+00:00", "event": "checkpoint_met", "where": "steps[1]", "signature": "member_in_results"}
+{"at": "2026-09-15T15:27:48.278+00:00", "event": "intervention_opened", "intervention": "de4a8b9192", "reason": "ambiguous_locator", "step": "steps[2]"}
+{"at": "2026-09-15T15:27:48.284+00:00", "event": "lease", "holder": "NONE", "generation": 2}
+{"at": "2026-09-15T15:27:48.396+00:00", "event": "lease", "holder": "HUMAN", "generation": 3, "operator": "demo"}
+{"at": "2026-09-15T15:27:48.527+00:00", "event": "lease", "holder": "AGENT", "generation": 5}
+{"at": "2026-09-15T15:27:48.571+00:00", "event": "control_returned", "intervention": "de4a8b9192", "ladder": "resume:checkpoint:steps[3]"}
+{"at": "2026-09-15T15:27:49.044+00:00", "event": "action", "where": "steps[3]", "intent": "Open the Accounts tab (a WebForms postback)", "action": "click", "tier": 1, "attempt": 1, "ok": true, "navigated": true, "duration_ms": 365}
+{"at": "2026-09-15T15:27:49.106+00:00", "event": "checkpoint_met", "where": "steps[3]", "signature": "accounts_tab_loaded"}
+{"at": "2026-09-15T15:27:49.307+00:00", "event": "outputs_extracted", "names": ["account_status", "savings_balance"]}
+{"at": "2026-09-15T15:27:49.416+00:00", "event": "finished", "status": "success"}

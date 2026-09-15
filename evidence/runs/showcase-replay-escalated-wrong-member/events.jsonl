@@ -1,19 +1,19 @@
-{"at": "2026-09-14T06:09:38.377+00:00", "event": "action", "where": "entry", "action": "navigate", "ok": true}
-{"at": "2026-09-14T06:09:38.519+00:00", "event": "action", "where": "preconditions[0].remedy[0]", "intent": "Enter the operator user ID", "action": "type", "tier": 3, "attempt": 1, "ok": true, "navigated": false, "duration_ms": 49}
-{"at": "2026-09-14T06:09:38.537+00:00", "event": "checkpoint_met", "where": "preconditions[0].remedy[0]", "signature": "user_id_filled"}
-{"at": "2026-09-14T06:09:38.566+00:00", "event": "step_captured", "where": "preconditions[0].remedy[0]", "screenshot": "step01.png", "snapshot": "step01_snapshot.json"}
-{"at": "2026-09-14T06:09:38.663+00:00", "event": "action", "where": "preconditions[0].remedy[1]", "intent": "Enter the operator password", "action": "type", "tier": 3, "attempt": 1, "ok": true, "navigated": false, "duration_ms": 62}
-{"at": "2026-09-14T06:09:38.683+00:00", "event": "checkpoint_met", "where": "preconditions[0].remedy[1]", "signature": "password_filled"}
-{"at": "2026-09-14T06:09:38.716+00:00", "event": "step_captured", "where": "preconditions[0].remedy[1]", "screenshot": "step02.png", "snapshot": "step02_snapshot.json"}
-{"at": "2026-09-14T06:09:39.123+00:00", "event": "action", "where": "preconditions[0].remedy[2]", "intent": "Sign on", "action": "click", "tier": 1, "attempt": 1, "ok": true, "navigated": true, "duration_ms": 369}
-{"at": "2026-09-14T06:09:39.153+00:00", "event": "checkpoint_met", "where": "preconditions[0].remedy[2]", "signature": "authenticated"}
-{"at": "2026-09-14T06:09:39.191+00:00", "event": "step_captured", "where": "preconditions[0].remedy[2]", "screenshot": "step03.png", "snapshot": "step03_snapshot.json"}
-{"at": "2026-09-14T06:09:39.211+00:00", "event": "precondition_met", "where": "preconditions[0]", "signature": "authenticated"}
-{"at": "2026-09-14T06:09:39.663+00:00", "event": "action", "where": "steps[0]", "intent": "Enter the member ID in the search form", "action": "type", "tier": 3, "attempt": 1, "ok": true, "navigated": false, "duration_ms": 47}
-{"at": "2026-09-14T06:09:39.685+00:00", "event": "checkpoint_met", "where": "steps[0]", "signature": "search_field_populated"}
-{"at": "2026-09-14T06:09:39.725+00:00", "event": "step_captured", "where": "steps[0]", "screenshot": "step04.png", "snapshot": "step04_snapshot.json"}
-{"at": "2026-09-14T06:09:40.110+00:00", "event": "action", "where": "steps[1]", "intent": "Run the member search", "action": "click", "tier": 1, "attempt": 1, "ok": true, "navigated": true, "duration_ms": 328}
-{"at": "2026-09-14T06:09:40.197+00:00", "event": "checkpoint_met", "where": "steps[1]", "signature": "member_in_results"}
-{"at": "2026-09-14T06:09:40.338+00:00", "event": "step_captured", "where": "steps[1]", "screenshot": "step05.png", "snapshot": "step05_snapshot.json"}
-{"at": "2026-09-14T06:09:40.888+00:00", "event": "action", "where": "steps[2]", "intent": "Open the matching member's record - the View link in THIS member's row", "action": "click", "tier": 3, "attempt": 1, "ok": true, "navigated": true, "duration_ms": 343}
-{"at": "2026-09-14T06:09:51.150+00:00", "event": "finished", "status": "escalated", "code": "checkpoint_not_met"}
+{"at": "2026-09-15T15:27:30.616+00:00", "event": "action", "where": "entry", "action": "navigate", "ok": true}
+{"at": "2026-09-15T15:27:30.748+00:00", "event": "action", "where": "preconditions[0].remedy[0]", "intent": "Enter the operator user ID", "action": "type", "tier": 3, "attempt": 1, "ok": true, "navigated": false, "duration_ms": 46}
+{"at": "2026-09-15T15:27:30.763+00:00", "event": "checkpoint_met", "where": "preconditions[0].remedy[0]", "signature": "user_id_filled"}
+{"at": "2026-09-15T15:27:30.798+00:00", "event": "step_captured", "where": "preconditions[0].remedy[0]", "screenshot": "step01.png", "snapshot": "step01_snapshot.json"}
+{"at": "2026-09-15T15:27:30.883+00:00", "event": "action", "where": "preconditions[0].remedy[1]", "intent": "Enter the operator password", "action": "type", "tier": 3, "attempt": 1, "ok": true, "navigated": false, "duration_ms": 55}
+{"at": "2026-09-15T15:27:30.898+00:00", "event": "checkpoint_met", "where": "preconditions[0].remedy[1]", "signature": "password_filled"}
+{"at": "2026-09-15T15:27:30.931+00:00", "event": "step_captured", "where": "preconditions[0].remedy[1]", "screenshot": "step02.png", "snapshot": "step02_snapshot.json"}
+{"at": "2026-09-15T15:27:31.304+00:00", "event": "action", "where": "preconditions[0].remedy[2]", "intent": "Sign on", "action": "click", "tier": 1, "attempt": 1, "ok": true, "navigated": true, "duration_ms": 339}
+{"at": "2026-09-15T15:27:31.335+00:00", "event": "checkpoint_met", "where": "preconditions[0].remedy[2]", "signature": "authenticated"}
+{"at": "2026-09-15T15:27:31.374+00:00", "event": "step_captured", "where": "preconditions[0].remedy[2]", "screenshot": "step03.png", "snapshot": "step03_snapshot.json"}
+{"at": "2026-09-15T15:27:31.397+00:00", "event": "precondition_met", "where": "preconditions[0]", "signature": "authenticated"}
+{"at": "2026-09-15T15:27:31.846+00:00", "event": "action", "where": "steps[0]", "intent": "Enter the member ID in the search form", "action": "type", "tier": 3, "attempt": 1, "ok": true, "navigated": false, "duration_ms": 46}
+{"at": "2026-09-15T15:27:31.883+00:00", "event": "checkpoint_met", "where": "steps[0]", "signature": "search_field_populated"}
+{"at": "2026-09-15T15:27:31.941+00:00", "event": "step_captured", "where": "steps[0]", "screenshot": "step04.png", "snapshot": "step04_snapshot.json"}
+{"at": "2026-09-15T15:27:32.326+00:00", "event": "action", "where": "steps[1]", "intent": "Run the member search", "action": "click", "tier": 1, "attempt": 1, "ok": true, "navigated": true, "duration_ms": 332}
+{"at": "2026-09-15T15:27:32.421+00:00", "event": "checkpoint_met", "where": "steps[1]", "signature": "member_in_results"}
+{"at": "2026-09-15T15:27:32.578+00:00", "event": "step_captured", "where": "steps[1]", "screenshot": "step05.png", "snapshot": "step05_snapshot.json"}
+{"at": "2026-09-15T15:27:33.083+00:00", "event": "action", "where": "steps[2]", "intent": "Open the matching member's record - the View link in THIS member's row", "action": "click", "tier": 3, "attempt": 1, "ok": true, "navigated": true, "duration_ms": 331}
+{"at": "2026-09-15T15:27:43.409+00:00", "event": "finished", "status": "escalated", "code": "checkpoint_not_met"}

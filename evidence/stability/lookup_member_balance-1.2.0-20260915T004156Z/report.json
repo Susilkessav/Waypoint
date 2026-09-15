@@ -1,0 +1,161 @@
+{
+  "capability_id": "lookup_member_balance",
+  "version": "1.2.0",
+  "content_hash": "sha256:c462a619f17e27b5df0d2cee8f4e4de4b530c5cc036ef9afeb84a5eb3fce41d9",
+  "started_at": "2026-09-15T00:40:39+00:00",
+  "runs": 16,
+  "passed": 16,
+  "verdict": "stable",
+  "confidence": {
+    "verdict": "stable",
+    "score": 0.6756,
+    "runs": 8,
+    "kept": 8,
+    "clean": 8,
+    "degraded_runs": 0,
+    "median_ms": 3476,
+    "measured_at": 1789432862.645241,
+    "reasons": []
+  },
+  "cases": [
+    {
+      "case": "found",
+      "runs": 2,
+      "matched": 2,
+      "statuses": {
+        "success": 2
+      },
+      "same_outputs": true,
+      "mismatches": [],
+      "median_ms": 3540,
+      "p95_ms": 3587,
+      "tier_changes": [],
+      "recoveries": 0,
+      "degraded": 0
+    },
+    {
+      "case": "another-member",
+      "runs": 2,
+      "matched": 2,
+      "statuses": {
+        "success": 2
+      },
+      "same_outputs": true,
+      "mismatches": [],
+      "median_ms": 3524,
+      "p95_ms": 3573,
+      "tier_changes": [],
+      "recoveries": 0,
+      "degraded": 0
+    },
+    {
+      "case": "no-such-member",
+      "runs": 2,
+      "matched": 2,
+      "statuses": {
+        "business_outcome": 2
+      },
+      "same_outputs": true,
+      "mismatches": [],
+      "median_ms": 2049,
+      "p95_ms": 2108,
+      "tier_changes": [],
+      "recoveries": 0,
+      "degraded": 0
+    },
+    {
+      "case": "not-authorized",
+      "runs": 2,
+      "matched": 2,
+      "statuses": {
+        "business_outcome": 2
+      },
+      "same_outputs": true,
+      "mismatches": [],
+      "median_ms": 2517,
+      "p95_ms": 2522,
+      "tier_changes": [],
+      "recoveries": 0,
+      "degraded": 0
+    },
+    {
+      "case": "maintenance-notice",
+      "runs": 2,
+      "matched": 2,
+      "statuses": {
+        "success": 2
+      },
+      "same_outputs": true,
+      "mismatches": [],
+      "median_ms": 4328,
+      "p95_ms": 4331,
+      "tier_changes": [],
+      "recoveries": 2,
+      "degraded": 0
+    },
+    {
+      "case": "session-expired",
+      "runs": 2,
+      "matched": 2,
+      "statuses": {
+        "success": 2
+      },
+      "same_outputs": true,
+      "mismatches": [],
+      "median_ms": 6172,
+      "p95_ms": 6189,
+      "tier_changes": [],
+      "recoveries": 2,
+      "degraded": 0
+    },
+    {
+      "case": "server-error",
+      "runs": 2,
+      "matched": 2,
+      "statuses": {
+        "failure": 2
+      },
+      "same_outputs": true,
+      "mismatches": [],
+      "median_ms": 2987,
+      "p95_ms": 2996,
+      "tier_changes": [],
+      "recoveries": 0,
+      "degraded": 0
+    },
+    {
+      "case": "wrong-member-shown",
+      "runs": 2,
+      "matched": 2,
+      "statuses": {
+        "escalated": 2
+      },
+      "same_outputs": true,
+      "mismatches": [],
+      "median_ms": 13184,
+      "p95_ms": 13261,
+      "tier_changes": [],
+      "recoveries": 0,
+      "degraded": 0
+    }
+  ],
+  "slow_steps": [],
+  "evidence": [
+    "evidence/runs/20260915T004039Z-97abed",
+    "evidence/runs/20260915T004042Z-a3986c",
+    "evidence/runs/20260915T004046Z-0ad468",
+    "evidence/runs/20260915T004050Z-6dc160",
+    "evidence/runs/20260915T004053Z-d834cc",
+    "evidence/runs/20260915T004055Z-c471a6",
+    "evidence/runs/20260915T004057Z-d986c1",
+    "evidence/runs/20260915T004100Z-e7ffba",
+    "evidence/runs/20260915T004102Z-e37e9b",
+    "evidence/runs/20260915T004106Z-467f1b",
+    "evidence/runs/20260915T004111Z-7b83d4",
+    "evidence/runs/20260915T004117Z-e0953f",
+    "evidence/runs/20260915T004123Z-1f6f48",
+    "evidence/runs/20260915T004126Z-01eb12",
+    "evidence/runs/20260915T004129Z-e360dd",
+    "evidence/runs/20260915T004142Z-9d40ec"
+  ]
+}

@@ -1,4 +1,4 @@
-"""The three-way verdict on an irreversible step (PLAN.md R-REC-1..5).
+"""The three-way verdict on an irreversible step (R-REC-1..5).
 
 "Did it happen?" has three answers, never two, and the rules for reaching each are the
 point of the module:

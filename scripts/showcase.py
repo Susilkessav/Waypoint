@@ -79,6 +79,7 @@ class Scenario:
     inputs: dict[str, str] = field(default_factory=dict)
     inject: str | None = None
     person: Person | None = None
+    expected_status: str = "success"
 
 
 SCENARIOS = (
@@ -87,13 +88,16 @@ SCENARIOS = (
     Scenario("replay-another-member", "the same artifact, another member, another answer",
              "lookup_member_balance", "1.2.0", {"member_id": "67890"}),
     Scenario("replay-business-outcome", "no such member: a named outcome, exit 0",
-             "lookup_member_balance", "1.2.0", {"member_id": "00000"}),
+             "lookup_member_balance", "1.2.0", {"member_id": "00000"},
+             expected_status="business_outcome"),
     Scenario("replay-recovered-interstitial", "a notice dismissed: success with recoveries",
              "lookup_member_balance", "1.2.0", {"member_id": "12345"}, inject="interstitial"),
     Scenario("replay-hard-failure", "a server error: failure, expected vs observed",
-             "lookup_member_balance", "1.2.0", {"member_id": "12345"}, inject="500"),
+             "lookup_member_balance", "1.2.0", {"member_id": "12345"}, inject="500",
+             expected_status="failure"),
     Scenario("replay-escalated-wrong-member", "the right screen for the wrong member: escalated",
-             "lookup_member_balance", "1.2.0", {"member_id": "12345"}, inject="wrong_member"),
+             "lookup_member_balance", "1.2.0", {"member_id": "12345"}, inject="wrong_member",
+             expected_status="escalated"),
     Scenario("handoff-ambiguous", "escalation handed to a person, who opens the record; "
              "the run resumes - human/actions.jsonl and handoff1_diff.json",
              "lookup_member_balance", "1.2.0", {"member_id": "12345"}, inject="ambiguous",
@@ -105,7 +109,7 @@ SCENARIOS = (
     Scenario("irreversible-stale-receipt", "a person confirms and gets someone else's receipt; "
              "reconciliation finds no such account and escalates",
              "open_sub_account", "1.0.0", SUB_ACCOUNT, inject="stale_confirmation",
-             person=confirm_by_hand),
+             person=confirm_by_hand, expected_status="escalated"),
 )
 
 
@@ -158,7 +162,8 @@ def write_index() -> None:
         result = d / "result.json"
         if result.exists():
             r = json.loads(result.read_text())
-            what = next((s.shows for s in SCENARIOS if f"showcase-{s.name}" == d.name), "")
+            what = next((s.shows for s in SCENARIOS if f"showcase-{s.name}" == d.name),
+                        "Saved genuine live-model assisted relocation with a draft proposal")
             code = (r.get("failure") or {}).get("code") or r.get("outcome") or ""
             rows.append(f"| [`{d.name}`](runs/{d.name}) | {r['capability_id']} "
                         f"{r['version']} | `{r['status']}` {code} | {what} |")
@@ -199,6 +204,21 @@ def write_index() -> None:
         "## Run index\n\n"
         "| Run | Capability | Result | What it shows |\n|---|---|---|---|\n"
         + "\n".join(rows) + "\n\n"
+        "## Retained extensions\n\n"
+        "[Feature demonstrations](features/README.md) include tenant reuse, measured catalog "
+        "invocation, protected-console handoff, scripted discovery demonstration, reuse of "
+        "the demonstrated step, assisted-cassette playback and actual worker-crash recovery. "
+        "They make no new model calls.\n\n"
+        "| Recording | Provenance | Reproduce |\n|---|---|---|\n"
+        "| [Upstream agent](agent/lookup.json) | Saved live Claude tool-use exchange; "
+        "fictional fixture inputs and caller outputs are intentionally visible here. | "
+        "`uv run python scripts/agent_demo.py --cassette evidence/agent/lookup.json` |\n"
+        "| [Assist choice](agent/assist.json) | Saved live Claude element selection, "
+        "bound to the sanitized observation hash. | `scripts/feature_demo.py` |\n"
+        "| [Stability reports](stability/) | Historical fixture sweeps; current "
+        "reproduction measures a fresh private ledger. | `waypoint stability` |\n\n"
+        "Runtime SQLite files are not submitted. Run IDs and captured absolute paths describe "
+        "the original execution; use this index to inspect the retained copies.\n\n"
         "## Regenerate replay evidence\n\n"
         "From the repository root:\n\n"
         "```bash\n"
@@ -254,6 +274,9 @@ def main() -> int:
                           f"(waypoint approve {s.capability} --version {s.version})")
                     continue
                 result = run(s, cap, base, Path(tmp) / f"{s.name}.db")
+                if result.status != s.expected_status:
+                    raise RuntimeError(f"{s.name}: expected {s.expected_status}, "
+                                       f"got {result.status}: {result.failure}")
                 target = RUNS / f"showcase-{s.name}"
                 shutil.rmtree(target, ignore_errors=True)
                 Path(result.evidence_dir or "").rename(target)

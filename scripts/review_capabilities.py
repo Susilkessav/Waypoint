@@ -25,6 +25,20 @@ evidence/runs/showcase-discovery-open-sub-account/:
 
 lookup_member_balance 1.2.0 is the hand-written 1.0.0 plus the same outcomes and
 recovery, so demo commands 6 and 7 meet an interstitial and a server error it expects.
+
+lookup_member_balance 1.3.0 is 1.2.0 with the two policy decisions a reviewer makes about
+how it may be run, both part of the reviewed content:
+
+1. ``min_confidence: 0.5`` - it may run unattended only once its recorded runs support
+   that bar (R-PKG-6). The score is a lower bound, so 0.5 means roughly five clean runs,
+   not "half of them worked".
+2. ``assisted_fallback: true`` - one safe step whose control has been renamed may ask a
+   model which control it is now, checked before use and never more than once a run
+   (R-ASSIST). Read-only, so the worst case of a wrong answer is an escalation.
+
+The capability that commits - open_sub_account - gets neither: nothing about it should be
+decided by a model, and its confidence bar would have to be measured by repeating the
+operation.
 """
 
 from __future__ import annotations
@@ -37,6 +51,7 @@ from typing import Any
 REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO))
 
+from waypoint.artifact.approval import approval_status  # noqa: E402
 from waypoint.artifact.schema import Capability, approval_gates  # noqa: E402
 from waypoint.signatures.library import inline, load_library  # noqa: E402
 
@@ -77,6 +92,16 @@ def lookup_member_balance() -> Capability:
     ]
     body["recovery"] = RECOVERY
     body["provenance"] = {"authored_by": "hand-written 1.0.0, hardened for milestone B4 by "
+                                         "scripts/review_capabilities.py"}
+    return Capability.model_validate(body)
+
+
+def lookup_member_balance_gated() -> Capability:
+    """1.3.0: the same flow, with the reviewer's decisions about how it may be run."""
+    body = json.loads(lookup_member_balance().to_json())
+    body["version"] = "1.3.0"
+    body["policy"] = {**body["policy"], "min_confidence": 0.5, "assisted_fallback": True}
+    body["provenance"] = {"authored_by": "1.2.0 plus run-policy decisions, by "
                                          "scripts/review_capabilities.py"}
     return Capability.model_validate(body)
 
@@ -173,10 +198,18 @@ def open_sub_account() -> Capability:
 
 
 def main() -> None:
-    for cap in (open_sub_account(), lookup_member_balance()):
+    force = "--force" in sys.argv
+    for cap in (open_sub_account(), lookup_member_balance(), lookup_member_balance_gated()):
         gates = approval_gates(cap)
         target = REPO / "capabilities" / cap.capability_id / f"{cap.version}.json"
         target.parent.mkdir(parents=True, exist_ok=True)
+        if target.exists() and not force:
+            existing = Capability.model_validate_json(target.read_text())
+            if approval_status(existing).approved:
+                # Rewriting it would silently return an approved artifact to draft, which is
+                # a person's decision to reverse, not this script's (R-PKG-2).
+                print(f"kept {target.relative_to(REPO)} - already approved; --force to replace")
+                continue
         target.write_text(cap.to_json())
         state = "approvable" if not gates else f"open gates: {gates}"
         print(f"wrote {target.relative_to(REPO)} - draft, {state}")

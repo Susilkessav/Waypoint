@@ -1,4 +1,4 @@
-"""The one redactor (PLAN.md R-SENS-3, R-SENS-4, R-SENS-5).
+"""The one redactor (R-SENS-3, R-SENS-4, R-SENS-5).
 
 Every sink renders sensitive text through this module: the model prompt, evidence
 on disk, local stdout and the caller. The classifier decides *how sensitive* a
@@ -217,7 +217,7 @@ def text_digest(elements: Sequence[UIElement]) -> str:
 def snapshot_hash(
     url: str, elements: Sequence[UIElement], frame_urls: Sequence[FrameURL] = ()
 ) -> str:
-    """Stable identity of a screen's structure (PLAN.md section 6.1).
+    """Stable identity of a screen's structure.
 
     Sorted (frame, role, name) triples plus the URL path: independent of element
     order, refs and bounding boxes. Computed over *sanitized* text on purpose - a

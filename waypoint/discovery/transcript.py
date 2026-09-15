@@ -1,4 +1,4 @@
-"""The discovery transcript: evidence of what happened, never a contract (PLAN.md 6.10).
+"""The discovery transcript: evidence of what happened, never a contract (REPORT.md §2).
 
 It is written for the compiler, which needs - per step - the screen before, the
 decision, a locator bundle synthesized while the target still existed, the result,
@@ -72,6 +72,10 @@ class Step:
     navigated: bool = False
     risk: str = "safe"
     post_hash: str | None = None
+    performed_by: Literal["model", "human"] = "model"
+    """``human`` for a step a person demonstrated while holding control during discovery."""
+    unrecorded: str | None = None
+    """For ``action == "gap"``: what a person did that could not be recorded as a step."""
 
 
 @dataclass

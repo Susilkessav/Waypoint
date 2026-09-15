@@ -1,9 +1,9 @@
 {
-  "url": "http://127.0.0.1:55524/console/member?member_id=‹$inputs.member_id›&tab=‹redacted›",
+  "url": "http://127.0.0.1:53129/console/member?member_id=‹$inputs.member_id›&tab=‹redacted›",
   "title": "Member Profile",
   "elements": [
     {
-      "ref": "fd633320d418g50-e1",
+      "ref": "40b8583f13c7g50-e1",
       "role": "LayoutTableCell",
       "name": "Member Profile",
       "value": null,
@@ -22,7 +22,7 @@
       "name_sensitivity": "public"
     },
     {
-      "ref": "fd633320d418g50-e2",
+      "ref": "40b8583f13c7g50-e2",
       "role": "LayoutTableCell",
       "name": "Member ID",
       "value": null,
@@ -43,7 +43,7 @@
       "name_sensitivity": "public"
     },
     {
-      "ref": "fd633320d418g50-e3",
+      "ref": "40b8583f13c7g50-e3",
       "role": "LayoutTableCell",
       "name": "‹$inputs.member_id›",
       "value": null,
@@ -64,7 +64,7 @@
       "name_sensitivity": "internal"
     },
     {
-      "ref": "fd633320d418g50-e4",
+      "ref": "40b8583f13c7g50-e4",
       "role": "LayoutTableCell",
       "name": "Name",
       "value": null,
@@ -85,7 +85,7 @@
       "name_sensitivity": "public"
     },
     {
-      "ref": "fd633320d418g50-e5",
+      "ref": "40b8583f13c7g50-e5",
       "role": "LayoutTableCell",
       "name": "‹redacted:17 chars›",
       "value": null,
@@ -106,7 +106,7 @@
       "name_sensitivity": "pii"
     },
     {
-      "ref": "fd633320d418g50-e6",
+      "ref": "40b8583f13c7g50-e6",
       "role": "LayoutTableCell",
       "name": "Branch",
       "value": null,
@@ -127,7 +127,7 @@
       "name_sensitivity": "public"
     },
     {
-      "ref": "fd633320d418g50-e7",
+      "ref": "40b8583f13c7g50-e7",
       "role": "LayoutTableCell",
       "name": "BR-014",
       "value": null,
@@ -148,7 +148,7 @@
       "name_sensitivity": "public"
     },
     {
-      "ref": "fd633320d418g50-e8",
+      "ref": "40b8583f13c7g50-e8",
       "role": "LayoutTableCell",
       "name": "Status",
       "value": null,
@@ -169,7 +169,7 @@
       "name_sensitivity": "public"
     },
     {
-      "ref": "fd633320d418g50-e9",
+      "ref": "40b8583f13c7g50-e9",
       "role": "LayoutTableCell",
       "name": "active",
       "value": null,
@@ -190,7 +190,7 @@
       "name_sensitivity": "public"
     },
     {
-      "ref": "fd633320d418g50-e10",
+      "ref": "40b8583f13c7g50-e10",
       "role": "cell",
       "name": "Summary",
       "value": null,
@@ -212,7 +212,7 @@
       "name_sensitivity": "public"
     },
     {
-      "ref": "fd633320d418g50-e11",
+      "ref": "40b8583f13c7g50-e11",
       "role": "cell",
       "name": "Accounts",
       "value": null,
@@ -234,7 +234,7 @@
       "name_sensitivity": "public"
     },
     {
-      "ref": "fd633320d418g50-e12",
+      "ref": "40b8583f13c7g50-e12",
       "role": "cell",
       "name": "Notes",
       "value": null,
@@ -256,7 +256,7 @@
       "name_sensitivity": "public"
     },
     {
-      "ref": "fd633320d418g50-e13",
+      "ref": "40b8583f13c7g50-e13",
       "role": "link",
       "name": "Return to search",
       "value": null,
@@ -275,7 +275,7 @@
       "name_sensitivity": "public"
     },
     {
-      "ref": "fd633320d418g50-e14",
+      "ref": "40b8583f13c7g50-e14",
       "role": "columnheader",
       "name": "Account",
       "value": null,
@@ -300,7 +300,7 @@
       "name_sensitivity": "public"
     },
     {
-      "ref": "fd633320d418g50-e15",
+      "ref": "40b8583f13c7g50-e15",
       "role": "columnheader",
       "name": "Type",
       "value": null,
@@ -325,7 +325,7 @@
       "name_sensitivity": "public"
     },
     {
-      "ref": "fd633320d418g50-e16",
+      "ref": "40b8583f13c7g50-e16",
       "role": "columnheader",
       "name": "Balance",
       "value": null,
@@ -350,7 +350,7 @@
       "name_sensitivity": "public"
     },
     {
-      "ref": "fd633320d418g50-e17",
+      "ref": "40b8583f13c7g50-e17",
       "role": "columnheader",
       "name": "Status",
       "value": null,
@@ -375,7 +375,7 @@
       "name_sensitivity": "public"
     },
     {
-      "ref": "fd633320d418g50-e18",
+      "ref": "40b8583f13c7g50-e18",
       "role": "columnheader",
       "name": "Opened",
       "value": null,
@@ -400,7 +400,7 @@
       "name_sensitivity": "public"
     },
     {
-      "ref": "fd633320d418g50-e19",
+      "ref": "40b8583f13c7g50-e19",
       "role": "cell",
       "name": "‹redacted:11 chars›",
       "value": null,
@@ -426,7 +426,7 @@
       "name_sensitivity": "internal"
     },
     {
-      "ref": "fd633320d418g50-e20",
+      "ref": "40b8583f13c7g50-e20",
       "role": "cell",
       "name": "Savings",
       "value": null,
@@ -452,7 +452,7 @@
       "name_sensitivity": "public"
     },
     {
-      "ref": "fd633320d418g50-e21",
+      "ref": "40b8583f13c7g50-e21",
       "role": "cell",
       "name": "‹redacted:9 chars›",
       "value": null,
@@ -478,7 +478,7 @@
       "name_sensitivity": "pii"
     },
     {
-      "ref": "fd633320d418g50-e22",
+      "ref": "40b8583f13c7g50-e22",
       "role": "cell",
       "name": "active",
       "value": null,
@@ -504,7 +504,7 @@
       "name_sensitivity": "public"
     },
     {
-      "ref": "fd633320d418g50-e23",
+      "ref": "40b8583f13c7g50-e23",
       "role": "cell",
       "name": "‹redacted:1 chars›",
       "value": null,
@@ -530,7 +530,7 @@
       "name_sensitivity": "internal"
     },
     {
-      "ref": "fd633320d418g50-e24",
+      "ref": "40b8583f13c7g50-e24",
       "role": "cell",
       "name": "‹redacted:11 chars›",
       "value": null,
@@ -556,7 +556,7 @@
       "name_sensitivity": "internal"
     },
     {
-      "ref": "fd633320d418g50-e25",
+      "ref": "40b8583f13c7g50-e25",
       "role": "cell",
       "name": "Checking",
       "value": null,
@@ -582,7 +582,7 @@
       "name_sensitivity": "public"
     },
     {
-      "ref": "fd633320d418g50-e26",
+      "ref": "40b8583f13c7g50-e26",
       "role": "cell",
       "name": "‹redacted:7 chars›",
       "value": null,
@@ -608,7 +608,7 @@
       "name_sensitivity": "pii"
     },
     {
-      "ref": "fd633320d418g50-e27",
+      "ref": "40b8583f13c7g50-e27",
       "role": "cell",
       "name": "active",
       "value": null,
@@ -634,7 +634,7 @@
       "name_sensitivity": "public"
     },
     {
-      "ref": "fd633320d418g50-e28",
+      "ref": "40b8583f13c7g50-e28",
       "role": "cell",
       "name": "‹redacted:1 chars›",
       "value": null,
@@ -667,14 +667,14 @@
       [
         "main"
       ],
-      "http://127.0.0.1:55524/console/member?member_id=‹$inputs.member_id›&tab=‹redacted›"
+      "http://127.0.0.1:53129/console/member?member_id=‹$inputs.member_id›&tab=‹redacted›"
     ],
     [
       [
         "main",
         "iframe#ctl00_MainContent_ifrAccounts"
       ],
-      "http://127.0.0.1:55524/console/member/accounts?member_id=‹$inputs.member_id›"
+      "http://127.0.0.1:53129/console/member/accounts?member_id=‹$inputs.member_id›"
     ]
   ]
 }

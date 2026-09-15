@@ -53,4 +53,12 @@ Thumbs.db
 
 # Local operational state (leases, interventions, intents) - never evidence
 .waypoint/
-docs/
+docs/*
+!docs/demo-script.md
+!docs/project-walkthrough.md
+!docs/demo-slides.html
+!docs/present.sh
+skel.text
+
+# Historical review scratch output; current resolution is PROJECT_REVIEW.md.
+/reviews/

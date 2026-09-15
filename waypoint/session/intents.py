@@ -1,4 +1,4 @@
-"""Write-ahead intent records for irreversible actions (PLAN.md R-REC-4).
+"""Write-ahead intent records for irreversible actions (R-REC-4).
 
 Before the engine dispatches an irreversible action it writes - and, because the
 store runs ``synchronous=FULL``, flushes - a row saying it is about to. The row moves
@@ -62,6 +62,8 @@ class Intent:
     resolution: Resolution | None = None
     attempted_at_trusted: bool = True
     """False for rows migrated from an older state file, whose time may be a transition's."""
+    scope: str | None = None
+    contract_hash: str | None = None
 
 
 def inputs_hash(capability_id: str, inputs: Mapping[str, str]) -> str:
@@ -75,17 +77,19 @@ class IntentStore:
         self.store = store
 
     def begin(self, *, run_id: str, capability_id: str, version: str, step: str,
-              inputs_digest: str) -> Intent:
+              inputs_digest: str, scope: str | None = None,
+              contract_hash: str | None = None) -> Intent:
         now = self.store.clock()
         intent = Intent(uuid.uuid4().hex[:12], run_id, capability_id, version, step,
-                        inputs_digest, uuid.uuid4().hex, "dispatching", now, now)
+                        inputs_digest, uuid.uuid4().hex, "dispatching", now, now,
+                        scope=scope, contract_hash=contract_hash)
         with self.store.transaction() as db:
             db.execute(
                 "INSERT INTO intents (id, run_id, capability_id, version, step, inputs_hash, "
-                "nonce, state, attempted_at, attempted_at_trusted, updated_at) "
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?)",
+                "nonce, state, attempted_at, attempted_at_trusted, updated_at, scope, "
+                "contract_hash) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?)",
                 (intent.id, intent.run_id, intent.capability_id, intent.version, intent.step,
-                 intent.inputs_hash, intent.nonce, intent.state, now, now))
+                 intent.inputs_hash, intent.nonce, intent.state, now, now, scope, contract_hash))
         return intent
 
     def advance(self, intent_id: str, to: IntentState, *, by: str | None = None,
@@ -119,14 +123,15 @@ class IntentStore:
                               tuple(states)).fetchall()
         return [_intent(r) for r in rows]
 
-    def unresolved(self, capability_id: str, inputs_digest: str) -> builtins.list[Intent]:
+    def unresolved(self, capability_id: str, inputs_digest: str, *,
+                   scope: str | None = None) -> builtins.list[Intent]:
         with self.store.connect() as db:
             rows = db.execute(
                 "SELECT * FROM intents WHERE capability_id = ? AND inputs_hash = ? "
                 "AND state IN (?, ?) ORDER BY attempted_at",
                 (capability_id, inputs_digest, *UNRESOLVED),
             ).fetchall()
-        return [_intent(r) for r in rows]
+        return [_intent(r) for r in rows if scope is None or r["scope"] in (None, scope)]
 
 
 def _intent(row: sqlite3.Row) -> Intent:

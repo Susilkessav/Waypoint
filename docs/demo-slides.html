@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Waypoint demo slides</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root { --bg:#0f1419; --fg:#e8eaed; --dim:#9aa4ad; --accent:#5eb3f6; --warn:#f2b35e; --ok:#7fd48a; --bad:#f07a7a; --card:#1a2129; }
+  * { box-sizing:border-box; }
+  html,body { margin:0; height:100%; background:var(--bg); color:var(--fg);
+    font-family: -apple-system, "SF Pro Display", "Helvetica Neue", Arial, sans-serif; }
+  .slide { display:none; height:100vh; padding:6vh 7vw; flex-direction:column; justify-content:center; }
+  .slide.on { display:flex; }
+  h1 { font-size:4.2vw; margin:0 0 2vh; letter-spacing:-.02em; }
+  h2 { font-size:3vw; margin:0 0 4vh; letter-spacing:-.01em; }
+  p, li { font-size:1.9vw; line-height:1.45; color:var(--fg); }
+  .dim { color:var(--dim); }
+  .accent { color:var(--accent); }
+  .grid { display:grid; grid-template-columns:repeat(3,1fr); gap:2vw; }
+  .card { background:var(--card); border-radius:14px; padding:2.4vh 1.6vw; }
+  .card h3 { margin:0 0 1.2vh; font-size:1.9vw; }
+  .card p { font-size:1.45vw; margin:0; color:var(--dim); }
+  .bad h3 { color:var(--bad); } .warn h3 { color:var(--warn); } .ok h3 { color:var(--ok); }
+  .flow { display:grid; grid-template-columns:repeat(4,1fr); gap:1.2vw; align-items:stretch; }
+  .flow .card { position:relative; }
+  .flow .num { font-size:1.2vw; color:var(--accent); font-weight:600; letter-spacing:.08em; }
+  .flow .card:not(:last-child)::after { content:"→"; position:absolute; right:-1.05vw; top:40%;
+    font-size:1.8vw; color:var(--dim); }
+  .results { margin-top:3vh; display:grid; grid-template-columns:repeat(4,1fr); gap:1.2vw; }
+  .pill { border:1px solid #2c3743; border-radius:10px; padding:1.4vh 1vw; font-size:1.35vw; }
+  .pill b { display:block; font-size:1.5vw; margin-bottom:.4vh; }
+  .band { margin-top:3vh; padding:1.6vh 1.4vw; border-radius:10px; background:#15202b;
+    font-size:1.5vw; color:var(--dim); text-align:center; }
+  .rule { margin-top:4vh; font-size:2.2vw; }
+  .foot { position:fixed; bottom:2vh; right:3vw; font-size:1vw; color:#56606a; }
+</style>
+</head>
+<body>
+
+<section class="slide on">
+  <h1>Waypoint</h1>
+  <p class="dim">Record once, replay many: automation for legacy bank software that has no API.</p>
+  <p class="dim" style="margin-top:6vh;font-size:1.4vw">interface.ai take-home · Assignment A: Computer-Use Automation System</p>
+</section>
+
+<section class="slide">
+  <h2>The problem</h2>
+  <p>Banks run hundreds of back-office systems. Many have <span class="accent">no API</span>, so the only way in is the screen.</p>
+  <div class="grid" style="margin-top:4vh">
+    <div class="card bad"><h3>Scripts</h3><p>No test IDs, identical links, pages that change without the URL changing. They usually only handle the happy path.</p></div>
+    <div class="card bad"><h3>A model, every time</h3><p>Slow, costly and not repeatable. Improvising on a screen that moves money isn't acceptable.</p></div>
+    <div class="card warn"><h3>And in a bank</h3><p>Data must not leak. Some actions can't be undone. A person has to be able to step in.</p></div>
+  </div>
+</section>
+
+<section class="slide">
+  <h2>The solution</h2>
+  <div class="flow">
+    <div class="card"><div class="num">1 · DISCOVER</div><h3>Model learns once</h3><p>An LLM works out the flow on the live app.</p></div>
+    <div class="card"><div class="num">2 · COMPILE + APPROVE</div><h3>A capability</h3><p>Typed inputs, outputs and checks. A person approves it.</p></div>
+    <div class="card"><div class="num">3 · REPLAY</div><h3>No model</h3><p>Reviewed steps and checks; no model calls on the default path.</p></div>
+    <div class="card"><div class="num">4 · HAND OFF</div><h3>A person steps in</h3><p>Same live browser, then control comes back.</p></div>
+  </div>
+  <div class="results">
+    <div class="pill"><b style="color:var(--ok)">success</b>with outputs</div>
+    <div class="pill"><b style="color:var(--accent)">business outcome</b>"no such member" is an answer</div>
+    <div class="pill"><b style="color:var(--warn)">success + recovery</b>known interruptions, declared rules</div>
+    <div class="pill"><b style="color:var(--bad)">failure / escalated</b>step, expected, observed</div>
+  </div>
+  <div class="band">Around every action: allowlist · risk checks · redaction</div>
+</section>
+
+<section class="slide">
+  <h2>Recap</h2>
+  <p>The model <span class="accent">discovers once</span>. A person <span class="accent">approves</span> the capability.
+     Normal execution <span class="accent">replays without a model</span> and says exactly what happened.
+     When it can't act safely, a person takes the <span class="accent">live session</span>.</p>
+  <p class="rule">It never acts on the absence of evidence.</p>
+  <p class="dim" style="font-size:1.4vw;margin-top:4vh">Also demonstrated: tenant reuse, a capability catalog, assisted relocation and crash recovery. Desktop execution is deferred. Design and trade-offs: REPORT.md</p>
+</section>
+
+<div class="foot"><span id="n">1</span> / <span id="t"></span> · ← → to move</div>
+<script>
+  const s = [...document.querySelectorAll('.slide')]; let i = 0;
+  document.getElementById('t').textContent = s.length;
+  const go = k => { s[i].classList.remove('on'); i = Math.max(0, Math.min(s.length - 1, k));
+    s[i].classList.add('on'); document.getElementById('n').textContent = i + 1; };
+  addEventListener('keydown', e => {
+    if (['ArrowRight', 'PageDown', ' '].includes(e.key)) go(i + 1);
+    if (['ArrowLeft', 'PageUp'].includes(e.key)) go(i - 1);
+  });
+  addEventListener('click', () => go(i + 1));
+</script>
+</body>
+</html>

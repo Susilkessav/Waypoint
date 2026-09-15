@@ -1,0 +1,14 @@
+{
+  "run_id": "20260915T152753Z-e99d77",
+  "capability_id": "lookup_member_balance",
+  "version": "1.0.0",
+  "variant": "base",
+  "content_hash": "sha256:6d8ee64ea50b080ff07a9ca716ab8127d518281013d116b11a9955ea253a5464",
+  "approved": true,
+  "approval_reasons": [],
+  "inputs": {
+    "member_id": "‹$inputs.member_id›"
+  },
+  "origin": "http://127.0.0.1:53113",
+  "started_at": "2026-09-15T15:27:53+00:00"
+}

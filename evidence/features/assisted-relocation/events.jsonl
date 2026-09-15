@@ -1,0 +1,22 @@
+{"at": "2026-09-15T15:27:41.759+00:00", "event": "confidence", "verdict": "stable", "score": 0.7008, "runs": 9, "kept": 9, "clean": 9, "degraded_runs": 0, "median_ms": 3293, "measured_at": 1789486056.9617448, "reasons": []}
+{"at": "2026-09-15T15:27:42.340+00:00", "event": "action", "where": "entry", "action": "navigate", "ok": true}
+{"at": "2026-09-15T15:27:42.454+00:00", "event": "action", "where": "preconditions[0].remedy[0]", "intent": "Enter the operator user ID", "action": "type", "tier": 3, "attempt": 1, "ok": true, "navigated": false, "duration_ms": 45}
+{"at": "2026-09-15T15:27:42.472+00:00", "event": "checkpoint_met", "where": "preconditions[0].remedy[0]", "signature": "user_id_filled"}
+{"at": "2026-09-15T15:27:42.572+00:00", "event": "action", "where": "preconditions[0].remedy[1]", "intent": "Enter the operator password", "action": "type", "tier": 3, "attempt": 1, "ok": true, "navigated": false, "duration_ms": 62}
+{"at": "2026-09-15T15:27:42.595+00:00", "event": "checkpoint_met", "where": "preconditions[0].remedy[1]", "signature": "password_filled"}
+{"at": "2026-09-15T15:27:42.967+00:00", "event": "action", "where": "preconditions[0].remedy[2]", "intent": "Sign on", "action": "click", "tier": 1, "attempt": 1, "ok": true, "navigated": true, "duration_ms": 341}
+{"at": "2026-09-15T15:27:43.002+00:00", "event": "checkpoint_met", "where": "preconditions[0].remedy[2]", "signature": "authenticated"}
+{"at": "2026-09-15T15:27:43.022+00:00", "event": "precondition_met", "where": "preconditions[0]", "signature": "authenticated"}
+{"at": "2026-09-15T15:27:43.471+00:00", "event": "action", "where": "steps[0]", "intent": "Enter the member ID in the search form", "action": "type", "tier": 3, "attempt": 1, "ok": true, "navigated": false, "duration_ms": 46}
+{"at": "2026-09-15T15:27:43.495+00:00", "event": "checkpoint_met", "where": "steps[0]", "signature": "search_field_populated"}
+{"at": "2026-09-15T15:27:43.549+00:00", "event": "locator_not_found", "where": "steps[1]", "reason": "no_match"}
+{"at": "2026-09-15T15:27:43.572+00:00", "event": "assisted", "where": "steps[1]", "model": "cassette:claude-haiku-4-5", "code": "locator_not_found", "accepted": true, "chose": "e10", "reason": "recorded: The recorded \"Search\" button is now labeled \"Continue\" and serves the same function to run the member search with the entered member ID.", "check": "role and record identity match what was recorded"}
+{"at": "2026-09-15T15:27:43.598+00:00", "event": "proposal_written", "where": "steps[1]", "version": "1.4.1", "path": "proposal/lookup_member_balance-1.4.1.json"}
+{"at": "2026-09-15T15:27:43.926+00:00", "event": "action", "where": "steps[1]", "intent": "Run the member search", "action": "click", "attempt": 1, "ok": true, "navigated": true, "duration_ms": 327}
+{"at": "2026-09-15T15:27:44.017+00:00", "event": "checkpoint_met", "where": "steps[1]", "signature": "member_in_results"}
+{"at": "2026-09-15T15:27:44.559+00:00", "event": "action", "where": "steps[2]", "intent": "Open the matching member's record - the View link in THIS member's row", "action": "click", "tier": 3, "attempt": 1, "ok": true, "navigated": true, "duration_ms": 334}
+{"at": "2026-09-15T15:27:44.610+00:00", "event": "checkpoint_met", "where": "steps[2]", "signature": "member_detail_loaded"}
+{"at": "2026-09-15T15:27:45.067+00:00", "event": "action", "where": "steps[3]", "intent": "Open the Accounts tab (a WebForms postback)", "action": "click", "tier": 1, "attempt": 1, "ok": true, "navigated": true, "duration_ms": 361}
+{"at": "2026-09-15T15:27:45.131+00:00", "event": "checkpoint_met", "where": "steps[3]", "signature": "accounts_tab_loaded"}
+{"at": "2026-09-15T15:27:45.373+00:00", "event": "outputs_extracted", "names": ["account_status", "savings_balance"]}
+{"at": "2026-09-15T15:27:45.502+00:00", "event": "finished", "status": "success"}

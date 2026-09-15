@@ -35,6 +35,7 @@ the same newly generated artifact for two members. The sub-account showcases use
 
 | Run | Capability | Result | What it shows |
 |---|---|---|---|
+| [`showcase-assisted-drift`](runs/showcase-assisted-drift) | lookup_member_balance 1.3.0 | `success`  | Saved genuine live-model assisted relocation with a draft proposal |
 | [`showcase-discovery-haiku`](runs/showcase-discovery-haiku) | discovery | - | a live Claude Haiku 4.5 discovery run (transcript.json, cassette.json, artifact.json) |
 | [`showcase-discovery-open-sub-account`](runs/showcase-discovery-open-sub-account) | discovery | - | a live Claude Haiku 4.5 discovery run (transcript.json, cassette.json, artifact.json) |
 | [`showcase-handoff-ambiguous`](runs/showcase-handoff-ambiguous) | lookup_member_balance 1.2.0 | `success`  | escalation handed to a person, who opens the record; the run resumes - human/actions.jsonl and handoff1_diff.json |
@@ -44,8 +45,22 @@ the same newly generated artifact for two members. The sub-account showcases use
 | [`showcase-replay-business-outcome`](runs/showcase-replay-business-outcome) | lookup_member_balance 1.2.0 | `business_outcome` member_not_found | no such member: a named outcome, exit 0 |
 | [`showcase-replay-escalated-wrong-member`](runs/showcase-replay-escalated-wrong-member) | lookup_member_balance 1.2.0 | `escalated` checkpoint_not_met | the right screen for the wrong member: escalated |
 | [`showcase-replay-hard-failure`](runs/showcase-replay-hard-failure) | lookup_member_balance 1.2.0 | `failure` hard_failure | a server error: failure, expected vs observed |
+| [`showcase-replay-hard-failure 2`](runs/showcase-replay-hard-failure 2) | discovery | - | a live Claude Haiku 4.5 discovery run (no run files; missing: transcript.json, cassette.json, artifact.json) |
 | [`showcase-replay-recovered-interstitial`](runs/showcase-replay-recovered-interstitial) | lookup_member_balance 1.2.0 | `success`  | a notice dismissed: success with recoveries |
+| [`showcase-replay-recovered-interstitial 2`](runs/showcase-replay-recovered-interstitial 2) | discovery | - | a live Claude Haiku 4.5 discovery run (no run files; missing: transcript.json, cassette.json, artifact.json) |
 | [`showcase-replay-success`](runs/showcase-replay-success) | lookup_member_balance 1.2.0 | `success`  | clean replay, no model: the balance and status |
+
+## Retained extensions
+
+[Feature demonstrations](features/README.md) include tenant reuse, measured catalog invocation, protected-console handoff, scripted discovery demonstration, reuse of the demonstrated step, assisted-cassette playback and actual worker-crash recovery. They make no new model calls.
+
+| Recording | Provenance | Reproduce |
+|---|---|---|
+| [Upstream agent](agent/lookup.json) | Saved live Claude tool-use exchange; fictional fixture inputs and caller outputs are intentionally visible here. | `uv run python scripts/agent_demo.py --cassette evidence/agent/lookup.json` |
+| [Assist choice](agent/assist.json) | Saved live Claude element selection, bound to the sanitized observation hash. | `scripts/feature_demo.py` |
+| [Stability reports](stability/) | Historical fixture sweeps; current reproduction measures a fresh private ledger. | `waypoint stability` |
+
+Runtime SQLite files are not submitted. Run IDs and captured absolute paths describe the original execution; use this index to inspect the retained copies.
 
 ## Regenerate replay evidence
 

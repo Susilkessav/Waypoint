@@ -3,7 +3,7 @@
 The ``ambiguous`` injection renders two identical View links in the searched member's
 row, so steps[2] escalates. A stand-in operator takes control through the shared state
 store (or the real CLI), acts on the same browser, and returns it; the run continues
-only where the return ladder says it may (PLAN.md 3.6, R-PROC, R-RESUME).
+only where the return ladder says it may (REPORT.md §5, R-PROC, R-RESUME).
 
 T8  - returning on a screen no declared resume point accepts escalates again.
 T19 - the run cannot act while the person holds control.

@@ -1,4 +1,4 @@
-"""Declarative state signatures (PLAN.md 6.6, R-OUT-1, R-RESUME-5).
+"""Declarative state signatures (R-OUT-1, R-RESUME-5).
 
 One vocabulary serves as step checkpoints, pre- and postconditions and outcome
 recognizers, for discovery and replay alike. Signatures read only the sanitized

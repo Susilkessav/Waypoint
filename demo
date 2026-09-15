@@ -1,0 +1,4 @@
+#!/bin/sh
+# Run from the repository's environment; no activation or shell variables needed.
+cd "$(dirname "$0")" || exit 1
+exec uv run --locked python scripts/demo.py "$@"

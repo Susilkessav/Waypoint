@@ -1,0 +1,57 @@
+{
+  "fixture_only": true,
+  "live_model_calls": 0,
+  "operator": "scripted through protected console routes",
+  "scenarios": [
+    {
+      "name": "confidence-measurement",
+      "shows": "Eight declared cases earn confidence in the same ledger used for invocation",
+      "path": "confidence-measurement"
+    },
+    {
+      "name": "catalog-base",
+      "shows": "Approved, measured tool invocation for another member",
+      "path": "catalog-base"
+    },
+    {
+      "name": "tenant-riverbank",
+      "shows": "Same artifact and inputs; riverbank override finds the renamed Continue button",
+      "path": "tenant-riverbank"
+    },
+    {
+      "name": "tenant-without-override",
+      "shows": "Base target is refused on the changed tenant",
+      "path": "tenant-without-override"
+    },
+    {
+      "name": "assisted-relocation",
+      "shows": "Recorded live-model relocation matches this screen; one attempt, checked draft",
+      "path": "assisted-relocation"
+    },
+    {
+      "name": "catalog-console-handoff",
+      "shows": "Catalog invocation pauses; protected console takes/returns the same browser",
+      "path": "catalog-console-handoff"
+    },
+    {
+      "name": "discovery-demonstration",
+      "shows": "Scripted discovery stop; operator's click becomes a reusable input-bound step",
+      "path": "discovery-demonstration"
+    },
+    {
+      "name": "demonstration-reused",
+      "shows": "Human-demonstrated step replays for a different member",
+      "path": "demonstration-reused"
+    },
+    {
+      "name": "crash-resumed",
+      "shows": "Real worker exit; safe prefix reconstructed; source claimed once and closed",
+      "path": "crash-resumed"
+    },
+    {
+      "name": "crash-before-resume",
+      "shows": "Interrupted worker's durable evidence before resumption (no terminal result)",
+      "path": "crash-before-resume"
+    }
+  ]
+}
