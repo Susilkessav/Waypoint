@@ -1,6 +1,6 @@
 # Waypoint — final recording script
 
-**About 6–7 minutes.** Read the quoted lines in your own words. The presenter types the real
+**About 8 minutes.** Read the quoted lines in your own words. The presenter types the real
 commands for you; you press **Enter** and, twice, click in a browser.
 
 ## Before recording
@@ -29,9 +29,25 @@ uv run playwright install chromium
 
 ---
 
-## 1. Opening — about 45 seconds
+## 1. Introduction — about 30 seconds
 
-*(On the slides, or just talking over the terminal.)*
+*(Slide 1, the title — or just your face and the terminal.)*
+
+> “Hi, I'm Susil. This is Waypoint, my submission for the computer-use automation assignment.”
+
+> “In the next eight minutes I'll explain the problem it solves, then show it working end to
+> end against a deliberately awkward demo banking app: a model learning a task, a person
+> reviewing and approving it, the task replaying without a model — including when things go
+> wrong — and a person taking over the live browser when it isn't safe to continue. I'll
+> finish with the other features it includes.”
+
+> “Everything you'll see runs locally. The members, accounts and login are fictional, and the
+> model decisions are replayed from a real earlier recording, so there are no live model calls
+> in this video.”
+
+## 2. The problem and the idea — about 45 seconds
+
+*(Slides 2 and 3, or just talking over the terminal.)*
 
 > “Banks run a lot of older back-office systems that have no API. The only way to use them is
 > through the screen, the way a member of staff does. If an AI agent is going to do real work
@@ -48,7 +64,7 @@ uv run playwright install chromium
 
 *(Switch to the terminal.)*
 
-## 2. The demo — 12 scenes
+## 3. The demo — 12 scenes
 
 **Press Enter to start each scene.** Wait for the result before pressing Enter again.
 
@@ -77,8 +93,8 @@ uv run playwright install chromium
 
 **Prompt:** *Review complete? Enter approves this artifact.* Press Enter.
 
-> “I've reviewed it, so I approve it. Approval is tied to the file's exact contents — change
-> anything and it's a draft again.”
+> “I've reviewed it, so I approve it. Approval is tied to the workflow's contents.
+> Changing the workflow invalidates that approval.”
 
 ### Scene 5 · Replay
 
@@ -91,8 +107,8 @@ uv run playwright install chromium
 
 **Shows:** **$912.04**, **dormant**.
 
-> “Same capability, a different member, the correct answer. It was learned once and works for
-> anyone.”
+> “Same capability, a different member, the correct answer. I can reuse the workflow by
+> supplying another member ID.”
 
 ### Scene 7 · Member not found
 
@@ -138,8 +154,8 @@ A browser fills in a new account and pauses before **Confirm**. Then, in order:
    An error page appears — that is the point. **Don't click again or reload.**
 3. Back in the terminal, press Enter to return control.
 
-> “Opening an account can't be undone, so the automation never clicks Confirm itself — a
-> person does. I've set the app to save the account and then lose the response. It looks
+> “Opening an account changes the system, so this demo pauses for a person before Confirm.
+> I've set the app to save the account and then lose the response. It looks
 > like a failure, but retrying could open a second account. Instead, Waypoint checks the
 > account records, finds exactly one new account matching this deposit, and returns it.”
 
@@ -152,15 +168,73 @@ A browser fills in a new account and pauses before **Confirm**. Then, in order:
 > “Every run keeps the exact capability, its result, the checks, and anything a person did.
 > Saved screenshots and page snapshots have sensitive values redacted.”
 
-## 3. Closing — about 20 seconds
+## 4. Everything else it can do — about 90 seconds
+
+No more scenes: after scene 12, keep the terminal on screen and **talk through these**. Where a
+file is listed, you can open it in your editor while you speak — it is saved evidence from real
+runs, so nothing needs to execute. Skip any you are short on time for.
+
+### Safety, all the way through
+
+> “You've seen some of the safety rules already. Every action goes through a policy engine:
+> it can only visit allowed addresses, and it judges risk by what an action *does*, not what
+> the button is called — that's why Confirm needed a person. Member data is classified before
+> the model or the logs ever see it, and credentials are typed straight into the right field
+> while being kept out of model prompts and run evidence.”
+
+### When discovery itself gets stuck
+
+> “Handoff isn't only for replay. If discovery stops making progress — the screen doesn't
+> change, it keeps going back and forth, or the model gives up — it hands the same live
+> browser to a person. What they did is logged, and the draft carries a gap that blocks
+> approval until someone writes that step properly. So a draft never silently skips work a
+> person did.”
+
+### Measuring reliability
+
+**Optional to show:** `evidence/stability/lookup_member_balance-1.3.0-…/report.md`
+
+> “One green run doesn't prove much, so Waypoint can replay every declared case several times.
+> This report shows sixteen runs: whether each did what its case said, whether the same inputs
+> gave the same answer every time, and how long each took. Runs where we broke the app on
+> purpose are reported but never counted. A capability can require a minimum confidence
+> before it runs unattended — version 1.3.0 refuses to run on its own until it's been measured.”
+
+### Tools an agent can call
+
+**Optional to show:** `evidence/agent/lookup.json`
+
+> “Approved capabilities are published as a catalog of typed tools. Drafts never appear there.
+> In this recording, Claude was asked for a member's balance: it picked the lookup tool, called
+> it by name, Waypoint replayed it, and Claude answered from the result — without touching the
+> UI itself.”
+
+### A renamed button
+
+**Optional to show:** `evidence/runs/showcase-assisted-drift/` — `assist_steps_1.json` and
+`proposal/lookup_member_balance-1.3.1.json`
+
+> “Real applications get updated. Here the Search button was renamed to Continue, so the
+> recorded step couldn't find it. If a capability allows it, Waypoint may ask a model one narrow
+> question: *which control is it now?* The model can only point at an element; the answer is
+> checked before use, it happens at most once per run, and never on a step that can't be
+> undone. The run also writes a proposed repair for a person to review.
+> It doesn't install or approve that repair automatically.”
+
+### Generated tests
+
+> “Finally, it can turn a capability into code: a regression test that replays every declared
+> case — so a broken capability fails a CI build — and a readable Playwright version, so you
+> can see exactly what it clicks.”
+
+## 5. Closing — about 20 seconds
 
 *(Optional: the last slide, **Recap**.)*
 
 > “So that's Waypoint: a model learns a task once, a person approves it, and from then on it
 > replays reliably without a model — and hands the live session to a person when it isn't
-> safe. It also measures reliability across repeated runs, exposes capabilities as tools an
-> agent can call, and generates regression tests. Tenant variants and desktop apps are
-> designed but not built; the report explains the trade-offs. Thanks for watching.”
+> safe. Tenant variants and desktop apps are designed but not built; the report explains the
+> trade-offs. Thanks for watching.”
 
 Stop recording. The presenter stops its demo app and keeps the evidence.
 
@@ -185,6 +259,7 @@ Trim the measurement wait in editing.
 | Problem | What to do |
 |---|---|
 | Scene 3 or 9 shows a failure | Expected. Keep going. |
+| You're running long | Cut section 4 down to "Measuring reliability" and "Tools an agent can call". |
 | The presenter stops with an error | Stop recording, press **q** if prompted, and run `docs/present.sh` again for a fresh take. |
 | In scene 10 or 11 you pressed Enter before clicking | The run asks for a person again, and the presenter stops after a minute with a clear message. Start a fresh take. |
 | You can't see the browser in scene 10 or 11 | Click the Chromium icon in the Dock. |

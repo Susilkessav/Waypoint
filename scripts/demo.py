@@ -140,8 +140,11 @@ def main() -> int:
     env = {**os.environ, **FIXTURE}
     if action == "app":
         print(f"Demo app: {origin}\nLeave this terminal running.", flush=True)
-        return subprocess.call([sys.executable, "-m", "target_app"], cwd=REPO,
-                               env={**env, "PORT": str(settings["port"])})
+        # Become the app rather than starting it as a child: stopping this process (Control-C,
+        # or the presenter exiting) must stop the server too, not leave it holding the port.
+        os.chdir(REPO)
+        os.execve(sys.executable, [sys.executable, "-m", "target_app"],
+                  {**env, "PORT": str(settings["port"])})
     if action == "review":
         path = directory / "capabilities/lookup_member_balance/1.0.0.json"
         cap = load(path)

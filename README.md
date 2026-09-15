@@ -1,5 +1,7 @@
 # Waypoint
 
+<!-- Demo video: add your recording link here before sending the repository. -->
+
 Waypoint turns a workflow in a legacy application into a reviewed capability that an agent can
 call with typed inputs. Discovery uses a model to explore the UI. Compilation produces a
 versioned artifact. Normal replay follows that artifact without model calls, checks each step,
